@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Gradio.Net</id>
+    <version>0.0.2</version>
+    <title>Gradio.Net</title>
+    <authors>feiyun0112</authors>
+    <owners></owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+
+
+    <readme>NUGET.md</readme>
+    <projectUrl>https://github.com/feiyun0112/Gradio.Net</projectUrl>
+    <description>Gradio for .NET – a port of Gradio, an open-source Python package that allows you to quickly build a demo or web application for your machine learning model, API, or any arbitrary Python function.  Gradio for .NET – 基于 Gradio 的 .NET 移植，Gradio 是一个开源 Python 包，允许你为机器学习模型、API 或任何任意 Python 函数快速构建演示或 Web 应用程序。</description>
+    <copyright></copyright>
+    <tags>Gradio, UI, UI-Components</tags>
+    <repository type="git" url="https://github.com/feiyun0112/Gradio.Net" />
+    <dependencies>
+      
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\Gradio.Net\bin\Release\net8.0\Gradio.Net.dll" target="lib\net8.0\Gradio.Net.dll" />
+
+    <file src="NUGET.md" target="NUGET.md" />
+  </files>
+</package>

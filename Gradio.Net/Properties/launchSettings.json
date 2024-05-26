@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Gradio.Net": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:7179;http://localhost:7180"
+    }
+  }
+}

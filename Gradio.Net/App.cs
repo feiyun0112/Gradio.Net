@@ -3,10 +3,14 @@ using Gradio.Net;
 using Gradio.Net.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Gradio.Net
@@ -35,11 +39,11 @@ namespace Gradio.Net
             this._appId = new Random(DateTime.Now.Millisecond).NextInt64();
         }
 
-        internal Dictionary<string, object> GetConfig(Microsoft.AspNetCore.Http.HttpRequest request)
+        internal Dictionary<string, object> GetConfig(HttpRequest httpRequest)
         {
             var result = Context.RootBlock.GetConfig();
 
-            result["root"] = $"{request.Scheme}://{request.Host}";
+            result["root"] = httpRequest.GetRootUrl();
             result["version"] = GRADIO_VERSION;
             result["app_id"] = _appId;
             return result;
@@ -60,10 +64,11 @@ namespace Gradio.Net
             return result;
         }
 
-        internal async Task<QueueJoinOut> QueueJoin(PredictBodyIn body)
+        internal async Task<QueueJoinOut> QueueJoin(HttpRequest request, PredictBodyIn body)
         {
             var eventIn = new Event()
             {
+                RootUrl = request.GetRootUrl(),
                 SessionHash = body.SessionHash,
                 FnIndex = body.FnIndex,
                 ConcurrencyId = Context.RootBlock.Fns[body.FnIndex].ConcurrencyId,
@@ -137,12 +142,73 @@ namespace Gradio.Net
                 yield break;
             }
             var result = eventResult.OutputTask.Result;
+            var blockFunction = eventResult.BlockFunction;
+            var data = result.Data;
+           
             yield return new ProcessCompletedMessage(eventResult.Event.Id, new Dictionary<string, object> {
-                { "data",result.Data}
+                { "data",gr.Output(eventResult,data)}
             });
 
             yield break;
 
+        }
+
+        internal async Task<List<string>> Upload(string uploadId, IFormFileCollection files)
+        {
+            if (files == null || files.Count == 0)
+            {
+                throw new ArgumentException("No files uploaded.");
+            }
+
+            var outputFiles = new List<string>();
+            var filesToCopy = new List<string>();
+            var locations = new List<string>();
+
+            foreach (var file in files)
+            {
+                if (file.Length == 0)
+                {
+                    continue;
+                }
+
+                var fileName = Path.GetFileName(file.FileName);
+                var name = Path.GetInvalidFileNameChars().Aggregate(fileName, (current, c) => current.Replace(c.ToString(), ""));
+                var directory = Path.Combine(Path.GetTempPath(), file.GetHashCode().ToString());
+                Directory.CreateDirectory(directory);
+                var dest = Path.Combine(directory, name);
+
+                using (var stream = new FileStream(dest, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                Context.DownloadableFiles.TryAdd(dest,dest);
+
+                outputFiles.Add(dest);
+            }
+
+            return outputFiles;
+        }
+
+        internal async Task<(string filePath, string contentType)> GetUploadedFile(string pathOrUrl)
+        {
+            var filePath = new FileInfo(System.Net.WebUtility.UrlDecode(pathOrUrl)).FullName;
+            if (!Context.DownloadableFiles.TryGetValue(filePath, out _))
+            {
+                throw new ArgumentException($"File not allowed: {pathOrUrl}.");
+            }
+
+            Context.DownloadableFiles.Remove(filePath, out _);
+                        
+            const string DefaultContentType = "application/octet-stream";
+            var provider = new FileExtensionContentTypeProvider();
+            if (!provider.TryGetContentType(filePath, out string contentType))
+            {
+                contentType = DefaultContentType;
+            }
+
+
+            return (filePath, contentType);
         }
     }
 }

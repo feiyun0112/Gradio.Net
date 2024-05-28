@@ -72,3 +72,4 @@ app.Run();
 - **Markdown**
 - **Textbox**(event not implemented)
 - **Button**
+- **[Image](./image_demo.md)**

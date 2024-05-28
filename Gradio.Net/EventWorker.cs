@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Gradio.Net
@@ -22,8 +24,11 @@ namespace Gradio.Net
 
                 if (eventIn.FnIndex >= 0 && eventIn.FnIndex < Context.RootBlock.Fns.Count)
                 {
-                    var fn = Context.RootBlock.Fns[eventIn.FnIndex].Fn;
-                    Context.EventResults.TryAdd(eventIn.SessionHash,new EventResult { Event = eventIn, OutputTask = fn?.Invoke(gr.Input(eventIn.Data.Data)) });
+                    var blockFunction = Context.RootBlock.Fns[eventIn.FnIndex];
+                    var fn = blockFunction.Fn;
+                    var data = eventIn.Data.Data;
+                    
+                    Context.EventResults.TryAdd(eventIn.SessionHash,new EventResult { Event = eventIn, BlockFunction= blockFunction, OutputTask = fn?.Invoke(gr.Input(blockFunction, data)) });
                 }
                 else
                 {

@@ -1,6 +1,7 @@
 ﻿
 using Gradio.Net.Enums;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -60,9 +61,19 @@ namespace Gradio.Net
                 var value = p.GetValue(this, null);
                 if (value != null)
                 {
-                    if (p.PropertyType.Namespace==typeof(ShowProgress).Namespace)
+                    if (p.PropertyType.Namespace == typeof(ShowProgress).Namespace)
                     {
                         result[name] = value.ToString().ToSnakeCase().ToLowerInvariant();
+                    }
+                    else if (p.PropertyType.IsGenericType  
+                        && typeof(IEnumerable).IsAssignableFrom(p.PropertyType) 
+                        && p.PropertyType.GenericTypeArguments.Count()==1
+                        && p.PropertyType.GenericTypeArguments[0].Namespace == typeof(ShowProgress).Namespace
+                        )
+                    {
+                        var tmpList = value as IEnumerable;
+                        var listValue = tmpList?.Cast<object>().Select(item => item.ToString().ToSnakeCase().ToLowerInvariant()).ToList();
+                        result[name] = listValue;
                     }
                     else
                     {
@@ -80,6 +91,16 @@ namespace Gradio.Net
         protected virtual string GetName()
         {
             return this.GetType().Name.ToLower();
+        }
+
+        internal virtual object PreProcess(object data)
+        {
+            return data;
+        }
+
+        internal virtual object PostProcess(string rootUrl, object data)
+        {
+            return data;
         }
     }
 }

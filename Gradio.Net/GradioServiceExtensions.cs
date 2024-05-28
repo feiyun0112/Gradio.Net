@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using Gradio.Net;
 using static System.Runtime.CompilerServices.YieldAwaitable;
 using Gradio.Net.Models;
 
@@ -26,6 +25,8 @@ namespace Microsoft.AspNetCore.Builder
         public static WebApplication UseGradio(this WebApplication webApplication
         , Blocks blocks, Action<GradioServiceConfig>? additionalConfigurationAction = null)
         {
+            webApplication.UseMiddleware<FileMiddleware>();
+
             GradioServiceConfig gradioServiceConfig = new GradioServiceConfig();
             additionalConfigurationAction?.Invoke(gradioServiceConfig);
 
@@ -55,12 +56,12 @@ namespace Microsoft.AspNetCore.Builder
                 return app.GetApiInfo(request);
             });
 
-            webApplication.MapPost("/queue/join", async (PredictBodyIn body, [FromServices] App app) =>
+            webApplication.MapPost("/queue/join", async (HttpRequest request, PredictBodyIn body, [FromServices] App app) =>
             {
-                return await app.QueueJoin(body);
+                return await app.QueueJoin(request, body);
             });
 
-            webApplication.MapGet("/queue/data", async (HttpContext context, CancellationToken stoppingToken) =>
+            webApplication.MapGet("/queue/data", async ([FromServices] App app,HttpContext context, CancellationToken stoppingToken) =>
                 {
                     context.Response.Headers.Add("Content-Type", "text/event-stream");
 
@@ -75,6 +76,31 @@ namespace Microsoft.AspNetCore.Builder
                     await streamWriter.FlushAsync();
 
                 });
+
+            webApplication.MapPost("/upload", async (HttpRequest request,  [FromServices] App app) =>
+            {
+                var uploadId = request.Query["upload_id"].First();
+                var files = request.Form.Files;
+                return await app.Upload(uploadId, files);
+            });
+
+            webApplication.MapGet("/upload_progress", async ([FromServices] App app, HttpContext context, CancellationToken stoppingToken) =>
+            {
+                context.Response.Headers.Add("Content-Type", "text/event-stream");
+                
+                StreamWriter streamWriter = new StreamWriter(context.Response.Body);
+
+                await streamWriter.WriteLineAsync(new CloseStreamMessage().ProcessMsg());
+                await streamWriter.FlushAsync();
+            });
+
+           
+
+            webApplication.MapGet("/file", async ([FromServices] App app, HttpContext context) =>
+            {
+                return context.Request.Path;
+                //await app.GetUploadedFile(pathOrUrl);
+            });
 
             return webApplication;
         }

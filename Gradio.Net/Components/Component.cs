@@ -38,7 +38,7 @@ namespace Gradio.Net
         internal object Value { get; set; }
         internal string Label { get; set; }
         internal float? Every { get; set; }
-        internal bool ShowLabel { get; set; }
+        internal bool? ShowLabel { get; set; }
         
     
         protected virtual Dictionary<string, object> GetApiInfo() { 

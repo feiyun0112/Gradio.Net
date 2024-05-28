@@ -70,3 +70,4 @@ At present, Gradio.Net is only a M.V.P version, and more Gradio components will 
 - **Markdown**
 - **Textbox**(event not implemented)
 - **Button**
+- **[Image](./readme_files/image_demo.md)**

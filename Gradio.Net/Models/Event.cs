@@ -11,6 +11,7 @@ namespace Gradio.Net
 
     internal class Event
     {
+        internal string RootUrl { get; set; }
         internal string Id { get; } = Guid.NewGuid().ToString("N").ToLowerInvariant();
         internal string SessionHash { get; set; }
         internal int FnIndex { get; set; }

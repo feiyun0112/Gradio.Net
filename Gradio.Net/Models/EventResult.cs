@@ -8,6 +8,7 @@ namespace Gradio.Net
 {
     internal class EventResult
     {
+        public BlockFunction BlockFunction { get; internal set; }
         internal Event Event { get; set; }
         internal Task<Output> OutputTask { get; set; }
     }

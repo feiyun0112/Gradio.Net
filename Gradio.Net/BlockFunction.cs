@@ -63,7 +63,7 @@ namespace Gradio.Net
             result["trigger_after"] = this.TriggerAfter;
             result["trigger_only_on_success"] = this.TriggerOnlyOnSuccess;
             result["triggerMode"] = TriggerMode.ToString().ToLowerInvariant();
-            result["showApi"] = this.ShowApi;
+            result["show_api"] = this.ShowApi;
             result["zerogpu"] = this.ZeroGpu;
 
             return result;

@@ -68,8 +68,12 @@ app.Run();
 截至目前，Gradio.Net 只是一个 M.V.P. 版本，更多的 Gradio 组件将在稍后移植。
 
 - **Blocks**
-- **Row**
+- **[Row](./layout_demo.md)**
 - **Markdown**
 - **Textbox**(event not implemented)
 - **Button**
 - **[Image](./image_demo.md)**
+- **[Column](./layout_demo.md)**
+- **[Tab](./layout_demo.md)**
+- **[Group](./layout_demo.md)**
+- **[Accordion](./layout_demo.md)**

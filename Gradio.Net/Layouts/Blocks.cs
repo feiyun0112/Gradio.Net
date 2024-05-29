@@ -12,7 +12,7 @@ using FnTarget = (int? Id, string EventName);
 
 namespace Gradio.Net
 {
-    public class Blocks : Block, ICollection<Block>, IDisposable
+    public class Blocks : Block, IList<Block>, IDisposable
     {
         private readonly List<Block> _children = new List<Block>();
         internal Blocks()
@@ -27,14 +27,14 @@ namespace Gradio.Net
 
         internal string Title { get; set; }
         internal string Theme { get;  set; }
-        internal bool AnalyticsEnabled { get;  set; }
+        internal bool? AnalyticsEnabled { get;  set; }
         internal string Mode { get;  set; }
         internal string Css { get;  set; }
         internal string Js { get;  set; }
         internal string Head { get;  set; }
-        internal bool FillHeight { get;  set; }
+        internal bool? FillHeight { get;  set; }
         internal Tuple<int, int> DeleteCache { get;  set; }
-
+        
         public  virtual void Add(Block item)
         {
             if (item is Blocks blocks)
@@ -66,10 +66,11 @@ namespace Gradio.Net
 
         internal Dictionary<string, object> GetConfig()
         {
+
             var config = new Dictionary<string, object>();
             config["mode"] = this.Mode;
             config["dev_mode"] = false;
-            config["analyticsEnabled"] = this.AnalyticsEnabled;
+            config["analytics_enabled"] = this.AnalyticsEnabled;
             config["components"] = GetComponents();
             config["css"] = this.Css;
             config["connect_heartbeat"] = false;
@@ -79,7 +80,7 @@ namespace Gradio.Net
             config["space_id"] = null;
             config["enable_queue"] = true;
             config["show_error"] = false;
-            config["showApi"] = true;
+            config["show_api"] = true;
             config["is_colab"] = false;
             config["max_file_size"] = null;
             config["stylesheets"] = new string[] {
@@ -94,7 +95,7 @@ namespace Gradio.Net
                 { "body_background_fill_dark", "#0b0f19" },
                 { "body_text_color_dark", "#f3f4f6" },
             };
-            config["fillHeight"] = this.FillHeight;
+            config["fill_height"] = this.FillHeight;
 
             config["layout"] = GetLayout();
 
@@ -299,10 +300,43 @@ namespace Gradio.Net
         [IgnoreDataMember]
         internal List<BlockFunction> Fns { get; set; } = new List<BlockFunction>();
 
+        public Block this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         private (IList, int? progressIndex, int? eventDataIndex) SpecialArgs(Func<Input,Task<Output>> fn)
         {
             //todo:Checks if function has special arguments Request or EventData (via annotation) or Progress (via default value).
             return (null, null, null);
+        }
+
+        protected override Dictionary<string, object> GetProps()
+        {
+            var result = base.GetProps();
+            if (result.ContainsKey("id"))
+            {
+                result.Remove("id");
+            }
+
+            if (result.ContainsKey("elem_classes"))
+            {
+                result.Remove("elem_classes");
+            }
+
+            return result;
+        }
+
+        public int IndexOf(Block item)
+        {
+            return _children.IndexOf(item);
+        }
+
+        public void Insert(int index, Block item)
+        {
+            _children.Insert(index, item);
+        }
+
+        public void RemoveAt(int index)
+        {
+           _children.RemoveAt(index);
         }
     }
 }

@@ -24,6 +24,8 @@ async Task<Blocks> CreateBlocks()
 
         await ImageDemo.Create();
 
+        await LayoutDemo.Create();
+
         return blocks;
     }
 }

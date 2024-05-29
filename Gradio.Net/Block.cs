@@ -24,6 +24,8 @@ namespace Gradio.Net
         internal string ElemId { get; set; }
         private IEnumerable<string> elemClasses;
         internal IEnumerable<string> ElemClasses { get { return elemClasses; } set { if (value == null) { value = new List<string>(); } elemClasses = value; } }
+        internal bool? Interactive { get; set; }
+
 
         internal virtual Dictionary<string, object> GetLayout()
         {
@@ -37,12 +39,24 @@ namespace Gradio.Net
         {
             var blockConfig = new Dictionary<string, object>();
             blockConfig["id"] = Id;
-            blockConfig["type"] = GetType().Name.ToLower();
+            blockConfig["type"] = GetTypeName();
             blockConfig["props"] = GetProps();
             blockConfig["skip_api"] = true;
             blockConfig["key"] = Key;
 
+            blockConfig["component_class_id"] = GetComponentClassId();
+
             return blockConfig;
+        }
+        protected virtual string GetTypeName()
+        {
+            return GetType().Name.ToLower();
+        }
+
+
+        private string GetComponentClassId()
+        {
+            return GetType().Name;
         }
         internal bool Visible { get; set; } = true;
         protected virtual Dictionary<string, object> GetProps() {

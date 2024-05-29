@@ -66,8 +66,12 @@ app.Run();
 At present, Gradio.Net is only a M.V.P version, and more Gradio components will be ported later.
 
 - **Blocks**
-- **Row**
+- **[Row](./readme_files/layout_demo.md)**
 - **Markdown**
 - **Textbox**(event not implemented)
 - **Button**
 - **[Image](./readme_files/image_demo.md)**
+- **[Column](./readme_files/layout_demo.md)**
+- **[Tab](./readme_files/layout_demo.md)**
+- **[Group](./readme_files/layout_demo.md)**
+- **[Accordion](./readme_files/layout_demo.md)**

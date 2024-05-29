@@ -11,26 +11,13 @@ namespace Gradio.Net
         {
 
         }
-
-        internal override Dictionary<string, object> GetConfig()
-        {
-            var blockConfig = base.GetConfig();
-
-            blockConfig["component_class_id"] = GetComponentClassId();
-
-            return blockConfig;
-        }
-
-        private string GetComponentClassId()
-        {
-            return GetType().Name;
-        }
+        
         internal bool Rtl { get; set; }
         internal string Info { get; set; }
         internal bool Container { get; set; } = true;
         internal int? Scale { get; set; }
         internal int? MinWidth { get; set; }
-        internal bool? Interactive { get; set; }
+        
         [IgnoreDataMember]
         internal Action LoadFn { get; set; }
 

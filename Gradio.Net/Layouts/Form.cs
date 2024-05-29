@@ -22,7 +22,7 @@ namespace Gradio.Net
                 this.Scale += scale.HasValue ? scale.Value : 1;
                 this.MinWidth += minWidth.HasValue ? minWidth.Value : 0;
             }
-            else if (this.ParentBlocks is Blocks blocks && blocks.FillHeight)
+            else if (this.ParentBlocks is Blocks blocks && blocks.FillHeight.HasValue && blocks.FillHeight.Value)
             {
                 var scale = formComponet.Scale;
                 this.Scale += scale.HasValue ? scale.Value : 1;

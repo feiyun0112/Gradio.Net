@@ -10,7 +10,9 @@ namespace demo
     {
         public static async Task Create()
         {
-            gr.Markdown("**Image Demo** upload a image and click button");
+            gr.Markdown("# Image Demo");
+
+            gr.Markdown("upload a image and click button");
             Gradio.Net.Image input, output;
             using (gr.Row())
             {

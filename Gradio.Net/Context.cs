@@ -39,17 +39,35 @@ namespace Gradio.Net
                 else
                 {
                     Form formParent = null;
+                    Tabs tabsParent = null;
                     var children = _currentBlocks.ToList();
-                    foreach (var child in children)
-                    {
-                        if (child is FormComponent formComponent)
+                    for (var i = 0; i < children.Count; i++)                   
+                    { 
+                        var child = children[i];
+                        if (child is Tab tab)
+                        {                            
+                            if (tabsParent == null)
+                            {
+                                tabsParent = new Tabs();
+                                _currentBlocks.Insert(i, tabsParent);
+                                tabsParent.ParentBlocks = _currentBlocks;
+                                tabsParent.Render = false;
+
+                            }
+
+                            tabsParent.Add(tab);
+                            _currentBlocks.Remove(child);
+                           
+                        }
+                        else if (child is FormComponent formComponent)
                         {
                             if (formComponent.Container)
                             {
                                 if (formParent == null)
                                 {
                                     formParent = new Form();
-                                    _currentBlocks.Add(formParent);
+                                    _currentBlocks.Insert(1,formParent);
+                                    formParent.ParentBlocks = _currentBlocks;
                                     formParent.Render = false;
                                     
                                 }

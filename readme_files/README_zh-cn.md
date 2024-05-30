@@ -77,3 +77,4 @@ app.Run();
 - **[Tab](./layout_demo.md)**
 - **[Group](./layout_demo.md)**
 - **[Accordion](./layout_demo.md)**
+- **[Chatbot](./chatbot_demo.md)**

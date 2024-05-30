@@ -130,7 +130,13 @@ namespace Gradio.Net
 
             if (eventResult.OutputTask.Exception != null)
             {
-                yield return new UnexpectedErrorMessage(eventResult.OutputTask.Exception.Message);
+                Exception ex = eventResult.OutputTask.Exception;
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
+
+                yield return new UnexpectedErrorMessage(ex.Message);
 
                 yield break;
             }
@@ -142,6 +148,14 @@ namespace Gradio.Net
                 yield break;
             }
             var result = eventResult.OutputTask.Result;
+
+            if (result is ErrorOutput error)
+            {
+                yield return new UnexpectedErrorMessage(error.Exception.Message);
+
+                yield break;
+            }
+
             var blockFunction = eventResult.BlockFunction;
             var data = result.Data;
            
@@ -200,15 +214,10 @@ namespace Gradio.Net
 
             Context.DownloadableFiles.Remove(filePath, out _);
                         
-            const string DefaultContentType = "application/octet-stream";
-            var provider = new FileExtensionContentTypeProvider();
-            if (!provider.TryGetContentType(filePath, out string contentType))
-            {
-                contentType = DefaultContentType;
-            }
+            
 
 
-            return (filePath, contentType);
+            return (filePath, ClientUtils.GetMimeType(filePath));
         }
     }
 }

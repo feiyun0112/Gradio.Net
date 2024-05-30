@@ -31,13 +31,7 @@ namespace Gradio.Net
         {
             var str = data.ToString();
 
-            var serializeOptions = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-                WriteIndented = false,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            };
-            var fileData = JsonSerializer.Deserialize<FileData>(str, serializeOptions);
+            var fileData = JsonUtils.Deserialize<FileData>(str);
             return fileData.Path;
         }
 
@@ -45,16 +39,28 @@ namespace Gradio.Net
         {
             var str = data.ToString();
 
-            var serializeOptions = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-                WriteIndented = false,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            };
-
             Context.DownloadableFiles.TryAdd(str, str);
-
+            if (ClientUtils.IsUrl(str))
+            {
+                return new FileData { Path = null, Url = str };
+            }
+            
             return new FileData { Path = str, Url = $"{rootUrl}/file={str}" };
+        }
+
+        public static string Payload(object obj)
+        {
+            if (obj == null)
+            {
+                return null;
+            }
+
+            if (obj is string str)
+            {
+                return str;
+            }
+
+            throw new ArgumentException($"Payload Type expect string actual {obj.GetType()}");
         }
     }
 }

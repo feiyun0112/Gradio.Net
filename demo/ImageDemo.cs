@@ -13,15 +13,17 @@ namespace demo
             gr.Markdown("# Image Demo");
 
             gr.Markdown("upload a image and click button");
-            Gradio.Net.Image input, output;
+            Gradio.Net.Image input, outputFilePath, ooutputUrl;
             using (gr.Row())
             {
                 input = gr.Image();
-                
-                output = gr.Image();
+
+                outputFilePath = gr.Image();
+                ooutputUrl = gr.Image();
+
             }
             var btn = gr.Button("Submit");
-            await btn.Click(fn: async (input) => gr.Output(DrawWaterMarkOnImage(input.Data[0].ToString())), inputs: new[] { input }, outputs: new[] { output });
+            await btn.Click(fn: async (input) => gr.Output(DrawWaterMarkOnImage(Gradio.Net.Image.Payload(input.Data[0])), "https://www.nuget.org/profiles/MyIO/avatar?imageSize=64"), inputs: new[] { input }, outputs: new[] { outputFilePath, ooutputUrl });
         }
 
         static string DrawWaterMarkOnImage(string inputImageFilePath)

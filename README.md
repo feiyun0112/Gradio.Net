@@ -37,7 +37,7 @@ async Task<Blocks> CreateBlocks()
             output = gr.Textbox();
         }
         var btn = gr.Button("Run");
-        await btn.Click(fn: async (input) => gr.Output($"Welcome to Gradio.Net, {input.Data[0]}!"), inputs: new[] { input }, outputs: new[] { output });
+        await btn.Click(fn: async (input) => gr.Output($"Welcome to Gradio.Net, {Textbox.Payload(input.Data[0])}!"), inputs: new[] { input }, outputs: new[] { output });
 
         return blocks;
     }
@@ -75,3 +75,4 @@ At present, Gradio.Net is only a M.V.P version, and more Gradio components will 
 - **[Tab](./readme_files/layout_demo.md)**
 - **[Group](./readme_files/layout_demo.md)**
 - **[Accordion](./readme_files/layout_demo.md)**
+- **[Chatbot](./readme_files/chatbot_demo.md)**

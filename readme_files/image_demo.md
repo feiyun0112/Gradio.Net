@@ -17,8 +17,7 @@ async Task<Blocks> CreateBlocks()
             output = gr.Image();
         }
         var btn = gr.Button("Submit");
-        await btn.Click(fn: async (input) => gr.Output(DrawWaterMarkOnImage(input.Data[0].ToString())), inputs: new[] { input }, outputs: new[] { output });
-
+        await btn.Click(fn: async (input) => gr.Output(DrawWaterMarkOnImage(Gradio.Net.Image.Payload(input.Data[0]))), inputs: new[] { input }, outputs: new[] { output });
 
         return blocks;
     }

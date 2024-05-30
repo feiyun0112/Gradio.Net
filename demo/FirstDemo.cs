@@ -16,7 +16,7 @@ namespace demo
                 output = gr.Textbox();
             }
             var btn = gr.Button("Run");
-            await btn.Click(fn: async (input) => gr.Output($"Welcome to Gradio.Net, {input.Data[0]}!"), inputs: new[] { input }, outputs: new[] { output });
+            await btn.Click(fn: async (input) => gr.Output($"Welcome to Gradio.Net, {Textbox.Payload(input.Data[0])}!"), inputs: new[] { input }, outputs: new[] { output });
         }
     }
 }

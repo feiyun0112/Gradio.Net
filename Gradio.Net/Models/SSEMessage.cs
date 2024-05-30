@@ -28,13 +28,7 @@ namespace Gradio.Net.Models
 
         internal string ProcessMsg()
         {
-            var serializeOptions = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-                WriteIndented = false,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            };
-            return $"data: {JsonSerializer.Serialize(this, serializeOptions)}\n\n";
+            return $"data: {JsonUtils.Serialize(this)}\n\n";
         }
     }
 

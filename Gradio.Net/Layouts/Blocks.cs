@@ -179,8 +179,8 @@ namespace Gradio.Net
             // Support for singular parameter
             List<FnTarget> tmpTargets = targets.Select(target => (!no_target && target.Block != null) ? new FnTarget(target.Block.Id, target.EventName) : new FnTarget(null,target.EventName)).ToList();
 
-            inputs = inputs == null ? new List<Component>() : inputs.OrderBy(x => x.Id).ToList();
-            outputs = outputs == null ? new List<Component>() : outputs.OrderBy(x => x.Id).ToList();
+            inputs = inputs == null ? new List<Component>() : inputs.ToList();
+            outputs = outputs == null ? new List<Component>() : outputs.ToList();
 
             if (fn != null && (cancels == null || cancels.Count == 0))
             {

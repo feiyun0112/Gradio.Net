@@ -27,8 +27,18 @@ namespace Gradio.Net
                     var blockFunction = Context.RootBlock.Fns[eventIn.FnIndex];
                     var fn = blockFunction.Fn;
                     var data = eventIn.Data.Data;
-                    
-                    Context.EventResults.TryAdd(eventIn.SessionHash,new EventResult { Event = eventIn, BlockFunction= blockFunction, OutputTask = fn?.Invoke(gr.Input(blockFunction, data)) });
+
+                    _ = Task.Factory.StartNew(()=>
+                    {
+                        try
+                        {
+                            Context.EventResults.TryAdd(eventIn.SessionHash, new EventResult { Event = eventIn, BlockFunction = blockFunction, OutputTask = fn?.Invoke(gr.Input(blockFunction, data)) });
+                        }
+                        catch (Exception ex)
+                        {
+                            Context.EventResults.TryAdd(eventIn.SessionHash, new EventResult { Event = eventIn, BlockFunction = blockFunction, OutputTask = Task.FromResult<Output>(new ErrorOutput(ex)) }); ;
+                        }
+                    }, default, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default); 
                 }
                 else
                 {

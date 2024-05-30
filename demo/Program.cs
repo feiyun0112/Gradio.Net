@@ -26,6 +26,8 @@ async Task<Blocks> CreateBlocks()
 
         await LayoutDemo.Create();
 
+        await ChatbotDemo.Create();
+
         return blocks;
     }
 }

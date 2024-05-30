@@ -66,7 +66,7 @@ namespace Gradio.Net
                                 if (formParent == null)
                                 {
                                     formParent = new Form();
-                                    _currentBlocks.Insert(1,formParent);
+                                    _currentBlocks.Insert(i,formParent);
                                     formParent.ParentBlocks = _currentBlocks;
                                     formParent.Render = false;
                                     

@@ -18,11 +18,36 @@ namespace Gradio.Net
         internal TextboxTextAlign TextAlign { get;  set; }
         internal bool ShowCopyButton { get;  set; }
 
+        public static string Payload(object obj)
+        {
+            if (obj == null)
+            {
+                return null;
+            }
+
+            if (obj is string str)
+            {
+                return str;
+            }
+
+            throw new ArgumentException($"Payload Type expect string actual {obj.GetType()}");
+        }
+
         protected override Dictionary<string, object> GetApiInfo()
         {
             return new Dictionary<string, object>() { { "type", "string" } };
         }
 
-        
+        internal override object PreProcess(object data)
+        {
+            string result = null;
+            if (data == null)
+            {
+                return result;
+            }
+
+            result = data.ToString();
+            return result;
+        }
     }
 }

@@ -41,6 +41,16 @@ namespace Gradio.Net
         {
             return new Dictionary<string, object>() { { "type", "string" } };
         }
+        internal override object PreProcess(object data)
+        {
+            string result = null;
+            if (data == null)
+            {
+                return result;
+            }
 
-     }
+            result = data.ToString();
+            return result;
+        }
+    }
 }

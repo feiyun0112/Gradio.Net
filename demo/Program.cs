@@ -28,6 +28,10 @@ async Task<Blocks> CreateBlocks()
 
         await ChatbotDemo.Create();
 
+        await FormDemo.Create();
+
+        await ProgressDemo.Create();
+
         return blocks;
     }
 }

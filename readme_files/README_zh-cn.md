@@ -63,18 +63,9 @@ app.UseGradio(await CreateBlocks());
 app.Run();
 ```
 
-### 当前进展
+### Demos
 
-截至目前，Gradio.Net 只是一个 M.V.P. 版本，更多的 Gradio 组件将在稍后移植。
-
-- **Blocks**
-- **[Row](./layout_demo.md)**
-- **Markdown**
-- **Textbox**(event not implemented)
-- **Button**
-- **[Image](./image_demo.md)**
-- **[Column](./layout_demo.md)**
-- **[Tab](./layout_demo.md)**
-- **[Group](./layout_demo.md)**
-- **[Accordion](./layout_demo.md)**
-- **[Chatbot](./chatbot_demo.md)**
+| Layout | Form | Image | Chatbot | Progress |
+| ------ | ---- | ----- | ------- | ------- |
+| [source code](./layout_demo.md) | [source code](./form_demo.md)| [source code](./image_demo.md) | [source code](./chatbot_demo.md) | [source code](./progress_demo.md) |
+| ![image](./layout_demo.gif) | ![image](./form_demo.gif) | ![image](./image_demo.gif) | ![image](./chatbot_demo.gif) | ![image](./progress_demo.gif) |

@@ -61,18 +61,9 @@ app.UseGradio(await CreateBlocks());
 app.Run();
 ```
 
-### Progressing
+### Demos
 
-At present, Gradio.Net is only a M.V.P version, and more Gradio components will be ported later.
-
-- **Blocks**
-- **[Row](./readme_files/layout_demo.md)**
-- **Markdown**
-- **Textbox**(event not implemented)
-- **Button**
-- **[Image](./readme_files/image_demo.md)**
-- **[Column](./readme_files/layout_demo.md)**
-- **[Tab](./readme_files/layout_demo.md)**
-- **[Group](./readme_files/layout_demo.md)**
-- **[Accordion](./readme_files/layout_demo.md)**
-- **[Chatbot](./readme_files/chatbot_demo.md)**
+| Layout | Form | Image | Chatbot | Progress |
+| ------ | ---- | ----- | ------- | ------- |
+| [source code](./readme_files/layout_demo.md) | [source code](./readme_files/form_demo.md)| [source code](./readme_files/image_demo.md) | [source code](./readme_files/chatbot_demo.md) | [source code](./readme_files/progress_demo.md) |
+| ![image](./readme_files/layout_demo.gif) | ![image](./readme_files/form_demo.gif) | ![image](./readme_files/image_demo.gif) | ![image](./readme_files/chatbot_demo.gif) | ![image](./readme_files/progress_demo.gif) |

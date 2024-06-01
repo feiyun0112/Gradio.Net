@@ -11,6 +11,7 @@ namespace Gradio.Net
 {
     public class Image : Component, IStreamingInput
     {
+        internal Image() { }
         internal ImageFormat Format { get;  set; }
         internal bool MirrorWebcam { get;  set; }
         internal ImageType Type { get;  set; }

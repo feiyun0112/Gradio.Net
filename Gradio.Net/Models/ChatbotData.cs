@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 
 namespace Gradio.Net
 {
-    internal class ChatbotData
+    public class DropdownData
     {
-        public List<string[]> Root { get; set; } 
+        public string Text { get; set; }
+        public string Value { get; set; }
     }
 }

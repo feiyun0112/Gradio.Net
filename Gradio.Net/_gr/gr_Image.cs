@@ -21,7 +21,7 @@ namespace Gradio.Net
             IEnumerable<ImageSource> sources = null,
             ImageType type = ImageType.Filepath,
             string label = null,
-            float? every = null,
+            decimal? every = null,
             bool? showLabel = null,
             bool showDownloadButton = true,
             bool container = true,

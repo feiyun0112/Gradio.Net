@@ -19,7 +19,7 @@ namespace Gradio.Net
             string placeholder = null,
             string label = null,
             string info = null,
-            float? every = null,
+            decimal? every = null,
             bool showLabel = true,
             bool container = true,
             int? scale = null,

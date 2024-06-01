@@ -11,6 +11,8 @@ namespace Gradio.Net
 {
     public class Chatbot : Component
     {
+        internal Chatbot() { }
+
         internal int? Height { get;  set; }
         internal IEnumerable<Dictionary<string, object>> LatexDelimiters { get;  set; }
         internal bool ShowShareButton { get;  set; }

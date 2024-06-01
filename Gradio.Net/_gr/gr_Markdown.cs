@@ -10,7 +10,7 @@ namespace Gradio.Net
     {
         public static Markdown Markdown(string value="",
         string label=null,
-        float? every=null,
+        decimal? every=null,
         bool showLabel=true,
         bool rtl  = false,
         IEnumerable<Dictionary<string,object>> latex_delimiters=null,

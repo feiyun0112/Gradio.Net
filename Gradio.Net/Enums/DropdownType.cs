@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Gradio.Net.Models
+namespace Gradio.Net.Enums
 {
-    internal class ProgressMessage
+    public enum DropdownType
     {
+        Value = 0,
+        Index
     }
 }

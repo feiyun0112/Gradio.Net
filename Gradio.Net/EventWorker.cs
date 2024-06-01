@@ -26,13 +26,15 @@ namespace Gradio.Net
                 {
                     var blockFunction = Context.RootBlock.Fns[eventIn.FnIndex];
                     var fn = blockFunction.Fn;
+                    var streamingFn = blockFunction.StreamingFn;
                     var data = eventIn.Data.Data;
 
                     _ = Task.Factory.StartNew(()=>
                     {
                         try
                         {
-                            Context.EventResults.TryAdd(eventIn.SessionHash, new EventResult { Event = eventIn, BlockFunction = blockFunction, OutputTask = fn?.Invoke(gr.Input(blockFunction, data)) });
+                            var input = gr.Input(blockFunction, data);
+                            Context.EventResults.TryAdd(eventIn.SessionHash, new EventResult { Event = eventIn, BlockFunction = blockFunction, Input = input, OutputTask = fn?.Invoke(input), StreamingOutputTask = streamingFn?.Invoke(input) });
                         }
                         catch (Exception ex)
                         {

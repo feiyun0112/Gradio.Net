@@ -153,7 +153,8 @@ namespace Gradio.Net
 
         internal (BlockFunction, int) SetEventTrigger(
             IEnumerable<EventListenerMethod> targets,
-            Func<Input,Task<Output>> fn,
+            Func<Input,Task<Output>> fn = null,
+            Func<Input,IAsyncEnumerable<Output>> streamingFn = null,
             IEnumerable<Component> inputs = null,
             IEnumerable<Component> outputs = null,
             bool preprocess = true,
@@ -167,7 +168,7 @@ namespace Gradio.Net
             bool batch = false,
             int maxBatchSize = 4,
             List<int> cancels = null,
-            float? every = null,
+            decimal? every = null,
             bool? collects_event_data = null,
             int? trigger_after = null,
             bool trigger_only_on_success = false,
@@ -254,9 +255,19 @@ namespace Gradio.Net
                 collects_event_data = eventDataIndex != null;
             }
 
+            if (fn == null && streamingFn == null)
+            {
+                throw new InvalidOperationException("Please set fn or streamingFn");
+            }
+            if (fn != null && streamingFn != null)
+            {
+                throw new InvalidOperationException("Please set fn or streamingFn");
+            }
+
             var blockFn = new BlockFunction()
-        {
+            {
                 Fn= fn,
+                StreamingFn= streamingFn,
                 Inputs=inputs,
                 Outputs =outputs,
                 Preprocess=preprocess,

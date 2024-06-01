@@ -13,7 +13,7 @@ namespace Gradio.Net
     {
         public static Button Button(
             string value = "Run",
-            float? every = null,
+            decimal? every = null,
             ButtonVariant variant = ButtonVariant.Secondary,
             ButtonSize? size = null,
            string icon = null,
@@ -48,7 +48,8 @@ namespace Gradio.Net
 
 
         public static async Task Click(this Button button,
-           Func<Input,Task<Output>> fn,
+           Func<Input,Task<Output>> fn = null,
+           Func<Input,IAsyncEnumerable<Output>> streamingFn = null,
            IEnumerable<Component> inputs = null,
            IEnumerable<Component> outputs = null,
            string apiName = null,
@@ -60,7 +61,7 @@ namespace Gradio.Net
            bool preprocess = true,
            bool postprocess = true,
            Dictionary<string, object> cancels = null,
-           float? every = null,
+           decimal? every = null,
            TriggerMode? triggerMode = null,
            string js = null,
            ConcurrencyLimit concurrencyLimit = ConcurrencyLimit.Default,
@@ -69,6 +70,7 @@ namespace Gradio.Net
         {
             await Events.Click.EventTrigger(button,
                 fn: fn,
+                streamingFn: streamingFn,
                 inputs: inputs,
                 outputs: outputs,
                 apiName: apiName,

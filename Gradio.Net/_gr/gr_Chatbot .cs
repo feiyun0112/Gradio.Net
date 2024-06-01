@@ -17,7 +17,7 @@ namespace Gradio.Net
         public static Chatbot  Chatbot(
             IEnumerable<object> value = null,
             string label = null,
-            float? every = null,
+            decimal? every = null,
             bool? showLabel = null,
             bool container = true,
             int? scale = null,

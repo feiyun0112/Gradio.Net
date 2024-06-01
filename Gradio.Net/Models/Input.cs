@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Gradio.Net.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,5 +10,7 @@ namespace Gradio.Net
     public class Input
     {
         public object[] Data { get; set; }
+
+        public Progress Progress { get; set; }
     }
 }

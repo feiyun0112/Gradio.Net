@@ -19,7 +19,7 @@ namespace Gradio.Net
         internal int? TriggerAfter { get;  set; }
         internal bool? CollectsEventData { get;  set; }
         internal IEnumerable<int> Cancels { get;  set; }
-        internal float? Every { get;  set; }
+        internal decimal? Every { get;  set; }
         internal bool TracksProgress { get;  set; }
         internal string ConcurrencyId { get;  set; }
         internal ConcurrencyLimit? ConcurrencyLimit { get;  set; }
@@ -27,6 +27,7 @@ namespace Gradio.Net
         internal bool InputsAsDict { get;  set; }
         internal bool Postprocess { get;  set; }
         internal Func<Input,Task<Output>>? Fn { get;  set; }
+        internal Func<Input,IAsyncEnumerable<Output>>? StreamingFn { get; set; }
         internal string? Js { get;  set; }
         internal bool TypesContinuous { get;  set; }
         internal bool TypesGenerator { get;  set; }
@@ -45,7 +46,7 @@ namespace Gradio.Net
             result["targets"] = GetTargetsConfig();
             result["inputs"] = Inputs.Select(p => p.Id).ToArray();
             result["outputs"] = Outputs.Select(p => p.Id).ToArray();
-            result["backend_fn"] = this.Fn!=null;
+            result["backend_fn"] = (this.Fn!=null|| this.StreamingFn!=null);
             result["js"] = this.Js;
             result["queue"] = this.Queue;
             result["apiName"] = ApiName;

@@ -9,6 +9,7 @@ namespace Gradio.Net
 {
     public class Textbox : FormComponent
     {
+        internal Textbox() { }
         internal int Lines { get;   set; }
         internal int MaxLines { get;   set; }
         internal string Placeholder { get;   set; }

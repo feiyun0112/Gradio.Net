@@ -7,6 +7,8 @@ namespace Gradio.Net
 {
     public class Button : Component
     {
+        internal Button() { }
+
         internal string Icon { get;  set; }
         internal ButtonVariant Variant { get;   set; }
         internal ButtonSize? Size { get;   set; }

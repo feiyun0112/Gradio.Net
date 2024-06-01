@@ -110,61 +110,131 @@ namespace Gradio.Net
                 yield return new HeartbeatMessage();
             }
 
-            if (eventResult == null || eventResult.OutputTask==null)
+            if (eventResult == null || (eventResult.OutputTask==null && eventResult.StreamingOutputTask == null))
             {
                 yield return new UnexpectedErrorMessage("no task for Session");
 
                 yield break;
             }
 
-            while (!stoppingToken.IsCancellationRequested)
+            if (eventResult.OutputTask != null)
             {
-                while (!eventResult.OutputTask.IsCompleted)
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    yield return new HeartbeatMessage();
-                    await Task.Delay(checkRate);
+                    while (!eventResult.OutputTask.IsCompleted)
+                    {
+                        if (eventResult.Input.Progress != null)
+                        {
+                            yield return new ProgressMessage(eventResult.Event.Id, eventResult.Input.Progress);
+                        }
+                        else
+                        {
+                            yield return new HeartbeatMessage();
+                        }
+                        await Task.Delay(checkRate);
+                    }
+
+                    break;
                 }
 
-                break;
-            }
-
-            if (eventResult.OutputTask.Exception != null)
-            {
-                Exception ex = eventResult.OutputTask.Exception;
-                while (ex.InnerException != null)
+                if (eventResult.OutputTask.Exception != null)
                 {
-                    ex = ex.InnerException;
+                    Exception ex = eventResult.OutputTask.Exception;
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
+
+                    yield return new UnexpectedErrorMessage(ex.Message);
+
+                    yield break;
                 }
 
-                yield return new UnexpectedErrorMessage(ex.Message);
+                if (stoppingToken.IsCancellationRequested || !eventResult.OutputTask.IsCompletedSuccessfully)
+                {
+                    yield return new UnexpectedErrorMessage("Task Cancelled");
 
+                    yield break;
+                }
+                var result = eventResult.OutputTask.Result;
+
+                if (result is ErrorOutput error)
+                {
+                    yield return new UnexpectedErrorMessage(error.Exception.Message);
+
+                    yield break;
+                }
+
+                var data = result.Data;
+
+                yield return new ProcessCompletedMessage(eventResult.Event.Id, new Dictionary<string, object> {
+                    { "data",gr.Output(eventResult,data)}
+                });
                 yield break;
             }
-
-            if (stoppingToken.IsCancellationRequested || !eventResult.OutputTask.IsCompletedSuccessfully)
+            else if (eventResult.StreamingOutputTask != null)
             {
-                yield return new UnexpectedErrorMessage("Task Cancelled");
+                yield return new ProcessStartsMessage(eventResult.Event.Id);
 
+                object[] result=null;
+                await foreach (var output in  eventResult.StreamingOutputTask)
+                {
+                    if (stoppingToken.IsCancellationRequested)
+                    {
+                        yield return new UnexpectedErrorMessage("Task Cancelled");
+
+                        yield break;
+                    }
+                    
+                    var outputData = output.Data;
+                    if (result == null)
+                    {
+                        result = gr.Output(eventResult, outputData);
+                        yield return new ProcessGeneratingMessage(eventResult.Event.Id, new Dictionary<string, object> {
+                            { "data",result}
+                        });
+                    }
+                    else
+                    {
+                        var oldResult = result;
+                        result = gr.Output(eventResult, outputData);
+                        var diffResult = new object[result.Length];
+                        for (var i = 0; i < result.Length; i++)
+                        {
+                            if (oldResult[i] != null && result[i] != null  && oldResult[i] is string oldStr  && result[i] is string str && oldStr==str)
+                            {
+                                diffResult[i] = new object[0];
+                            }
+                            else
+                            {
+                                diffResult[i] = new object[] { new List<object> { "replace", new object[0], result[i] } };
+                            }
+                            
+                        }
+                        yield return new ProcessGeneratingMessage(eventResult.Event.Id, new Dictionary<string, object> {
+                            { "data", diffResult}
+                        });
+                    }
+                }
+                if (result == null)
+                {
+                    yield return new UnexpectedErrorMessage("Task Cancelled");
+
+                    yield break;
+                }
+
+
+                yield return new ProcessCompletedMessage(eventResult.Event.Id, new Dictionary<string, object> {
+                    { "data",result}
+                });
                 yield break;
             }
-            var result = eventResult.OutputTask.Result;
-
-            if (result is ErrorOutput error)
+            else
             {
-                yield return new UnexpectedErrorMessage(error.Exception.Message);
+                yield return new UnexpectedErrorMessage("no task for Session");
 
                 yield break;
             }
-
-            var blockFunction = eventResult.BlockFunction;
-            var data = result.Data;
-           
-            yield return new ProcessCompletedMessage(eventResult.Event.Id, new Dictionary<string, object> {
-                { "data",gr.Output(eventResult,data)}
-            });
-
-            yield break;
-
         }
 
         internal async Task<List<string>> Upload(string uploadId, IFormFileCollection files)

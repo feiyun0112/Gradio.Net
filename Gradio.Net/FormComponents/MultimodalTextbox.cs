@@ -7,10 +7,10 @@ using System.Text;
 
 namespace Gradio.Net
 {
-    public class MultimodalTextbox : FormComponent
+    public class MultimodalTextbox : FormComponent, IHaveChangeEvent, IHaveInputEvent, IHaveSelectEvent, IHaveSubmitEvent, IHaveFocusEvent, IHaveBlurEvent
     {
         internal MultimodalTextbox() { }
-        internal string SubmitBtn { get;  set; }
+        internal object SubmitBtn { get;  set; }
         internal int Lines { get;   set; }
         internal int MaxLines { get;   set; }
         internal string Placeholder { get;   set; }
@@ -49,6 +49,18 @@ namespace Gradio.Net
             }
              
             result = JsonUtils.Deserialize< MultimodalData>( data.ToString());
+            return result;
+        }
+
+        internal override object PostProcess(string rootUrl, object data)
+        {
+            MultimodalData result = null;
+            if (data == null)
+            {
+                return result;
+            }
+
+            result = JsonUtils.Deserialize<MultimodalData>(data.ToString());
             return result;
         }
     }

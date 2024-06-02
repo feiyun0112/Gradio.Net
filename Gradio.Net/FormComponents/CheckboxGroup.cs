@@ -74,5 +74,28 @@ namespace Gradio.Net
             
             return new[] { str };
         }
+
+        internal override object PostProcess(string rootUrl, object data)
+        {
+            if (data == null)
+            {
+                return new List<string>();
+            }
+
+            if (data is IEnumerable<string>)
+            {
+                return data;
+            }
+
+            var str = data.ToString();
+
+            var choices = JsonUtils.Deserialize<string[]>(str);
+            if (choices != null)
+            {
+                return choices;
+            }
+
+            return new[] { str };
+        }
     }
 }

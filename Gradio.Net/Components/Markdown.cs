@@ -52,5 +52,15 @@ namespace Gradio.Net
             result = data.ToString();
             return result;
         }
+
+        internal override object PostProcess(string rootUrl, object data)
+        {
+            if (data == null)
+            {
+                return null;
+            }
+
+            return data.ToString();
+        }
     }
 }

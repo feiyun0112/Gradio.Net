@@ -12,6 +12,12 @@ namespace Gradio.Net
 {
     public abstract class Block
     {
+        private bool _selectable;
+
+        internal async Task SetSelectable(bool selectable)
+        {
+            _selectable = selectable;
+        }
         internal Block()
         {
             Id = Context.NextId();
@@ -59,6 +65,9 @@ namespace Gradio.Net
             return GetType().Name;
         }
         internal bool Visible { get; set; } = true;
+        internal bool? Streaming { get;  set; }
+        internal bool? Likeable { get;  set; }
+
         protected virtual Dictionary<string, object> GetProps() {
             var result = new Dictionary<string, object>();
 
@@ -96,6 +105,7 @@ namespace Gradio.Net
                 }
               }
 
+            result["_selectable"] = _selectable;
             result["name"] = this.GetName();
             
 

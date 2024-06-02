@@ -65,7 +65,10 @@ app.Run();
 
 ### Demos
 
-| Layout | Form | Image | Chatbot | Progress |
-| ------ | ---- | ----- | ------- | ------- |
-| [source code](./layout_demo.md) | [source code](./form_demo.md)| [source code](./image_demo.md) | [source code](./chatbot_demo.md) | [source code](./progress_demo.md) |
-| ![image](./layout_demo.gif) | ![image](./form_demo.gif) | ![image](./image_demo.gif) | ![image](./chatbot_demo.gif) | ![image](./progress_demo.gif) |
+| Source Code | Demo Image |
+| ----------- | ---------- |
+| [Layout](./layout_demo.md) | ![image](./layout_demo.gif) |
+| [Form](./form_demo.md) | ![image](./form_demo.gif) |
+| [Image](./image_demo.md) | ![image](./image_demo.gif) |
+| [Chatbot](./chatbot_demo.md) | ![image](./chatbot_demo.gif) |
+| [Progress](./progress_demo.md) | ![image](./progress_demo.gif) |

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Gradio.Net
 {
-    public class Textbox : FormComponent
+    public class Textbox : FormComponent, IHaveChangeEvent, IHaveInputEvent, IHaveSelectEvent, IHaveSubmitEvent, IHaveFocusEvent, IHaveBlurEvent
     {
         internal Textbox() { }
         internal int Lines { get;   set; }
@@ -49,6 +49,16 @@ namespace Gradio.Net
 
             result = data.ToString();
             return result;
+        }
+
+        internal override object PostProcess(string rootUrl, object data)
+        {
+            if (data == null)
+            {
+                return null;
+            }
+
+            return data.ToString();
         }
     }
 }

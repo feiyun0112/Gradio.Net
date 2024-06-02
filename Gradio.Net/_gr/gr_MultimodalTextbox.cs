@@ -34,7 +34,7 @@ namespace Gradio.Net
             bool render = true,
             TextboxTextAlign textAlign = TextboxTextAlign.Left,
             bool rtl = false,
-            string submitBtn = null)
+            object submitBtn = null)
         {
             var blocks = new MultimodalTextbox()
             {

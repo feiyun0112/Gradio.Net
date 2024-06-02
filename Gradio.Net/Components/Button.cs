@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Gradio.Net
 {
-    public class Button : Component
+    public class Button : Component, IHaveClickEvent
     {
         internal Button() { }
 

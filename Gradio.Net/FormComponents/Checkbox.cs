@@ -40,5 +40,16 @@ namespace Gradio.Net
             var result = bool.Parse(data.ToString());
             return result;
         }
+
+        internal override object PostProcess(string rootUrl, object data)
+        {
+            if (data == null)
+            {
+                return false;
+            }
+
+            var result = bool.Parse(data.ToString());
+            return result;
+        }
     }
 }

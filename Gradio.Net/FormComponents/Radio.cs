@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace Gradio.Net
 {
-    public class Radio : FormComponent
+    public class Radio : FormComponent, IHaveChangeEvent, IHaveInputEvent,IHaveSelectEvent
     {
         internal Radio() { }
         internal IEnumerable<string> Choices { get;  set; }
@@ -74,5 +74,29 @@ namespace Gradio.Net
             
             return new[] { str };
         }
+
+        internal override object PostProcess(string rootUrl, object data)
+        {
+            if (data == null)
+            {
+                return new List<string>();
+            }
+            if (data is IEnumerable<string>)
+            {
+                return data;
+            }
+
+            var str = data.ToString();
+
+            var choices = JsonUtils.Deserialize<string[]>(str);
+            if (choices != null)
+            {
+                return choices;
+            }
+
+            return new[] { str };
+        }
+
+
     }
 }

@@ -63,7 +63,10 @@ app.Run();
 
 ### Demos
 
-| Layout | Form | Image | Chatbot | Progress |
-| ------ | ---- | ----- | ------- | ------- |
-| [source code](./readme_files/layout_demo.md) | [source code](./readme_files/form_demo.md)| [source code](./readme_files/image_demo.md) | [source code](./readme_files/chatbot_demo.md) | [source code](./readme_files/progress_demo.md) |
-| ![image](./readme_files/layout_demo.gif) | ![image](./readme_files/form_demo.gif) | ![image](./readme_files/image_demo.gif) | ![image](./readme_files/chatbot_demo.gif) | ![image](./readme_files/progress_demo.gif) |
+| Source Code | Demo Image |
+| ----------- | ---------- |
+| [Layout](./readme_files/layout_demo.md) | ![image](./readme_files/layout_demo.gif) |
+| [Form](./readme_files/form_demo.md) | ![image](./readme_files/form_demo.gif) |
+| [Image](./readme_files/image_demo.md) | ![image](./readme_files/image_demo.gif) |
+| [Chatbot](./readme_files/chatbot_demo.md) | ![image](./readme_files/chatbot_demo.gif) |
+| [Progress](./readme_files/progress_demo.md) | ![image](./readme_files/progress_demo.gif) |

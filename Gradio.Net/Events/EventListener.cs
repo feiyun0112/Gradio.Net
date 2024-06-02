@@ -15,14 +15,14 @@ namespace Gradio.Net
     {
         internal EventListener(string event_name,
         bool has_trigger=true,
-        Func<Dictionary<string,object>> config_data = null,
+        Func<Dictionary<string,object>> configData = null,
         ShowProgress showProgress= ShowProgress.Full,
         Func<Block, Task> callback=null,
         int ?trigger_after=null,
         bool trigger_only_on_success=false,
         string doc= "") {
             this.HasTrigger = has_trigger;
-            this.ConfigData = config_data;
+            this.ConfigData = configData;
             this.EventName = event_name;
             this.ShowProgress = showProgress;
             this.TriggerAfter = trigger_after;
@@ -96,4 +96,6 @@ namespace Gradio.Net
             return new Dependency(block, dep.GetConfig(), dep_index, fn);
         }
     }
+
+   
 }

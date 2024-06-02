@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Gradio.Net
 {
-    public class Slider : FormComponent
+    public class Slider : FormComponent, IHaveChangeEvent, IHaveInputEvent, IHaveReleaseEvent
     {
         internal Slider() { }
         internal decimal Step { get; set; }
@@ -51,6 +51,17 @@ namespace Gradio.Net
 
         internal override object PreProcess(object data)
         {            
+            if (data == null)
+            {
+                return decimal.MinValue;
+            }
+
+            var result = decimal.Parse(data.ToString());
+            return result;
+        }
+
+        internal override object PostProcess(string rootUrl, object data)
+        {
             if (data == null)
             {
                 return decimal.MinValue;

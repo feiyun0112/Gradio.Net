@@ -11,13 +11,11 @@ async Task<Blocks> CreateBlocks()
         gr.Markdown("# Chatbot Demo");
 
         var chatbot = gr.Chatbot();
-        var msg = gr.Textbox();
+        var msg = gr.Textbox(placeholder:"Enter to Submit");
 
-        var btn = gr.Button("Submit");
-        await btn.Click(streamingFn: (input) => Respond(Textbox.Payload(input.Data[0]), Chatbot.Payload(input.Data[1])),
+        await msg.Submit(streamingFn: (input) => Respond(Textbox.Payload(input.Data[0]), Chatbot.Payload(input.Data[1])),
             inputs: new Component[] { msg, chatbot }, outputs: new Component[] { msg, chatbot });
-
-
+            
         return blocks;
     }
 }

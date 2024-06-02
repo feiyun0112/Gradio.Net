@@ -45,50 +45,5 @@ namespace Gradio.Net
             Context.AddToCurrentBlocks(block);
             return block;
         }
-
-
-        public static async Task Click(this Button button,
-           Func<Input,Task<Output>> fn = null,
-           Func<Input,IAsyncEnumerable<Output>> streamingFn = null,
-           IEnumerable<Component> inputs = null,
-           IEnumerable<Component> outputs = null,
-           string apiName = null,
-           bool scrollToOutput = false,
-           ShowProgress showProgress = ShowProgress.Full,
-           bool? queue = null,
-           bool batch = false,
-           int maxBatchSize = 4,
-           bool preprocess = true,
-           bool postprocess = true,
-           Dictionary<string, object> cancels = null,
-           decimal? every = null,
-           TriggerMode? triggerMode = null,
-           string js = null,
-           ConcurrencyLimit concurrencyLimit = ConcurrencyLimit.Default,
-           string concurrencyId = null,
-           bool showApi = true)
-        {
-            await Events.Click.EventTrigger(button,
-                fn: fn,
-                streamingFn: streamingFn,
-                inputs: inputs,
-                outputs: outputs,
-                apiName: apiName,
-                scrollToOutput: scrollToOutput,
-                showProgress: showProgress,
-                queue: queue,
-                batch: batch,
-                maxBatchSize: maxBatchSize,
-                preprocess: preprocess,
-                postprocess: postprocess,
-                cancels: cancels,
-                every: every,
-                triggerMode: triggerMode,
-                js: js,
-                concurrencyLimit: concurrencyLimit,
-                concurrencyId: concurrencyId,
-                showApi: showApi
-                );
-        }
     }
 }

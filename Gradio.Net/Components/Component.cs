@@ -38,7 +38,7 @@ namespace Gradio.Net
         {
             var result= base.GetProps();
 
-            result["_selectable"] = false;
+           
 
             return result;
         }

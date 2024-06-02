@@ -1,6 +1,7 @@
 ﻿using Gradio.Net;
 using System.Reflection.Emit;
 using static System.Formats.Asn1.AsnWriter;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace demo
 {
@@ -10,18 +11,22 @@ namespace demo
         {
             gr.Markdown("# FormDemo Demo");
 
+            gr.HTML(value: "<p style='margin-top: 1rem, margin-bottom: 1rem'>This <em>example</em> was <strong>written</strong> in <a href='https://en.wikipedia.org/wiki/HTML' _target='blank'>HTML</a> </p>");
+
+
             using (gr.Column())
             {
                 var text1 = gr.Textbox();
                 var dropdown1 = gr.Dropdown(choices: new[] { "First Choice", "Second Choice", "Third Choice" });
                 var checkbox1 = gr.Checkbox();
                 var checkboxGroup1 = gr.CheckboxGroup(choices: new[] { "First Choice", "Second Choice", "Third Choice" });
-                var multimodalTextbox1 = gr.MultimodalTextbox(interactive:true);
+                var multimodalTextbox1 = gr.MultimodalTextbox(interactive:true);               
                 var number1 = gr.Number();
                 var radio1 = gr.Radio(choices: ["First Choice", "Second Choice", "Third Choice"]);
                 var slider1 = gr.Slider();
 
                 var text_Result = gr.Textbox(label:"Form Value", interactive:false);
+
                 var btn = gr.Button("Run");
                 await btn.Click(fn: async (input) => gr.Output($@"
 Textbox: {Textbox.Payload(input.Data[0])}

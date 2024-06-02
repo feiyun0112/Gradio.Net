@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Gradio.Net
 {
-    public class Number : FormComponent
+    public class Number : FormComponent, IHaveChangeEvent, IHaveInputEvent, IHaveSubmitEvent, IHaveFocusEvent
     {
         internal Number() { }
         internal decimal Step { get; set; }
@@ -37,6 +37,17 @@ namespace Gradio.Net
 
         internal override object PreProcess(object data)
         {            
+            if (data == null)
+            {
+                return null;
+            }
+
+            var result = decimal.Parse(data.ToString());
+            return result;
+        }
+
+        internal override object PostProcess(string rootUrl, object data)
+        {
             if (data == null)
             {
                 return null;

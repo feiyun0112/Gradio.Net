@@ -17,7 +17,7 @@ It just takes a few lines of .NET code to create a beautiful demo like the one a
 
 - 1. Create a ASP.NET Core Web API project.
 
-- 2. Install NuGet pacakge **Gradio.Net**.
+- 2. Install NuGet package **Gradio.Net**.
 
 - 3. Enter the sample code in Program.cs:
 

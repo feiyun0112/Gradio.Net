@@ -1,29 +1,25 @@
-﻿using Gradio.Net.jinja2;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
-namespace Gradio.Net.jinja2
+namespace Gradio.Net.jinja2;
+
+internal class Template
 {
-    internal class Template
+    private readonly string _source;
+
+    internal Template(string source)
     {
-        private readonly string _source;
+        this._source = source;
 
-        internal Template(string source)
+    }
+
+    internal string Render(Dictionary<string, object> vars)
+    {
+        List<Block> blocks = new TemplateTokenizer().Tokenize(this._source);
+        StringBuilder result = new();
+        foreach (Block block in blocks )
         {
-            this._source = source;
-
+            result.Append(block.Render(vars));
         }
-
-        internal string Render(Dictionary<string, object> vars)
-        {
-            var blocks = new TemplateTokenizer().Tokenize(this._source);
-            var result = new StringBuilder();
-            foreach ( var block in blocks )
-            {
-                result.Append(block.Render(vars));
-            }
-            return result.ToString();
-        }
+        return result.ToString();
     }
 }

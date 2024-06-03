@@ -1,130 +1,129 @@
 ﻿
 using Gradio.Net.Enums;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
-using System.Security.Cryptography;
-using System.Text;
 
-namespace Gradio.Net
+namespace Gradio.Net;
+
+public abstract class Block
 {
-    public abstract class Block
+    private bool _selectable;
+
+    internal async Task SetSelectable(bool selectable)
     {
-        private bool _selectable;
+        _selectable = selectable;
+    }
+    internal Block()
+    {
+        Id = Context.NextId();
+    }
+    internal int Id { get; }
+    internal string Key { get; set; }
 
-        internal async Task SetSelectable(bool selectable)
+    [IgnoreDataMember]
+    internal bool Render { get; set; }
+    internal string ElemId { get; set; }
+    private IEnumerable<string> elemClasses;
+    internal IEnumerable<string> ElemClasses { get { return elemClasses; } set { if (value == null) { value = new List<string>(); } elemClasses = value; } }
+    internal bool? Interactive { get; set; }
+
+
+    internal virtual Dictionary<string, object> GetLayout()
+    {
+        Dictionary<string, object> result = new()
         {
-            _selectable = selectable;
-        }
-        internal Block()
+            ["id"] = Id
+        };
+
+        return result;
+    }
+
+    internal virtual Dictionary<string, object> GetConfig()
+    {
+        Dictionary<string, object> blockConfig = new()
         {
-            Id = Context.NextId();
-        }
-        internal int Id { get; }
-        internal string Key { get; set; }
+            ["id"] = Id,
+            ["type"] = GetTypeName(),
+            ["props"] = GetProps(),
+            ["skip_api"] = true,
+            ["key"] = Key,
 
-        [IgnoreDataMember]
-        internal bool Render { get; set; }
-        internal string ElemId { get; set; }
-        private IEnumerable<string> elemClasses;
-        internal IEnumerable<string> ElemClasses { get { return elemClasses; } set { if (value == null) { value = new List<string>(); } elemClasses = value; } }
-        internal bool? Interactive { get; set; }
+            ["component_class_id"] = GetComponentClassId()
+        };
+
+        return blockConfig;
+    }
+    protected virtual string GetTypeName()
+    {
+        return GetType().Name.ToLower();
+    }
 
 
-        internal virtual Dictionary<string, object> GetLayout()
+    private string GetComponentClassId()
+    {
+        return GetType().Name;
+    }
+    internal bool Visible { get; set; } = true;
+    internal bool? Streaming { get;  set; }
+    internal bool? Likeable { get;  set; }
+
+    protected virtual Dictionary<string, object> GetProps() {
+        Dictionary<string, object> result = [];
+
+        Type type = this.GetType();
+        PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance |
+                        BindingFlags.NonPublic);
+        foreach (PropertyInfo p in properties)
         {
-            var result = new Dictionary<string, object>();
-            result["id"] = Id;
-
-            return result;
-        }
-
-        internal virtual Dictionary<string, object> GetConfig()
-        {
-            var blockConfig = new Dictionary<string, object>();
-            blockConfig["id"] = Id;
-            blockConfig["type"] = GetTypeName();
-            blockConfig["props"] = GetProps();
-            blockConfig["skip_api"] = true;
-            blockConfig["key"] = Key;
-
-            blockConfig["component_class_id"] = GetComponentClassId();
-
-            return blockConfig;
-        }
-        protected virtual string GetTypeName()
-        {
-            return GetType().Name.ToLower();
-        }
-
-
-        private string GetComponentClassId()
-        {
-            return GetType().Name;
-        }
-        internal bool Visible { get; set; } = true;
-        internal bool? Streaming { get;  set; }
-        internal bool? Likeable { get;  set; }
-
-        protected virtual Dictionary<string, object> GetProps() {
-            var result = new Dictionary<string, object>();
-
-            var type= this.GetType();
-            var properties = type.GetProperties(BindingFlags.Instance |
-                            BindingFlags.NonPublic);
-            foreach (var p in properties)
+            if (p.GetCustomAttribute<IgnoreDataMemberAttribute>() != null)
             {
-                if (p.GetCustomAttribute<IgnoreDataMemberAttribute>() != null)
+                continue;
+            }
+            string name = p.Name.ToSnakeCase();
+            object? value = p.GetValue(this, null);
+            if (value != null)
+            {
+                if (p.PropertyType.Namespace == typeof(ShowProgress).Namespace)
                 {
-                    continue;
+                    result[name] = value.ToString().ToSnakeCase().ToLowerInvariant();
                 }
-                string name = p.Name.ToSnakeCase();
-                var value = p.GetValue(this, null);
-                if (value != null)
+                else if (p.PropertyType.IsGenericType  
+                    && typeof(IEnumerable).IsAssignableFrom(p.PropertyType) 
+                    && p.PropertyType.GenericTypeArguments.Count()==1
+                    && p.PropertyType.GenericTypeArguments[0].Namespace == typeof(ShowProgress).Namespace
+                    )
                 {
-                    if (p.PropertyType.Namespace == typeof(ShowProgress).Namespace)
-                    {
-                        result[name] = value.ToString().ToSnakeCase().ToLowerInvariant();
-                    }
-                    else if (p.PropertyType.IsGenericType  
-                        && typeof(IEnumerable).IsAssignableFrom(p.PropertyType) 
-                        && p.PropertyType.GenericTypeArguments.Count()==1
-                        && p.PropertyType.GenericTypeArguments[0].Namespace == typeof(ShowProgress).Namespace
-                        )
-                    {
-                        var tmpList = value as IEnumerable;
-                        var listValue = tmpList?.Cast<object>().Select(item => item.ToString().ToSnakeCase().ToLowerInvariant()).ToList();
-                        result[name] = listValue;
-                    }
-                    else
-                    {
-                        result[name] = value;
-                    } 
+                    IEnumerable? tmpList = value as IEnumerable;
+                    List<string>? listValue = tmpList?.Cast<object>().Select(item => item.ToString().ToSnakeCase().ToLowerInvariant()).ToList();
+                    result[name] = listValue;
                 }
-              }
+                else
+                {
+                    result[name] = value;
+                } 
+            }
+          }
 
-            result["_selectable"] = _selectable;
-            result["name"] = this.GetName();
-            
+        result["_selectable"] = _selectable;
+        result["name"] = this.GetName();
+        
 
-            return result;
-        }
+        return result;
+    }
 
-        protected virtual string GetName()
-        {
-            return this.GetType().Name.ToLower();
-        }
+    protected virtual string GetName()
+    {
+        return this.GetType().Name.ToLower();
+    }
 
-        internal virtual object PreProcess(object data)
-        {
-            return data;
-        }
+    internal virtual object PreProcess(object data)
+    {
+        return data;
+    }
 
-        internal virtual object PostProcess(string rootUrl, object data)
-        {
-            return data;
-        }
+    internal virtual object PostProcess(string rootUrl, object data)
+    {
+        return data;
     }
 }

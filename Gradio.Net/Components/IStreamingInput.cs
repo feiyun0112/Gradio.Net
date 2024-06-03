@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Gradio.Net;
 
-namespace Gradio.Net
+internal interface IStreamingInput
 {
-    internal interface IStreamingInput
-    {
-        void CheckStreamable();
-    }
+    void CheckStreamable();
 }

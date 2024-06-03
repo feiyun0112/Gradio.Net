@@ -1,13 +1,6 @@
-﻿using Gradio.Net.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Gradio.Net;
 
-
-namespace Gradio.Net
+public class Group : Blocks
 {
-    public class Group : Blocks
-    {
-        internal Group() { }
-    }
+    internal Group() { }
 }

@@ -1,22 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Gradio.Net;
 
-namespace Gradio.Net
+public class Output
 {
-    public class Output
-    {
-        public object[] Data { get; set; }
+    public object[] Data { get; set; }
+}
+
+internal class ErrorOutput : Output
+{ 
+    public ErrorOutput(Exception ex) {
+        Exception = ex;
     }
 
-    internal class ErrorOutput : Output
-    { 
-        public ErrorOutput(Exception ex) {
-            Exception = ex;
-        }
-
-        public Exception Exception { get; private set; }
-    }
+    public Exception Exception { get; private set; }
 }

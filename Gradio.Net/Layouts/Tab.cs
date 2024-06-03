@@ -1,20 +1,13 @@
-﻿using Gradio.Net.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Gradio.Net;
 
-
-namespace Gradio.Net
+public class Tab : Blocks
 {
-    public class Tab : Blocks
+    internal Tab() { }
+    internal string Label { get;  set; }
+    internal string ComponentId { get;  set; }
+    protected override string GetTypeName()
     {
-        internal Tab() { }
-        internal string Label { get;  set; }
-        internal string ComponentId { get;  set; }
-        protected override string GetTypeName()
-        {
-            return "tabitem";  
-        }
-
+        return "tabitem";  
     }
+
 }

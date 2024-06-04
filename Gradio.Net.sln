@@ -17,7 +17,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{27EA
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{141EB74D-8960-4465-879A-69618C24D710}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\deploy-nuget.yml = .github\workflows\deploy-nuget.yml
+		.github\workflows\main.yml = .github\workflows\main.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "readme_files", "readme_files", "{D270B5CB-D16A-4C8D-8A7B-0EFBDC6918E8}"
+	ProjectSection(SolutionItems) = preProject
+		readme_files\chatbot_demo.md = readme_files\chatbot_demo.md
+		readme_files\form_demo.md = readme_files\form_demo.md
+		readme_files\image_demo.md = readme_files\image_demo.md
+		readme_files\layout_demo.md = readme_files\layout_demo.md
+		readme_files\progress_demo.md = readme_files\progress_demo.md
+		readme_files\README_zh-cn.md = readme_files\README_zh-cn.md
 	EndProjectSection
 EndProject
 Global

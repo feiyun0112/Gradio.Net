@@ -1,11 +1,6 @@
+# Gradio.NET: 使用 .NET 生成机器学习 Web 应用 [![main](https://github.com/feiyun0112/Gradio.Net/actions/workflows/main.yml/badge.svg)](https://github.com/feiyun0112/Gradio.Net/actions/workflows/main.yml) [![NuGet](https://img.shields.io/nuget/v/Gradio.Net.svg)](https://nuget.org/packages/Gradio.Net.mkl)
 
-<div>
-
-[English](../README.md)
-
-</div>
-
-# Gradio.NET: 使用 .NET 生成机器学习 Web 应用
+**[English](../README.md)** | 简体中文
 
 Gradio for .NET – [Gradio](https://github.com/gradio-app/gradio) 的 .NET 移植，Gradio是一个开源 Python 包，允许您为机器学习模型、API 或任何任意 Python 函数快速构建演示或 Web 应用程序。*无需任何 JavaScript、CSS 经验！*
 

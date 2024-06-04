@@ -1,4 +1,4 @@
-name: deploy-nuget
+name: main
 on:
   push:
     branches:
@@ -20,4 +20,5 @@ jobs:
       - name: Pack
         run: dotnet pack --no-build --configuration Release
       - name: Push NuGet package
-        run: dotnet nuget push **/*.nupkg --source "nuget.org" --api-key ${{ secrets.NUGET_KEY }}
+        run: |
+          dotnet nuget push **/*.nupkg --source "nuget.org" --api-key ${{ secrets.NUGET_KEY }} || true

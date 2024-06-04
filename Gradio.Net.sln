@@ -3,11 +3,34 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "demo", ".\demo\demo.csproj", "{AB717BDB-6555-44AA-A367-0EC05A13E8F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "demo", "demo\demo.csproj", "{AB717BDB-6555-44AA-A367-0EC05A13E8F0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gradio.Net", ".\Gradio.Net\Gradio.Net.csproj", "{9E717197-6897-4C77-87D4-1C3161A4C6BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gradio.Net", "Gradio.Net\Gradio.Net.csproj", "{9E717197-6897-4C77-87D4-1C3161A4C6BD}"
 EndProject
-
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B9049476-4AC5-4960-A33D-472400F5E820}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{27EAD232-B473-497C-9475-6F3873026A90}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{141EB74D-8960-4465-879A-69618C24D710}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\main.yml = .github\workflows\main.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "readme_files", "readme_files", "{D270B5CB-D16A-4C8D-8A7B-0EFBDC6918E8}"
+	ProjectSection(SolutionItems) = preProject
+		readme_files\chatbot_demo.md = readme_files\chatbot_demo.md
+		readme_files\form_demo.md = readme_files\form_demo.md
+		readme_files\image_demo.md = readme_files\image_demo.md
+		readme_files\layout_demo.md = readme_files\layout_demo.md
+		readme_files\progress_demo.md = readme_files\progress_demo.md
+		readme_files\README_zh-cn.md = readme_files\README_zh-cn.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,13 +45,12 @@ Global
 		{9E717197-6897-4C77-87D4-1C3161A4C6BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E717197-6897-4C77-87D4-1C3161A4C6BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E717197-6897-4C77-87D4-1C3161A4C6BD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{18C4EC65-761B-45E7-A32C-FBDA44F084C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{18C4EC65-761B-45E7-A32C-FBDA44F084C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{18C4EC65-761B-45E7-A32C-FBDA44F084C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{18C4EC65-761B-45E7-A32C-FBDA44F084C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{141EB74D-8960-4465-879A-69618C24D710} = {27EAD232-B473-497C-9475-6F3873026A90}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A68FA315-516B-4431-9B4B-E2C75C3D527E}

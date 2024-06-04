@@ -1,0 +1,23 @@
+name: main
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - '**.linq'
+      - '**.gif'
+  workflow_dispatch:
+  
+jobs:
+  deploy-nuget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: dotnet build --configuration Release
+      - name: Pack
+        run: dotnet pack --no-build --configuration Release
+      - name: Push NuGet package
+        run: |
+          dotnet nuget push **/*.nupkg --source "nuget.org" --api-key ${{ secrets.NUGET_KEY }} || true

@@ -9,6 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gradio.Net", "Gradio.Net\Gr
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B9049476-4AC5-4960-A33D-472400F5E820}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
@@ -49,7 +50,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{27EAD232-B473-497C-9475-6F3873026A90} = {B9049476-4AC5-4960-A33D-472400F5E820}
 		{141EB74D-8960-4465-879A-69618C24D710} = {27EAD232-B473-497C-9475-6F3873026A90}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

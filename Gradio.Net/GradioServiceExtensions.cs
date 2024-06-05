@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Gradio.Net.Models;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 
 namespace Microsoft.AspNetCore.Builder;
@@ -14,6 +16,23 @@ public static class GradioServiceExtensions
     
     public static IServiceCollection AddGradio(this IServiceCollection services)
     {
+        services.Configure<IISServerOptions>(options =>
+        {
+            options.MaxRequestBodySize = int.MaxValue;
+        });
+
+        services.Configure<KestrelServerOptions>(options =>
+        {
+            options.Limits.MaxRequestBodySize = int.MaxValue;
+        });
+
+        services.Configure<FormOptions>(x =>
+        {
+            x.ValueLengthLimit = int.MaxValue;
+            x.MultipartBodyLengthLimit = int.MaxValue; // if don't set default value is: 128 MB
+            x.MultipartHeadersLengthLimit = int.MaxValue;
+        });
+
         services.AddSingleton<App>(new App());
         services.AddHostedService<EventWorker>();
         return services;
@@ -30,6 +49,7 @@ public static class GradioServiceExtensions
         App app = webApplication.Services.GetRequiredService<App>();
 
         app.SetConfig(gradioServiceConfig);
+               
 
         StaticFileProvider fileProvider = new(@"templates/frontend");
         webApplication.UseStaticFiles(new StaticFileOptions
@@ -64,14 +84,15 @@ public static class GradioServiceExtensions
 
 
                 StreamWriter streamWriter = new(context.Response.Body);
-                await foreach (SSEMessage message in app.QueueData(context.Request.Query["session_hash"].FirstOrDefault(), stoppingToken))
+                var sessionHash = context.Request.Query["session_hash"].FirstOrDefault();
+                await foreach (SSEMessage message in app.QueueData(sessionHash, stoppingToken))
                 {
                     await streamWriter.WriteLineAsync(message.ProcessMsg());
                     await streamWriter.FlushAsync();
                 }
                 await streamWriter.WriteLineAsync(new CloseStreamMessage().ProcessMsg());
                 await streamWriter.FlushAsync();
-
+                Context.PendingEventIdsSession.TryRemove(sessionHash, out _);
             });
 
         webApplication.MapPost("/upload", async (HttpRequest request,  [FromServices] App app) =>
@@ -87,7 +108,7 @@ public static class GradioServiceExtensions
             
             StreamWriter streamWriter = new(context.Response.Body);
 
-            await streamWriter.WriteLineAsync(new CloseStreamMessage().ProcessMsg());
+            await streamWriter.WriteLineAsync(new DoneMessage().ProcessMsg());
             await streamWriter.FlushAsync();
         });
 

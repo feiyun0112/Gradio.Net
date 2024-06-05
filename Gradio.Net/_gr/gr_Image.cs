@@ -39,10 +39,9 @@ public static partial class gr
             ImageMode = imageMode,
             Sources = sources == null?(streaming? [ImageSource.Webcam]: [ImageSource.Upload, ImageSource.Webcam, ImageSource.Clipboard]) : sources,
             Streaming = streaming,
-            ShowDownloadButton = showDownloadButton,
-            
-            ShowShareButton = (GradioUtils.GetSpace() != null) ? showShareButton : true,
-            Label= label,
+            ShowDownloadButton = showDownloadButton,            
+            ShowShareButton = showShareButton == null ? (GradioUtils.GetSpace() != null) : showShareButton,
+            Label = label,
             Every= every,
             ShowLabel= showLabel,
             Container = container,

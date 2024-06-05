@@ -20,7 +20,13 @@ Gradio for .NET – [Gradio](https://github.com/gradio-app/gradio) 的 .NET 移�
 
 
 ```C#
-App.Launch(await CreateBlocks());
+App.Launch(await CreateBlocks(), config => {
+    //默认使用 fonts.googleapis.com
+    config.Stylesheets = new string[] {
+            "https://fonts.font.im/css2?family=Source+Sans+Pro:wght@400;600&display=swap",
+            "https://fonts.font.im/css2?family=IBM+Plex+Mono:wght@400;600&display=swap"
+        };
+});
 
 async Task<Blocks> CreateBlocks()
 {
@@ -64,6 +70,6 @@ app.Run();
 | ----------- | ---------- |
 | [Layout](./layout_demo.md) | ![image](./layout_demo.gif) |
 | [Form](./form_demo.md) | ![image](./form_demo.gif) |
-| [Image](./image_demo.md) | ![image](./image_demo.gif) |
+| [Media](./media_demo.md) | ![image](./media_demo.gif) |
 | [Chatbot](./chatbot_demo.md) | ![image](./chatbot_demo.gif) |
 | [Progress](./progress_demo.md) | ![image](./progress_demo.gif) |

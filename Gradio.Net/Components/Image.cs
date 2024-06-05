@@ -1,8 +1,7 @@
 ﻿using Gradio.Net.Enums;
-
 namespace Gradio.Net;
 
-public class Image : Component, IStreamingInput
+public class Image : Component, IStreamingInput, IHaveClearEvent, IHaveChangeEvent, IHaveStreamEvent, IHaveSelectEvent, IHaveUploadEvent
 {
     internal Image() { }
     internal ImageFormat Format { get;  set; }
@@ -23,6 +22,11 @@ public class Image : Component, IStreamingInput
 
     internal override object PreProcess(object data)
     {
+        if (data == null)
+        {
+            return null;
+        }
+
         string? str = data.ToString();
 
         FileData fileData = JsonUtils.Deserialize<FileData>(str);
@@ -31,6 +35,10 @@ public class Image : Component, IStreamingInput
 
     internal override object PostProcess(string rootUrl, object data)
     {
+        if (data == null)
+        {
+            return null;
+        }
         string? str = data.ToString();
 
         Context.DownloadableFiles.TryAdd(str, str);

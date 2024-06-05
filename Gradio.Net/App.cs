@@ -1,12 +1,13 @@
 ﻿using Gradio.Net.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using System.Collections.Concurrent;
 
 namespace Gradio.Net;
 
 public class App
 {
-    const string GRADIO_VERSION = "4.29.0";
+    const string GRADIO_VERSION = "4.32.2";
     private readonly long _appId;
 
     public static void Launch(Blocks blocks, Action<GradioServiceConfig>? additionalConfigurationAction = null, params string[] args)
@@ -32,6 +33,8 @@ public class App
     {
         Dictionary<string, object> result = Context.RootBlock.GetConfig();
 
+        result["stylesheets"] = this._gradioServiceConfig.Stylesheets;
+        result["body_css"] =this._gradioServiceConfig.BodyCss;
         result["root"] = httpRequest.GetRootUrl();
         result["version"] = GRADIO_VERSION;
         result["app_id"] = _appId;
@@ -65,6 +68,16 @@ public class App
         };
         eventIn.Data = body;
 
+        lock (Context.PendingMessageLock)
+        {
+            if (!Context.PendingEventIdsSession.TryGetValue(eventIn.SessionHash, out List<string> pendingEventIds))
+            { 
+                pendingEventIds = new List<string>();
+            }
+            pendingEventIds.Add(eventIn.ToString());
+            Context.PendingEventIdsSession[eventIn.SessionHash]=pendingEventIds;
+        }
+
         await Context.EventChannel.Writer.WriteAsync(eventIn);
 
         return new QueueJoinOut { EventId = eventIn.Id };
@@ -72,158 +85,214 @@ public class App
 
     internal async IAsyncEnumerable<SSEMessage> QueueData(string sessionHash, CancellationToken stoppingToken)
     {
+
+
+        const int heartbeatRate = 150;
+        const int checkRate = 50;
+        int heartbeatCount = 0;
+
         if (string.IsNullOrEmpty(sessionHash))
         {
-            yield return new UnexpectedErrorMessage("Session not found");
+            yield return new UnexpectedErrorMessage(null,"Session not found");
 
             yield break;
         }
 
-        const int heartbeatRate = 15;
-        const int checkRate = 500;
-        EventResult eventResult = null;
-        int heartbeatCount = 0;
-        while (!stoppingToken.IsCancellationRequested)
+        while (!Context.PendingEventIdsSession.TryGetValue(sessionHash, out _))
         {
-            await Task.Delay(checkRate);
-            if (Context.EventResults.TryGetValue(sessionHash, out eventResult))
-            {
-                Context.EventResults.Remove(sessionHash, out _);
-                break;
-            }
-
             if (heartbeatCount++ > heartbeatRate)
             {
-                break;
-            }
-
-            yield return new HeartbeatMessage();
-        }
-
-        if (eventResult == null || (eventResult.OutputTask==null && eventResult.StreamingOutputTask == null))
-        {
-            yield return new UnexpectedErrorMessage("no task for Session");
-
-            yield break;
-        }
-
-        if (eventResult.OutputTask != null)
-        {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                while (!eventResult.OutputTask.IsCompleted)
-                {
-                    if (eventResult.Input.Progress != null)
-                    {
-                        yield return new ProgressMessage(eventResult.Event.Id, eventResult.Input.Progress);
-                    }
-                    else
-                    {
-                        yield return new HeartbeatMessage();
-                    }
-                    await Task.Delay(checkRate);
-                }
-
-                break;
-            }
-
-            if (eventResult.OutputTask.Exception != null)
-            {
-                Exception ex = eventResult.OutputTask.Exception;
-                while (ex.InnerException != null)
-                {
-                    ex = ex.InnerException;
-                }
-
-                yield return new UnexpectedErrorMessage(ex.Message);
+                yield return new UnexpectedErrorMessage(null, "Session not found");
 
                 yield break;
             }
 
-            if (stoppingToken.IsCancellationRequested || !eventResult.OutputTask.IsCompletedSuccessfully)
-            {
-                yield return new UnexpectedErrorMessage("Task Cancelled");
-
-                yield break;
-            }
-            Output result = eventResult.OutputTask.Result;
-
-            if (result is ErrorOutput error)
-            {
-                yield return new UnexpectedErrorMessage(error.Exception.Message);
-
-                yield break;
-            }
-
-            object[] data = result.Data;
-
-            yield return new ProcessCompletedMessage(eventResult.Event.Id, new Dictionary<string, object> {
-                { "data",gr.Output(eventResult,data)}
-            });
-            yield break;
+            await Task.Delay(heartbeatRate);            
         }
-        else if (eventResult.StreamingOutputTask != null)
+
+        heartbeatCount = 0;
+        while (!stoppingToken.IsCancellationRequested)
         {
-            yield return new ProcessStartsMessage(eventResult.Event.Id);
-
-            object[] result=null;
-            await foreach (Output output in  eventResult.StreamingOutputTask)
+            string[] pendingEventIds = null;
+            lock (Context.PendingMessageLock)
             {
-                if (stoppingToken.IsCancellationRequested)
+                if (!Context.PendingEventIdsSession.TryGetValue(sessionHash, out List<string> tmpIds))
                 {
-                    yield return new UnexpectedErrorMessage("Task Cancelled");
-
                     yield break;
                 }
 
-                object[] outputData = output.Data;
-                if (result == null)
-                {
-                    result = gr.Output(eventResult, outputData);
-                    yield return new ProcessGeneratingMessage(eventResult.Event.Id, new Dictionary<string, object> {
-                        { "data",result}
-                    });
-                }
-                else
-                {
-                    object[] oldResult = result;
-                    result = gr.Output(eventResult, outputData);
-                    object[] diffResult = new object[result.Length];
-                    for (int i = 0; i < result.Length; i++)
-                    {
-                        if (oldResult[i] != null && result[i] != null  && oldResult[i] is string oldStr  && result[i] is string str && oldStr==str)
-                        {
-                            diffResult[i] = Array.Empty<object>();
-                        }
-                        else
-                        {
-                            diffResult[i] = new object[] { new List<object> { "replace", Array.Empty<object>(), result[i] } };
-                        }
-                        
-                    }
-                    yield return new ProcessGeneratingMessage(eventResult.Event.Id, new Dictionary<string, object> {
-                        { "data", diffResult}
-                    });
-                }
+                pendingEventIds = tmpIds.ToArray();
             }
-            if (result == null)
-            {
-                yield return new UnexpectedErrorMessage("Task Cancelled");
 
+            if (pendingEventIds == null || pendingEventIds.Length == 0)
+            {
                 yield break;
             }
 
+            foreach (var pendingEventId in pendingEventIds)
+            {
+                if (!Context.EventResults.TryGetValue(pendingEventId, out EventResult eventResult))
+                {
+                    if (heartbeatCount++ > heartbeatRate)
+                    {
+                        yield return new UnexpectedErrorMessage(pendingEventId,"no task for Session");
 
-            yield return new ProcessCompletedMessage(eventResult.Event.Id, new Dictionary<string, object> {
-                { "data",result}
-            });
-            yield break;
+                        RemovePendingEvent(sessionHash,pendingEventId);
+                        continue;
+                    }
+                    yield return new HeartbeatMessage();
+                    await Task.Delay(heartbeatRate);
+                    continue;
+                }
+
+                if (eventResult == null || (eventResult.OutputTask == null && eventResult.StreamingOutputTask == null))
+                {
+                    yield return new UnexpectedErrorMessage(pendingEventId,"no task for Session");
+
+                    RemovePendingEvent(sessionHash, pendingEventId);
+                    continue;
+                }
+
+                if (eventResult.OutputTask != null)
+                {
+                    while (!stoppingToken.IsCancellationRequested)
+                    {
+                        while (!eventResult.OutputTask.IsCompleted)
+                        {
+                            if (eventResult.Input.Progress != null)
+                            {
+                                yield return new ProgressMessage(eventResult.Event.Id, eventResult.Input.Progress);
+                            }
+                            else
+                            {
+                                yield return new HeartbeatMessage();
+                            }
+                            await Task.Delay(checkRate);
+                        }
+
+                        break;
+                    }
+
+                    if (eventResult.OutputTask.Exception != null)
+                    {
+                        Exception ex = eventResult.OutputTask.Exception;
+                        while (ex.InnerException != null)
+                        {
+                            ex = ex.InnerException;
+                        }
+
+                        yield return new UnexpectedErrorMessage(pendingEventId, ex.Message);
+
+                        RemovePendingEvent(sessionHash, pendingEventId);
+                        continue;
+                    }
+
+                    if (stoppingToken.IsCancellationRequested || !eventResult.OutputTask.IsCompletedSuccessfully)
+                    {
+                        yield return new UnexpectedErrorMessage(pendingEventId, "Task Cancelled");
+
+                        RemovePendingEvent(sessionHash, pendingEventId);
+                        continue;
+                    }
+                    Output result = eventResult.OutputTask.Result;
+
+                    if (result is ErrorOutput error)
+                    {
+                        yield return new UnexpectedErrorMessage(pendingEventId, error.Exception.Message);
+
+                        RemovePendingEvent(sessionHash, pendingEventId);
+                        continue;
+                    }
+
+                    object[] data = result.Data;
+
+                    yield return new ProcessCompletedMessage(eventResult.Event.Id, new Dictionary<string, object> {
+                        { "data",gr.Output(eventResult,data)}
+                    });
+                    RemovePendingEvent(sessionHash, pendingEventId);
+                    continue;
+                }
+                else if (eventResult.StreamingOutputTask != null)
+                {
+                    yield return new ProcessStartsMessage(eventResult.Event.Id);
+
+                    object[] result = null;
+                    await foreach (Output output in eventResult.StreamingOutputTask)
+                    {
+                        if (stoppingToken.IsCancellationRequested)
+                        {
+                            yield return new UnexpectedErrorMessage(pendingEventId, "Task Cancelled");
+
+                            RemovePendingEvent(sessionHash, pendingEventId);
+                            continue;
+                        }
+
+                        object[] outputData = output.Data;
+                        if (result == null)
+                        {
+                            result = gr.Output(eventResult, outputData);
+                            yield return new ProcessGeneratingMessage(eventResult.Event.Id, new Dictionary<string, object> {
+                                { "data",result}
+                            });
+                        }
+                        else
+                        {
+                            object[] oldResult = result;
+                            result = gr.Output(eventResult, outputData);
+                            object[] diffResult = new object[result.Length];
+                            for (int i = 0; i < result.Length; i++)
+                            {
+                                if (oldResult[i] != null && result[i] != null && oldResult[i] is string oldStr && result[i] is string str && oldStr == str)
+                                {
+                                    diffResult[i] = Array.Empty<object>();
+                                }
+                                else
+                                {
+                                    diffResult[i] = new object[] { new List<object> { "replace", Array.Empty<object>(), result[i] } };
+                                }
+
+                            }
+                            yield return new ProcessGeneratingMessage(eventResult.Event.Id, new Dictionary<string, object> {
+                                { "data", diffResult}
+                            });
+                        }
+                    }
+                    if (result == null)
+                    {
+                        yield return new UnexpectedErrorMessage(pendingEventId, "Task Cancelled");
+
+                        RemovePendingEvent(sessionHash, pendingEventId);
+                        continue;
+                    }
+
+
+                    yield return new ProcessCompletedMessage(eventResult.Event.Id, new Dictionary<string, object> {
+                        { "data",result}
+                    });
+                    RemovePendingEvent(sessionHash, pendingEventId);
+                    continue;
+                }
+                else
+                {
+                    yield return new UnexpectedErrorMessage(pendingEventId, "no task for Session");
+
+                    RemovePendingEvent(sessionHash, pendingEventId);
+                    continue;
+                }
+            }
         }
-        else
-        {
-            yield return new UnexpectedErrorMessage("no task for Session");
+    }
 
-            yield break;
+    private void RemovePendingEvent(string sessionHash, string pendingEventId)
+    {
+        lock (Context.PendingMessageLock)
+        {
+            if (!Context.PendingEventIdsSession.TryGetValue(sessionHash, out List<string> tmpIds))
+            {
+                return;
+            }
+
+            tmpIds.Remove(pendingEventId);
         }
     }
 
@@ -272,7 +341,7 @@ public class App
             throw new ArgumentException($"File not allowed: {pathOrUrl}.");
         }
 
-        Context.DownloadableFiles.Remove(filePath, out _);
+        //Context.DownloadableFiles.Remove(filePath, out _);
                     
         
 

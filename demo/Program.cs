@@ -10,7 +10,12 @@ using Gradio.Net;
 
 //app.Run();
 
-App.Launch(await CreateBlocks());
+App.Launch(await CreateBlocks(), config => {
+    config.Stylesheets = new string[] {
+            "https://fonts.font.im/css2?family=Source+Sans+Pro:wght@400;600&display=swap",
+            "https://fonts.font.im/css2?family=IBM+Plex+Mono:wght@400;600&display=swap"
+        };
+});
 
 async Task<Blocks> CreateBlocks()
 {
@@ -18,7 +23,7 @@ async Task<Blocks> CreateBlocks()
     {
         await FirstDemo.Create();
 
-        await ImageDemo.Create();
+        await MediaDemo.Create();
 
         await LayoutDemo.Create();
 
@@ -31,5 +36,3 @@ async Task<Blocks> CreateBlocks()
         return blocks;
     }
 }
-
- 

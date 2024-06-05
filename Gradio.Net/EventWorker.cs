@@ -11,7 +11,7 @@ internal class EventWorker : BackgroundService
             Event eventIn = await Context.EventChannel.Reader.ReadAsync(stoppingToken);
             if (eventIn == null)
             {
-                await Task.Delay(500, stoppingToken);
+                await Task.Delay(50, stoppingToken);
                 continue;
             }
 
@@ -27,17 +27,17 @@ internal class EventWorker : BackgroundService
                     try
                     {
                         Input input = gr.Input(blockFunction, data);
-                        Context.EventResults.TryAdd(eventIn.SessionHash, new EventResult { Event = eventIn, BlockFunction = blockFunction, Input = input, OutputTask = fn?.Invoke(input), StreamingOutputTask = streamingFn?.Invoke(input) });
+                        Context.EventResults.TryAdd(eventIn.ToString(), new EventResult { Event = eventIn, BlockFunction = blockFunction, Input = input, OutputTask = fn?.Invoke(input), StreamingOutputTask = streamingFn?.Invoke(input) });
                     }
                     catch (Exception ex)
                     {
-                        Context.EventResults.TryAdd(eventIn.SessionHash, new EventResult { Event = eventIn, BlockFunction = blockFunction, OutputTask = Task.FromResult<Output>(new ErrorOutput(ex)) }); ;
+                        Context.EventResults.TryAdd(eventIn.ToString(), new EventResult { Event = eventIn, BlockFunction = blockFunction, OutputTask = Task.FromResult<Output>(new ErrorOutput(ex)) }); ;
                     }
                 }, default, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default); 
             }
             else
             {
-                Context.EventResults.TryAdd(eventIn.SessionHash, null);
+                Context.EventResults.TryAdd(eventIn.ToString(), null);
             }
         }
     }

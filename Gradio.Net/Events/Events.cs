@@ -2,10 +2,41 @@
 
 namespace Gradio.Net;
 
+
 public interface IHaveReleaseEvent
 {
 }
+public interface IHaveEndEvent
+{
+}
+public interface IHavePauseEvent
+{
+}
+public interface IHavePauseRecordingEvent
+{
+}
 
+public interface IHavePlayEvent
+{
+}
+public interface IHaveStopEvent
+{
+}
+public interface IHaveStopRecordingEvent
+{
+}
+public interface IHaveStartRecordingEvent
+{
+}
+public interface IHaveClearEvent
+{
+}
+public interface IHaveUploadEvent
+{
+}
+public interface IHaveStreamEvent
+{
+}
 public interface IHaveChangeEvent
 {
 }

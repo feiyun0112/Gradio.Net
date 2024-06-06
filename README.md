@@ -62,6 +62,6 @@ app.Run();
 | ----------- | ---------- |
 | [Layout](./readme_files/layout_demo.md) | ![image](./readme_files/layout_demo.gif) |
 | [Form](./readme_files/form_demo.md) | ![image](./readme_files/form_demo.gif) |
-| [Image](./readme_files/image_demo.md) | ![image](./readme_files/image_demo.gif) |
+| [Media](./readme_files/media_demo.md) | ![image](./readme_files/media_demo.gif) |
 | [Chatbot](./readme_files/chatbot_demo.md) | ![image](./readme_files/chatbot_demo.gif) |
 | [Progress](./readme_files/progress_demo.md) | ![image](./readme_files/progress_demo.gif) |

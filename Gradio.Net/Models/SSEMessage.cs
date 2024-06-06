@@ -1,9 +1,11 @@
 ﻿using Gradio.Net.Enums;
 using Gradio.Net.Helpers;
+using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
 namespace Gradio.Net.Models;
 
+[JsonDerivedType(typeof(DoneMessage))]
 [JsonDerivedType(typeof(ProcessCompletedMessage))]
 [JsonDerivedType(typeof(UnexpectedErrorMessage))]
 [JsonDerivedType(typeof(CloseStreamMessage))]
@@ -31,6 +33,15 @@ public abstract class SSEMessage
     }
 }
 
+
+public class DoneMessage : SSEMessage
+{
+    public DoneMessage()
+        : base(SSEMessageType.Done, null, null)
+    {
+    }
+}
+
 public class ProcessStartsMessage : SSEMessage
 {
     public ProcessStartsMessage(string eventId)
@@ -43,8 +54,11 @@ public class ProcessStartsMessage : SSEMessage
 
 public class UnexpectedErrorMessage : SSEMessage
 {
-    public UnexpectedErrorMessage(string message)
-        : base(SSEMessageType.UnexpectedError, message, false) { }
+    public UnexpectedErrorMessage(string eventId, string message)
+        : base(SSEMessageType.UnexpectedError, message, false) {
+        EventId = eventId;
+    }
+    public string EventId { get; set; }
 }
 
 public class CloseStreamMessage : SSEMessage

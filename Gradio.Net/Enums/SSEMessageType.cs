@@ -14,5 +14,6 @@ public enum SSEMessageType
     Heartbeat,
     ServerStopped,
     UnexpectedError,
-    CloseStream
+    CloseStream,
+    Done
 }

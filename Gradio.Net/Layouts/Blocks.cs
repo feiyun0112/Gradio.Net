@@ -2,7 +2,7 @@
 using Gradio.Net.Enums;
 using System.Collections;
 using System.Runtime.Serialization;
-
+using System.Text.Json;
 using FnTarget = (int? Id, string EventName);
 
 namespace Gradio.Net;
@@ -61,7 +61,6 @@ public class Blocks : Block, IList<Block>, IDisposable
 
     internal Dictionary<string, object> GetConfig()
     {
-
         Dictionary<string, object> config = new()
         {
             ["mode"] = this.Mode,
@@ -79,18 +78,10 @@ public class Blocks : Block, IList<Block>, IDisposable
             ["show_api"] = true,
             ["is_colab"] = false,
             ["max_file_size"] = null,
-            ["stylesheets"] = new string[] {
-            "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap",
-            "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap"
-        },
+            
             ["theme"] = this.Theme,
             ["protocol"] = "sse_v3",
-            ["body_css"] = new Dictionary<string, object> {
-            { "body_background_fill", "white" },
-            { "body_text_color", "#1f2937" },
-            { "body_background_fill_dark", "#0b0f19" },
-            { "body_text_color_dark", "#f3f4f6" },
-        },
+           
             ["fill_height"] = this.FillHeight,
 
             ["layout"] = GetLayout(),
@@ -299,9 +290,13 @@ public class Blocks : Block, IList<Block>, IDisposable
     internal IEnumerable<Dictionary<string, object>> GetDependencies()
     {
         List<Dictionary<string, object>> result = [];
+        int id = 0;
         foreach (BlockFunction func in Fns)
         {
-            result.Add(func.GetConfig());
+            Dictionary<string, object> dependency = func.GetConfig();
+            dependency["id"] = id++;
+            result.Add(dependency);
+            
         }
 
         return result;

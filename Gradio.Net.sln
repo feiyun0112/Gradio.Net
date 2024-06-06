@@ -13,6 +13,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gradio.Net.AspNetCore", "Gr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo", "Demo\Demo.csproj", "{059D3B12-6259-4E0A-B61D-4DFA59074296}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "readme_files", "readme_files", "{D270B5CB-D16A-4C8D-8A7B-0EFBDC6918E8}"
+	ProjectSection(SolutionItems) = preProject
+		readme_files\chatbot_demo.md = readme_files\chatbot_demo.md
+		readme_files\form_demo.md = readme_files\form_demo.md
+		readme_files\media_demo.md = readme_files\media_demo.md
+		readme_files\layout_demo.md = readme_files\layout_demo.md
+		readme_files\progress_demo.md = readme_files\progress_demo.md
+		readme_files\README_zh-cn.md = readme_files\README_zh-cn.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

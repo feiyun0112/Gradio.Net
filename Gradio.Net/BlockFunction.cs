@@ -45,12 +45,12 @@ internal class BlockFunction
             ["backend_fn"] = (this.Fn != null || this.StreamingFn != null),
             ["js"] = this.Js,
             ["queue"] = this.Queue,
-            ["apiName"] = ApiName,
-            ["scrollToOutput"] = this.ScrollToOutput,
-            ["showProgress"] = ShowProgress.ToString().ToLowerInvariant(),
+            ["api_name"] = ApiName,
+            ["scroll_to_output"] = this.ScrollToOutput,
+            ["show_progress"] = ShowProgress.ToString().ToLowerInvariant(),
             ["every"] = this.Every,
             ["batch"] = this.Batch,
-            ["maxBatchSize"] = MaxBatchSize,
+            ["max_batch_size"] = MaxBatchSize,
             ["cancels"] = this.Cancels,
             ["types"] = new Dictionary<string, object> {
             {"continuous",this.TypesContinuous },
@@ -59,7 +59,7 @@ internal class BlockFunction
             ["collects_event_data"] = this.CollectsEventData,
             ["trigger_after"] = this.TriggerAfter,
             ["trigger_only_on_success"] = this.TriggerOnlyOnSuccess,
-            ["triggerMode"] = TriggerMode.ToString().ToLowerInvariant(),
+            ["trigger_mode"] = TriggerMode.ToString().ToSnakeCase(),
             ["show_api"] = this.ShowApi,
             ["zerogpu"] = this.ZeroGpu
         };

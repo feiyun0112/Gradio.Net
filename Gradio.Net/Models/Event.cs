@@ -14,4 +14,9 @@ internal class Event
     internal bool ProgressPending { get; set; }
     internal bool Alive { get; set; } = true;
 
+    public override string ToString()
+    {
+        return $"{this.Id}";
+    }
+
 }

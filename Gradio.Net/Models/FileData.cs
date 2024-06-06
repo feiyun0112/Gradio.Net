@@ -12,3 +12,9 @@ public class FileData
     public bool? IsStream { get; set; }
     public string Url { get; set; }
 }
+
+public class VideoData
+{
+    public FileData Video {  get; set;}
+    public FileData Subtitles { get; set; }
+}

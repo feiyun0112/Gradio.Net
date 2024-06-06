@@ -18,6 +18,14 @@ public static partial class gr
     internal static object[] Output(EventResult eventResult, params object[] data)
     {
         BlockFunction blockFunction = eventResult.BlockFunction;
+        if (blockFunction.Outputs == null  && data!=null && data.Length>0)
+        {
+            throw new ArgumentException($"Output Component Count not same as Data length");
+        }
+        else if (blockFunction.Outputs != null && data != null && data.Length != blockFunction.Outputs.Count())
+        {
+            throw new ArgumentException($"Output Component Count {blockFunction.Outputs.Count()} not same as Data length {data.Length}");
+        }
         string rootUrl = eventResult.Event.RootUrl;
 
         for (int i = 0; i < data.Length; i++)

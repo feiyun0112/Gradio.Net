@@ -1,19 +1,14 @@
-﻿using Microsoft.AspNetCore.StaticFiles;
+﻿using Winista.Mime;
 
 namespace Gradio.Net;
 
 internal static class ClientUtils
 {
+    private static MimeTypes _mimeTypes = new MimeTypes();
+
     internal static string GetMimeType(string filePath)
     {
-        const string DefaultContentType = "application/octet-stream";
-        FileExtensionContentTypeProvider provider = new();
-        if (!provider.TryGetContentType(filePath, out string contentType))
-        {
-            contentType = DefaultContentType;
-        }
-
-        return contentType;
+        return _mimeTypes.GetMimeType(filePath)?.Name ?? "application/octet-stream";
     }
 
     internal static bool IsUrl(string str)

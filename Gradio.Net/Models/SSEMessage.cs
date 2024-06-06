@@ -25,7 +25,7 @@ public abstract class SSEMessage
     public string Message { get; set; }
     public bool? Success { get; set; }
 
-    internal string ProcessMsg()
+    public string ProcessMsg()
     {
         return $"data: {JsonUtils.Serialize(this)}\n\n";
     }

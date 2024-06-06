@@ -8,7 +8,7 @@
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<PackageId>Gradio.Net.AspNetCore</PackageId>
-		<Version>0.0.8</Version>
+		<Version>0.0.9</Version>
 		<Title>Gradio.Net</Title>
 		<Authors>feiyun0112</Authors>
 		<Description>Gradio for .NET – a port of Gradio, an open-source Python package that allows you to quickly build a demo or web application for your machine learning model, API, or any arbitrary Python function.  Gradio for .NET – 基于 Gradio 的 .NET 移植，Gradio 是一个开源 Python 包，允许你为机器学习模型、API 或任何任意 Python 函数快速构建演示或 Web 应用程序。</Description>

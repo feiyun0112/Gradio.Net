@@ -1,36 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <InvariantGlobalization>true</InvariantGlobalization>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PackageId>Gradio.Net</PackageId>
-    <Version>0.0.9</Version>
-    <Title>Gradio.Net</Title>
-    <Authors>feiyun0112</Authors>
-    <Description>Gradio for .NET – a port of Gradio, an open-source Python package that allows you to quickly build a demo or web application for your machine learning model, API, or any arbitrary Python function.  Gradio for .NET – 基于 Gradio 的 .NET 移植，Gradio 是一个开源 Python 包，允许你为机器学习模型、API 或任何任意 Python 函数快速构建演示或 Web 应用程序。</Description>
-    <ProjectUrl>https://github.com/feiyun0112/Gradio.Net</ProjectUrl>
-    <Tags>Gradio, UI, UI-Components</Tags>
-    <RepositoryUrl>https://github.com/feiyun0112/Gradio.Net</RepositoryUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
-    <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PackageId>Gradio.Net</PackageId>
+		<Version>0.0.9</Version>
+		<Title>Gradio.Net</Title>
+		<Authors>feiyun0112</Authors>
+		<Description>Gradio for .NET – a port of Gradio, an open-source Python package that allows you to quickly build a demo or web application for your machine learning model, API, or any arbitrary Python function.  Gradio for .NET – 基于 Gradio 的 .NET 移植，Gradio 是一个开源 Python 包，允许你为机器学习模型、API 或任何任意 Python 函数快速构建演示或 Web 应用程序。</Description>
+		<ProjectUrl>https://github.com/feiyun0112/Gradio.Net</ProjectUrl>
+		<Tags>Gradio, UI, UI-Components</Tags>
+		<RepositoryUrl>https://github.com/feiyun0112/Gradio.Net</RepositoryUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 
-  <ItemGroup>
-    <None Include="..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<RequireLicenseAcceptance>false</RequireLicenseAcceptance>
+		<PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="8.0.6" />
-  </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="./templates/**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="8.0.6" />
+	</ItemGroup>
+	
 </Project>

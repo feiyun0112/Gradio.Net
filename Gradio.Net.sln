@@ -17,8 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "readme_files", "readme_file
 	ProjectSection(SolutionItems) = preProject
 		readme_files\chatbot_demo.md = readme_files\chatbot_demo.md
 		readme_files\form_demo.md = readme_files\form_demo.md
-		readme_files\media_demo.md = readme_files\media_demo.md
 		readme_files\layout_demo.md = readme_files\layout_demo.md
+		readme_files\media_demo.md = readme_files\media_demo.md
 		readme_files\progress_demo.md = readme_files\progress_demo.md
 		readme_files\README_zh-cn.md = readme_files\README_zh-cn.md
 	EndProjectSection

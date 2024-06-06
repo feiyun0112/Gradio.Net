@@ -341,11 +341,11 @@ public class GradioApp
         return (filePath, ClientUtils.GetMimeType(filePath));
     }
 
-    public virtual IFileInfo GetFileInfo(string subpath, Type assemblType, string templatesPath = "frontend/")
+    public virtual IFileInfo GetFileInfo(string subpath)
     {
-        Assembly assembl = Assembly.GetAssembly(assemblType);
-        string baseNamespace = assemblType.Namespace ?? "";
-        subpath = $@"{templatesPath}{subpath.TrimStart([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar])}";
+        Assembly assembl = Assembly.GetExecutingAssembly();
+        string baseNamespace = typeof(GradioApp).Namespace ?? "";
+        subpath = $@"templates/frontend/{subpath.TrimStart([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar])}";
 
         if (Path.IsPathRooted(subpath))
         {

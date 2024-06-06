@@ -21,7 +21,7 @@ namespace Gradio.Net.AspNetCore
 
         public IFileInfo GetFileInfo(string subpath)
         {
-            return _gradioApp.GetFileInfo(subpath, typeof(StaticFileProvider));
+            return _gradioApp.GetFileInfo(subpath);
         }
         public IDirectoryContents GetDirectoryContents(string subpath)
         {

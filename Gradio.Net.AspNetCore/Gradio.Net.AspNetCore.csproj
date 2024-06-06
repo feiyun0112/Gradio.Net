@@ -23,10 +23,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<EmbeddedResource Include="../templates/**" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<ProjectCapability Include="AspNetCore" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>

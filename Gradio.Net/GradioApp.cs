@@ -1,53 +1,42 @@
 ﻿using Gradio.Net.Models;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.FileProviders.Embedded;
+using Microsoft.Extensions.FileProviders;
+using System.Reflection;
+using System.Text;
 using System.Collections.Concurrent;
 
 namespace Gradio.Net;
 
-public class App
+public class GradioApp
 {
     const string GRADIO_VERSION = "4.32.2";
     private readonly long _appId;
 
-    public static void Launch(Blocks blocks, Action<GradioServiceConfig>? additionalConfigurationAction = null, params string[] args)
-    {
-        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-        builder.Services.AddGradio();
-
-        WebApplication app = builder.Build();
-
-        app.UseGradio(blocks, additionalConfigurationAction);
-
-        app.Run();
-    }
-
     private GradioServiceConfig _gradioServiceConfig;
 
-    internal App()
+    public GradioApp()
     {
-        this._appId = new Random(DateTime.Now.Millisecond).NextInt64();
+        _appId = new Random(DateTime.Now.Millisecond).NextInt64();
     }
 
-    internal Dictionary<string, object> GetConfig(HttpRequest httpRequest)
+    public Dictionary<string, object> GetConfig(string rootUrl)
     {
         Dictionary<string, object> result = Context.RootBlock.GetConfig();
 
         result["stylesheets"] = this._gradioServiceConfig.Stylesheets;
-        result["body_css"] =this._gradioServiceConfig.BodyCss;
-        result["root"] = httpRequest.GetRootUrl();
+        result["body_css"] = this._gradioServiceConfig.BodyCss;
+        result["root"] = rootUrl;
         result["version"] = GRADIO_VERSION;
         result["app_id"] = _appId;
         return result;
     }
 
-    internal void SetConfig(GradioServiceConfig gradioServiceConfig)
+    public void SetConfig(GradioServiceConfig gradioServiceConfig)
     {
         this._gradioServiceConfig = gradioServiceConfig;
     }
 
-
-    internal object GetApiInfo(HttpRequest request)
+    public object GetApiInfo()
     {
         Dictionary<string, object> result = new()
         {
@@ -57,11 +46,11 @@ public class App
         return result;
     }
 
-    internal async Task<QueueJoinOut> QueueJoin(HttpRequest request, PredictBodyIn body)
+    public async Task<QueueJoinOut> QueueJoin(string rootUrl, PredictBodyIn body)
     {
         Event eventIn = new()
         {
-            RootUrl = request.GetRootUrl(),
+            RootUrl = rootUrl,
             SessionHash = body.SessionHash,
             FnIndex = body.FnIndex,
             ConcurrencyId = Context.RootBlock.Fns[body.FnIndex].ConcurrencyId,
@@ -71,11 +60,11 @@ public class App
         lock (Context.PendingMessageLock)
         {
             if (!Context.PendingEventIdsSession.TryGetValue(eventIn.SessionHash, out List<string> pendingEventIds))
-            { 
+            {
                 pendingEventIds = new List<string>();
             }
             pendingEventIds.Add(eventIn.ToString());
-            Context.PendingEventIdsSession[eventIn.SessionHash]=pendingEventIds;
+            Context.PendingEventIdsSession[eventIn.SessionHash] = pendingEventIds;
         }
 
         await Context.EventChannel.Writer.WriteAsync(eventIn);
@@ -83,17 +72,15 @@ public class App
         return new QueueJoinOut { EventId = eventIn.Id };
     }
 
-    internal async IAsyncEnumerable<SSEMessage> QueueData(string sessionHash, CancellationToken stoppingToken)
+    public async IAsyncEnumerable<SSEMessage> QueueData(string sessionHash, CancellationToken stoppingToken)
     {
-
-
         const int heartbeatRate = 150;
         const int checkRate = 50;
         int heartbeatCount = 0;
 
         if (string.IsNullOrEmpty(sessionHash))
         {
-            yield return new UnexpectedErrorMessage(null,"Session not found");
+            yield return new UnexpectedErrorMessage(null, "Session not found");
 
             yield break;
         }
@@ -107,7 +94,7 @@ public class App
                 yield break;
             }
 
-            await Task.Delay(heartbeatRate);            
+            await Task.Delay(heartbeatRate);
         }
 
         heartbeatCount = 0;
@@ -135,9 +122,9 @@ public class App
                 {
                     if (heartbeatCount++ > heartbeatRate)
                     {
-                        yield return new UnexpectedErrorMessage(pendingEventId,"no task for Session");
+                        yield return new UnexpectedErrorMessage(pendingEventId, "no task for Session");
 
-                        RemovePendingEvent(sessionHash,pendingEventId);
+                        RemovePendingEvent(sessionHash, pendingEventId);
                         continue;
                     }
                     yield return new HeartbeatMessage();
@@ -147,7 +134,7 @@ public class App
 
                 if (eventResult == null || (eventResult.OutputTask == null && eventResult.StreamingOutputTask == null))
                 {
-                    yield return new UnexpectedErrorMessage(pendingEventId,"no task for Session");
+                    yield return new UnexpectedErrorMessage(pendingEventId, "no task for Session");
 
                     RemovePendingEvent(sessionHash, pendingEventId);
                     continue;
@@ -283,11 +270,17 @@ public class App
         }
     }
 
+    public List<string>? ClonseSession(string sessionHash)
+    {
+        Context.PendingEventIdsSession.TryRemove(sessionHash, out List<string>? tmpIds);
+        return tmpIds;
+    }
+
     private void RemovePendingEvent(string sessionHash, string pendingEventId)
     {
         lock (Context.PendingMessageLock)
         {
-            if (!Context.PendingEventIdsSession.TryGetValue(sessionHash, out List<string> tmpIds))
+            if (!Context.PendingEventIdsSession.TryGetValue(sessionHash, out List<string>? tmpIds))
             {
                 return;
             }
@@ -296,7 +289,7 @@ public class App
         }
     }
 
-    internal async Task<List<string>> Upload(string uploadId, IFormFileCollection files)
+    public async Task<List<string>> Upload(string uploadId, List<(Stream Stream, string Name)> files, bool autoCloseFileStream = true)
     {
         if (files == null || files.Count == 0)
         {
@@ -307,14 +300,14 @@ public class App
         List<string> filesToCopy = [];
         List<string> locations = [];
 
-        foreach (IFormFile file in files)
+        foreach ((Stream Stream, string Name) file in files)
         {
-            if (file.Length == 0)
+            if (file.Stream.Length == 0)
             {
                 continue;
             }
 
-            string fileName = Path.GetFileName(file.FileName);
+            string fileName = Path.GetFileName(file.Name);
             string name = Path.GetInvalidFileNameChars().Aggregate(fileName, (current, c) => current.Replace(c.ToString(), ""));
             string directory = Path.Combine(Path.GetTempPath(), file.GetHashCode().ToString());
             Directory.CreateDirectory(directory);
@@ -322,18 +315,21 @@ public class App
 
             using (FileStream stream = new(dest, FileMode.Create))
             {
-                await file.CopyToAsync(stream);
+                await file.Stream.CopyToAsync(stream);
             }
 
-            Context.DownloadableFiles.TryAdd(dest,dest);
+            Context.DownloadableFiles.TryAdd(dest, dest);
 
             outputFiles.Add(dest);
+
+            if (autoCloseFileStream)
+                file.Stream.Close();
         }
 
         return outputFiles;
     }
 
-    internal async Task<(string filePath, string contentType)> GetUploadedFile(string pathOrUrl)
+    public async Task<(string filePath, string contentType)> GetUploadedFile(string pathOrUrl)
     {
         string filePath = new FileInfo(System.Net.WebUtility.UrlDecode(pathOrUrl)).FullName;
         if (!Context.DownloadableFiles.TryGetValue(filePath, out _))
@@ -342,10 +338,85 @@ public class App
         }
 
         //Context.DownloadableFiles.Remove(filePath, out _);
-                    
-        
+
+
 
 
         return (filePath, ClientUtils.GetMimeType(filePath));
+    }
+
+    public virtual IFileInfo GetFileInfo(string subpath)
+    {
+        Assembly assembl = Assembly.GetExecutingAssembly();
+        string baseNamespace = typeof(GradioApp).Namespace ?? "";
+        subpath = $@"templates/frontend/{subpath.TrimStart([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar])}";
+
+        if (Path.IsPathRooted(subpath))
+        {
+            return new NotFoundFileInfo(subpath);
+        }
+
+        if (string.IsNullOrEmpty(subpath))
+        {
+            return new NotFoundFileInfo(subpath);
+        }
+
+        StringBuilder builder = new(baseNamespace.Length + subpath.Length);
+        builder.Append(baseNamespace);
+
+        if (subpath.StartsWith("/", StringComparison.Ordinal))
+        {
+            subpath = subpath.Substring(1, subpath.Length - 1);
+        }
+
+        builder.Append("." + subpath.Replace("/", "."));
+
+        string resourcePath = builder.ToString();
+
+        string name = Path.GetFileName(subpath);
+        if (assembl.GetManifestResourceInfo(resourcePath) == null)
+        {
+            return new NotFoundFileInfo(name);
+        }
+
+        return new EmbeddedResourceFileInfo(assembl, resourcePath, name, DateTimeOffset.UtcNow); ;
+    }
+
+    public virtual async Task StartEventLoopAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            Event eventIn = await Context.EventChannel.Reader.ReadAsync(stoppingToken);
+            if (eventIn == null)
+            {
+                await Task.Delay(50, stoppingToken);
+                continue;
+            }
+
+            if (eventIn.FnIndex >= 0 && eventIn.FnIndex < Context.RootBlock.Fns.Count)
+            {
+                BlockFunction blockFunction = Context.RootBlock.Fns[eventIn.FnIndex];
+                Func<Input, Task<Output>>? fn = blockFunction.Fn;
+                Func<Input, IAsyncEnumerable<Output>>? streamingFn = blockFunction.StreamingFn;
+                object[] data = eventIn.Data.Data;
+
+                _ = Task.Factory.StartNew(() =>
+                {
+                    try
+                    {
+                        Input input = gr.Input(blockFunction, data);
+                        Context.EventResults.TryAdd(eventIn.ToString(), new EventResult { Event = eventIn, BlockFunction = blockFunction, Input = input, OutputTask = fn?.Invoke(input), StreamingOutputTask = streamingFn?.Invoke(input) });
+                    }
+                    catch (Exception ex)
+                    {
+                        Context.EventResults.TryAdd(eventIn.ToString(), new EventResult { Event = eventIn, BlockFunction = blockFunction, OutputTask = Task.FromResult<Output>(new ErrorOutput(ex)) }); ;
+                    }
+                }, default, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+            }
+            else
+            {
+                Context.EventResults.TryAdd(eventIn.ToString(), null);
+            }
+        }
     }
 }

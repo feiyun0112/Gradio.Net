@@ -2,17 +2,17 @@
 
 namespace Gradio.Net.jinja2;
 
-internal class Template
+public class Template
 {
     private readonly string _source;
 
-    internal Template(string source)
+    public Template(string source)
     {
         this._source = source;
 
     }
 
-    internal string Render(Dictionary<string, object> vars)
+    public string Render(Dictionary<string, object> vars)
     {
         List<Block> blocks = new TemplateTokenizer().Tokenize(this._source);
         StringBuilder result = new();

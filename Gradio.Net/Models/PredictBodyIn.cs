@@ -2,7 +2,7 @@
 
 namespace Gradio.Net;
 
-internal class PredictBodyIn
+public class PredictBodyIn
 {
     [JsonPropertyName("session_hash")]
     public string SessionHash { get; set; }

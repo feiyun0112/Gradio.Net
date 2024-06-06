@@ -87,13 +87,9 @@ public class Chatbot : Component
                 AltText = chatMessage.AltText,
             };
         }
-        else if(!string.IsNullOrEmpty(chatMessage.TextMessage))
-        {
-            return chatMessage.TextMessage;
-        }
         else
         {
-            throw new ArgumentException($"Invalid message for Chatbot component: {chatMessage}");
+            return chatMessage.TextMessage;
         }
     }
 

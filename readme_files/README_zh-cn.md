@@ -14,7 +14,7 @@ Gradio for .NET – [Gradio](https://github.com/gradio-app/gradio) 的 .NET 移�
 
 - 1. 创建 ASP.NET Core Web API 项目。
 
-- 2. 安装 NuGet **Gradio.Net**。
+- 2. 安装 NuGet **Gradio.Net.AspNetCore**。
 
 - 3. 在 Program.cs 中输入以下示例代码:
 
@@ -49,7 +49,7 @@ async Task<Blocks> CreateBlocks()
 
 🎉🎉🎉
 
-**如果您想在现有项目中使用 **Gradio.Net****
+**如果您想在现有项目中使用 **Gradio.Net.AspNetCore****
 
 可以使用`AddGradio`和 `UseGradio`扩展方法：
 

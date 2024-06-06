@@ -12,7 +12,7 @@ It just takes a few lines of .NET code to create a beautiful demo like the one a
 
 - 1. Create a ASP.NET Core Web API project.
 
-- 2. Install NuGet package **Gradio.Net**.
+- 2. Install NuGet package **Gradio.Net.AspNetCore**.
 
 - 3. Enter the sample code in Program.cs:
 
@@ -41,7 +41,7 @@ async Task<Blocks> CreateBlocks()
 
 That's All🎉🎉🎉
 
-**If you wan to use **Gradio.Net** in exists project**
+**If you wan to use **Gradio.Net.AspNetCore** in exists project**
 
 You can use `AddGradio` and `UseGradio` extension methods:
 

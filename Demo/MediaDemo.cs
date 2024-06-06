@@ -114,6 +114,37 @@ public static class MediaDemo
                 }
             }
         }
+        Gradio.Net.File fileComponent, outputFile1;
+        using (gr.Row())
+        {
+            using (gr.Column())
+            {
+                fileComponent = gr.File(label: "Upload Single File", fileCount: FileCount.Single);
+            }
+            using (gr.Column())
+            {
+                outputFile1 = gr.File(label: "Upload Single File Output", fileCount: FileCount.Single);
+
+                var numLoadBtn1 = gr.Number(label: "# Load Upload Single File", value: 0);
+                fileComponent.Upload(fn: async (input) => gr.Output(input.Data[0], Gradio.Net.Number.Payload(input.Data[1]) + 1), new Component[] { fileComponent, numLoadBtn1 }, new Component[] { outputFile1, numLoadBtn1 });
+            }
+        }
+
+        Gradio.Net.File fileComponentMultiple, outputFile2;
+        using (gr.Row())
+        {
+            using (gr.Column())
+            {
+                fileComponentMultiple = gr.File(label: "Upload Multiple File", fileCount: FileCount.Multiple);
+            }
+            using (gr.Column())
+            {
+                outputFile2 = gr.File(label: "Upload Multiple File Output", fileCount: FileCount.Multiple);
+
+                var numLoadBtn2 = gr.Number(label: "# Load Upload Single File", value: 0);
+                fileComponentMultiple.Upload(fn: async (input) => gr.Output(input.Data[0], Gradio.Net.Number.Payload(input.Data[1]) + 1), new Component[] { fileComponentMultiple, numLoadBtn2 }, new Component[] { outputFile2, numLoadBtn2 });
+            }
+        }
     }
     static string DrawWaterMarkOnImage(string inputImageFilePath)
     {

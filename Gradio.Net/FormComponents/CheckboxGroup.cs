@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace Gradio.Net;
 
-public class CheckboxGroup : FormComponent
+public class CheckboxGroup : FormComponent, IHaveChangeEvent, IHaveInputEvent, IHaveSelectEvent
 {
     internal CheckboxGroup() { }
     internal IEnumerable<string> Choices { get;  set; }

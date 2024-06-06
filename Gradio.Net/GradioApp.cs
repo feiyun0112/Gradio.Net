@@ -142,9 +142,9 @@ public class GradioApp
 
                 if (eventResult.OutputTask != null)
                 {
-                    while (!stoppingToken.IsCancellationRequested)
+                    if (!stoppingToken.IsCancellationRequested)
                     {
-                        while (!eventResult.OutputTask.IsCompleted)
+                        if (!eventResult.OutputTask.IsCompleted)
                         {
                             if (eventResult.Input.Progress != null)
                             {
@@ -156,11 +156,9 @@ public class GradioApp
                             }
                             await Task.Delay(checkRate);
                         }
-
-                        break;
                     }
 
-                    if (eventResult.OutputTask.Exception != null)
+                    if (eventResult.OutputTask.IsCompleted && eventResult.OutputTask.Exception != null)
                     {
                         Exception ex = eventResult.OutputTask.Exception;
                         while (ex.InnerException != null)
@@ -201,63 +199,86 @@ public class GradioApp
                 }
                 else if (eventResult.StreamingOutputTask != null)
                 {
-                    yield return new ProcessStartsMessage(eventResult.Event.Id);
-
-                    object[] result = null;
-                    await foreach (Output output in eventResult.StreamingOutputTask)
+                    
+                   
+                  
+                    
+                     object[] result =  null;
+                    Output oldOutput =null;
+                    if (eventResult.AsyncEnumeratorOutput==null)
                     {
-                        if (stoppingToken.IsCancellationRequested)
-                        {
-                            yield return new UnexpectedErrorMessage(pendingEventId, "Task Cancelled");
+                        eventResult.AsyncEnumeratorOutput = eventResult.StreamingOutputTask.GetAsyncEnumerator();
+                        eventResult.AsyncEnumeratorOutputNextTask = eventResult.AsyncEnumeratorOutput.MoveNextAsync();
+                        yield return new ProcessStartsMessage(eventResult.Event.Id);
+                        continue;
+                    }
+                     
 
+                    if (eventResult.AsyncEnumeratorOutputNextTask.IsCompletedSuccessfully)
+                    {
+                        if (eventResult.AsyncEnumeratorOutputNextTask.Result)
+                        {
+                            Output output = eventResult.AsyncEnumeratorOutput.Current;
+
+                            if (stoppingToken.IsCancellationRequested)
+                            {
+                                yield return new UnexpectedErrorMessage(pendingEventId, "Task Cancelled");
+
+                                RemovePendingEvent(sessionHash, pendingEventId);
+                                continue;
+                            }
+
+                            object[] outputData = output.Data;
+                            if (eventResult.AsyncEnumeratorOutputData == null)
+                            {
+                                result = gr.Output(eventResult, outputData);
+                                eventResult.AsyncEnumeratorOutputData = result;
+                                yield return new ProcessGeneratingMessage(eventResult.Event.Id, new Dictionary<string, object> {
+                                    { "data",result}
+                                });
+                            }
+                            else
+                            {
+                                object[] oldResult = eventResult.AsyncEnumeratorOutputData;
+                                result = gr.Output(eventResult, outputData);
+                                eventResult.AsyncEnumeratorOutputData = result;
+                                object[] diffResult = new object[result.Length];
+                                for (int i = 0; i < result.Length; i++)
+                                {
+                                    if (oldResult[i] != null && result[i] != null && oldResult[i] is string oldStr && result[i] is string str && oldStr == str)
+                                    {
+                                        diffResult[i] = Array.Empty<object>();
+                                    }
+                                    else
+                                    {
+                                        diffResult[i] = new object[] { new List<object> { "replace", Array.Empty<object>(), result[i] } };
+                                    }
+
+                                }
+                                yield return new ProcessGeneratingMessage(eventResult.Event.Id, new Dictionary<string, object> {
+                                    { "data", diffResult}
+                                });
+                            }
+                            eventResult.AsyncEnumeratorOutputNextTask = eventResult.AsyncEnumeratorOutput.MoveNextAsync();
+                            continue;
+                        }
+                        else
+                        { 
+                            result = eventResult.AsyncEnumeratorOutputData;
+                            yield return new ProcessCompletedMessage(eventResult.Event.Id, new Dictionary<string, object> {
+                                { "data",result}
+                            });
                             RemovePendingEvent(sessionHash, pendingEventId);
                             continue;
                         }
-
-                        object[] outputData = output.Data;
-                        if (result == null)
-                        {
-                            result = gr.Output(eventResult, outputData);
-                            yield return new ProcessGeneratingMessage(eventResult.Event.Id, new Dictionary<string, object> {
-                                { "data",result}
-                            });
-                        }
-                        else
-                        {
-                            object[] oldResult = result;
-                            result = gr.Output(eventResult, outputData);
-                            object[] diffResult = new object[result.Length];
-                            for (int i = 0; i < result.Length; i++)
-                            {
-                                if (oldResult[i] != null && result[i] != null && oldResult[i] is string oldStr && result[i] is string str && oldStr == str)
-                                {
-                                    diffResult[i] = Array.Empty<object>();
-                                }
-                                else
-                                {
-                                    diffResult[i] = new object[] { new List<object> { "replace", Array.Empty<object>(), result[i] } };
-                                }
-
-                            }
-                            yield return new ProcessGeneratingMessage(eventResult.Event.Id, new Dictionary<string, object> {
-                                { "data", diffResult}
-                            });
-                        }
                     }
-                    if (result == null)
-                    {
-                        yield return new UnexpectedErrorMessage(pendingEventId, "Task Cancelled");
 
+                    if (eventResult.AsyncEnumeratorOutputNextTask.IsCompleted && !eventResult.AsyncEnumeratorOutputNextTask.IsCompletedSuccessfully)
+                    {
+                        yield return new UnexpectedErrorMessage(pendingEventId, "Task not completed");
                         RemovePendingEvent(sessionHash, pendingEventId);
                         continue;
                     }
-
-
-                    yield return new ProcessCompletedMessage(eventResult.Event.Id, new Dictionary<string, object> {
-                        { "data",result}
-                    });
-                    RemovePendingEvent(sessionHash, pendingEventId);
-                    continue;
                 }
                 else
                 {
@@ -405,7 +426,7 @@ public class GradioApp
                     try
                     {
                         Input input = gr.Input(blockFunction, data);
-                        Context.EventResults.TryAdd(eventIn.ToString(), new EventResult { Event = eventIn, BlockFunction = blockFunction, Input = input, OutputTask = fn?.Invoke(input), StreamingOutputTask = streamingFn?.Invoke(input) });
+                        Context.EventResults.TryAdd(eventIn.ToString(), new EventResult { Event = eventIn, BlockFunction = blockFunction, Input = input, OutputTask = fn?.Invoke(input), StreamingOutputTask = streamingFn?.Invoke(input)  });
                     }
                     catch (Exception ex)
                     {

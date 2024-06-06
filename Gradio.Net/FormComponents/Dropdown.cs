@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace Gradio.Net;
 
-public class Dropdown : FormComponent
+public class Dropdown : FormComponent, IHaveChangeEvent, IHaveInputEvent, IHaveSelectEvent,IHaveFocusEvent
 {
     internal Dropdown() { }
     internal int? MaxChoices { get;  set; }

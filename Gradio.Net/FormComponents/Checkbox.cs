@@ -1,6 +1,6 @@
 ﻿namespace Gradio.Net;
 
-public class Checkbox : FormComponent
+public class Checkbox : FormComponent,IHaveChangeEvent, IHaveInputEvent,IHaveSelectEvent
 {
     internal Checkbox() { }
     public static bool Payload(object obj)

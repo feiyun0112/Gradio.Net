@@ -74,8 +74,6 @@ public class GradioApp
 
     public async IAsyncEnumerable<SSEMessage> QueueData(string sessionHash, CancellationToken stoppingToken)
     {
-
-
         const int heartbeatRate = 150;
         const int checkRate = 50;
         int heartbeatCount = 0;
@@ -272,11 +270,17 @@ public class GradioApp
         }
     }
 
+    public List<string>? ClonseSession(string sessionHash)
+    {
+        Context.PendingEventIdsSession.TryRemove(sessionHash, out List<string>? tmpIds);
+        return tmpIds;
+    }
+
     private void RemovePendingEvent(string sessionHash, string pendingEventId)
     {
         lock (Context.PendingMessageLock)
         {
-            if (!Context.PendingEventIdsSession.TryGetValue(sessionHash, out List<string> tmpIds))
+            if (!Context.PendingEventIdsSession.TryGetValue(sessionHash, out List<string>? tmpIds))
             {
                 return;
             }

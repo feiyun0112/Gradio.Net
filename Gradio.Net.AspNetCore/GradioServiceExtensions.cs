@@ -86,17 +86,17 @@ public static class GradioServiceExtensions
             context.Response.Headers.Add("Content-Type", "text/event-stream");
 
 
-                StreamWriter streamWriter = new(context.Response.Body);
-                var sessionHash = context.Request.Query["session_hash"].FirstOrDefault();
-                await foreach (SSEMessage message in app.QueueData(sessionHash, stoppingToken))
-                {
-                    await streamWriter.WriteLineAsync(message.ProcessMsg());
-                    await streamWriter.FlushAsync();
-                }
-                await streamWriter.WriteLineAsync(new CloseStreamMessage().ProcessMsg());
+            StreamWriter streamWriter = new(context.Response.Body);
+            var sessionHash = context.Request.Query["session_hash"].FirstOrDefault();
+            await foreach (SSEMessage message in app.QueueData(sessionHash, stoppingToken))
+            {
+                await streamWriter.WriteLineAsync(message.ProcessMsg());
                 await streamWriter.FlushAsync();
-                Context.PendingEventIdsSession.TryRemove(sessionHash, out _);
-            });
+            }
+            await streamWriter.WriteLineAsync(new CloseStreamMessage().ProcessMsg());
+            await streamWriter.FlushAsync();
+            app.ClonseSession(sessionHash);
+        });
 
         webApplication.MapPost("/upload", async (HttpRequest request, [FromServices] GradioApp app) =>
         {

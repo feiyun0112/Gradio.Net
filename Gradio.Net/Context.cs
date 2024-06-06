@@ -4,10 +4,10 @@ using System.Threading.Channels;
 
 namespace Gradio.Net;
 
-public static class Context
+internal static class Context
 {
     internal static object PendingMessageLock = new object();
-    public static ConcurrentDictionary<string, List<string>> PendingEventIdsSession { get; private set; } = new ConcurrentDictionary<string, List<string>>();
+    internal static ConcurrentDictionary<string, List<string>> PendingEventIdsSession { get; private set; } = new ConcurrentDictionary<string, List<string>>();
     internal static ConcurrentDictionary<string,string> DownloadableFiles { get; private set; } = new ConcurrentDictionary<string,string>();
     internal static ConcurrentDictionary<string, EventResult> EventResults { get; private set; } =  new ConcurrentDictionary<string, EventResult>();
     internal static Channel<Event> EventChannel { get; private set; } = Channel.CreateUnbounded<Event>();

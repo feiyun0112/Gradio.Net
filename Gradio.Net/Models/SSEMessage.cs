@@ -1,6 +1,5 @@
 ﻿using Gradio.Net.Enums;
 using Gradio.Net.Helpers;
-using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
 namespace Gradio.Net.Models;

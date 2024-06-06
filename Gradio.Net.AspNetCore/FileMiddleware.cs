@@ -22,12 +22,8 @@ namespace Gradio.Net.AspNetCore
             const string FILE_URL = "/file=";
             if (path.StartsWith(FILE_URL))
             {
-                (string filePath, string contentType) = gradioApp.GetUploadedFile(path.Substring(FILE_URL.Length));
-                httpContext.Response.ContentType = contentType;
-                using (FileStream fs = new(filePath, FileMode.Open))
-                {
-                    await fs.CopyToAsync(httpContext.Response.Body);
-                }
+                (string filePath, string contentType) = await gradioApp.GetUploadedFile(path.Substring(FILE_URL.Length));
+                await httpContext.Response.SendFileAsync(filePath);
                 return;
             }
             await _next(httpContext);

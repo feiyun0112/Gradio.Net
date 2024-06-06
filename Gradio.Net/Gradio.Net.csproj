@@ -23,10 +23,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="templates/**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

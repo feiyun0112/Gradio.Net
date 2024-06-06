@@ -23,7 +23,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<EmbeddedResource Include="templates/**" />
+		<EmbeddedResource Include="../templates/**" />
 	</ItemGroup>
 
 	<ItemGroup>

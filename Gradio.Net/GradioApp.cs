@@ -3,8 +3,6 @@ using Microsoft.Extensions.FileProviders.Embedded;
 using Microsoft.Extensions.FileProviders;
 using System.Reflection;
 using System.Text;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using System.Collections.Concurrent;
 
 namespace Gradio.Net;
@@ -26,7 +24,7 @@ public class GradioApp
         Dictionary<string, object> result = Context.RootBlock.GetConfig();
 
         result["stylesheets"] = this._gradioServiceConfig.Stylesheets;
-        result["body_css"] =this._gradioServiceConfig.BodyCss;
+        result["body_css"] = this._gradioServiceConfig.BodyCss;
         result["root"] = rootUrl;
         result["version"] = GRADIO_VERSION;
         result["app_id"] = _appId;
@@ -62,11 +60,11 @@ public class GradioApp
         lock (Context.PendingMessageLock)
         {
             if (!Context.PendingEventIdsSession.TryGetValue(eventIn.SessionHash, out List<string> pendingEventIds))
-            { 
+            {
                 pendingEventIds = new List<string>();
             }
             pendingEventIds.Add(eventIn.ToString());
-            Context.PendingEventIdsSession[eventIn.SessionHash]=pendingEventIds;
+            Context.PendingEventIdsSession[eventIn.SessionHash] = pendingEventIds;
         }
 
         await Context.EventChannel.Writer.WriteAsync(eventIn);
@@ -84,7 +82,7 @@ public class GradioApp
 
         if (string.IsNullOrEmpty(sessionHash))
         {
-            yield return new UnexpectedErrorMessage(null,"Session not found");
+            yield return new UnexpectedErrorMessage(null, "Session not found");
 
             yield break;
         }
@@ -98,7 +96,7 @@ public class GradioApp
                 yield break;
             }
 
-            await Task.Delay(heartbeatRate);            
+            await Task.Delay(heartbeatRate);
         }
 
         heartbeatCount = 0;
@@ -126,9 +124,9 @@ public class GradioApp
                 {
                     if (heartbeatCount++ > heartbeatRate)
                     {
-                        yield return new UnexpectedErrorMessage(pendingEventId,"no task for Session");
+                        yield return new UnexpectedErrorMessage(pendingEventId, "no task for Session");
 
-                        RemovePendingEvent(sessionHash,pendingEventId);
+                        RemovePendingEvent(sessionHash, pendingEventId);
                         continue;
                     }
                     yield return new HeartbeatMessage();
@@ -138,7 +136,7 @@ public class GradioApp
 
                 if (eventResult == null || (eventResult.OutputTask == null && eventResult.StreamingOutputTask == null))
                 {
-                    yield return new UnexpectedErrorMessage(pendingEventId,"no task for Session");
+                    yield return new UnexpectedErrorMessage(pendingEventId, "no task for Session");
 
                     RemovePendingEvent(sessionHash, pendingEventId);
                     continue;
@@ -287,7 +285,7 @@ public class GradioApp
         }
     }
 
-    public async Task<List<string>> Upload(string uploadId, List<(Stream Stream, string Name)> files,bool autoCloseFileStream=true)
+    public async Task<List<string>> Upload(string uploadId, List<(Stream Stream, string Name)> files, bool autoCloseFileStream = true)
     {
         if (files == null || files.Count == 0)
         {
@@ -327,7 +325,7 @@ public class GradioApp
         return outputFiles;
     }
 
-    public (string filePath, string contentType) GetUploadedFile(string pathOrUrl)
+    public async Task<(string filePath, string contentType)> GetUploadedFile(string pathOrUrl)
     {
         string filePath = new FileInfo(System.Net.WebUtility.UrlDecode(pathOrUrl)).FullName;
         if (!Context.DownloadableFiles.TryGetValue(filePath, out _))
@@ -337,14 +335,17 @@ public class GradioApp
 
         //Context.DownloadableFiles.Remove(filePath, out _);
 
+
+
+
         return (filePath, ClientUtils.GetMimeType(filePath));
     }
 
-    public virtual IFileInfo GetFileInfo(string subpath, Type assemblType)
+    public virtual IFileInfo GetFileInfo(string subpath, Type assemblType, string templatesPath = "frontend/")
     {
         Assembly assembl = Assembly.GetAssembly(assemblType);
         string baseNamespace = assemblType.Namespace ?? "";
-        subpath = $@"templates/frontend/{subpath.TrimStart([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar])}";
+        subpath = $@"{templatesPath}{subpath.TrimStart([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar])}";
 
         if (Path.IsPathRooted(subpath))
         {
@@ -384,7 +385,7 @@ public class GradioApp
             Event eventIn = await Context.EventChannel.Reader.ReadAsync(stoppingToken);
             if (eventIn == null)
             {
-                await Task.Delay(500, stoppingToken);
+                await Task.Delay(50, stoppingToken);
                 continue;
             }
 
@@ -400,17 +401,17 @@ public class GradioApp
                     try
                     {
                         Input input = gr.Input(blockFunction, data);
-                        Context.EventResults.TryAdd(eventIn.SessionHash, new EventResult { Event = eventIn, BlockFunction = blockFunction, Input = input, OutputTask = fn?.Invoke(input), StreamingOutputTask = streamingFn?.Invoke(input) });
+                        Context.EventResults.TryAdd(eventIn.ToString(), new EventResult { Event = eventIn, BlockFunction = blockFunction, Input = input, OutputTask = fn?.Invoke(input), StreamingOutputTask = streamingFn?.Invoke(input) });
                     }
                     catch (Exception ex)
                     {
-                        Context.EventResults.TryAdd(eventIn.SessionHash, new EventResult { Event = eventIn, BlockFunction = blockFunction, OutputTask = Task.FromResult<Output>(new ErrorOutput(ex)) }); ;
+                        Context.EventResults.TryAdd(eventIn.ToString(), new EventResult { Event = eventIn, BlockFunction = blockFunction, OutputTask = Task.FromResult<Output>(new ErrorOutput(ex)) }); ;
                     }
                 }, default, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
             }
             else
             {
-                Context.EventResults.TryAdd(eventIn.SessionHash, null);
+                Context.EventResults.TryAdd(eventIn.ToString(), null);
             }
         }
     }

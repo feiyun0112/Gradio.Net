@@ -36,24 +36,15 @@ internal sealed class CodeBlock : Block
         {
             if (vars["config"] is Dictionary<string, object> dictConfig)
             {
-                Regex regex = new(@"config.get\('(.*?)', \{\}\)\.get\('(.*?)', '(.*?)'\)");
-                Match match = regex.Match(this.Content);
-                string key = match.Groups[1].Value;
+                string key = "body_css";
                 if (dictConfig.ContainsKey(key))
                 {
-                    if (dictConfig[key] is Dictionary<string, object> dictInner)
+                    if (dictConfig[key] is Dictionary<string, string> dictInner)
                     {
-                        string innerKey = match.Groups[2].Value;
-                        if (dictInner.ContainsKey(innerKey))
-                        {
-                            return dictInner[innerKey].ToString();
-                        }
-
-                        
+                        return string.Join(";\r\n", dictInner.Select(d => $"--{d.Key.Replace("--", "").Replace("_", "-")}:{(d.Value.ToString().StartsWith("*") ? $"var({d.Value.ToString().Replace("--", "").Replace("*", "--").Replace("_", "-")})" : $"{d.Value.ToString().Replace("_", "-")}")} !important"));
                     }
                 }
-
-                return match.Groups[3].Value;
+                return "";
             }
         }
 

@@ -7,19 +7,19 @@ public static partial class gr
         string label = null,
         string info = null,
         decimal? every = null,
-        bool showLabel = true,
-        bool container = true,
+        bool? showLabel = null,
+        bool? container = null,
         int? scale = null,
-        int minWidth = 160,
+        int? minWidth = null,
         bool? interactive = null,
-        bool visible = true,
+        bool? visible = null,
         string elemId = null,
         IEnumerable<string> elemClasses = null,
-        bool render = true,
+        bool? render = null,
         int? precision = null,
-        decimal? minimum=null,
-        decimal? maximum=null,
-        decimal step =1)
+        decimal? minimum = null,
+        decimal? maximum = null,
+        decimal? step = null)
     {
         Number blocks = new()
         {
@@ -33,13 +33,13 @@ public static partial class gr
             MinWidth = minWidth,
             Interactive = interactive,
             Visible = visible,
-            ElemId = elemId,                
+            ElemId = elemId,
             ElemClasses = elemClasses,
             Render = render,
-            Precision= precision,
-            Minimum= minimum,
-            Maximum= maximum,
-            Step= step
+            Precision = precision,
+            Minimum = minimum,
+            Maximum = maximum,
+            Step = step
         };
         Context.AddToCurrentBlocks(blocks);
         return blocks;

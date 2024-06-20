@@ -8,33 +8,33 @@ public static partial class gr
         string label = null,
         decimal? every = null,
         bool? showLabel = null,
-        bool container = true,
+        bool? container = null,
         int? scale = null,
-        int minWidth = 160,
-         bool visible = true,
+        int? minWidth = null,
+         bool? visible = null,
           string elemId = null,
            IEnumerable<string> elemClasses = null,
-           bool render = true,
-          string key=null,
+           bool? render = null,
+          string key = null,
           string color = null
        )
     {
         Label block = new()
         {
             Value = value,
-            NumTopClasses= numTopClasses,
-            Label= label,
+            NumTopClasses = numTopClasses,
+            Label = label,
             Every = every,
-            ShowLabel= showLabel,
-            Container= container,
+            ShowLabel = showLabel,
+            Container = container,
             Scale = scale,
             MinWidth = minWidth,
             Visible = visible,
             ElemId = elemId,
             ElemClasses = elemClasses,
             Render = render,
-            Key= key,
-            Color= color,
+            Key = key,
+            Color = color,
         };
         Context.AddToCurrentBlocks(block);
         return block;

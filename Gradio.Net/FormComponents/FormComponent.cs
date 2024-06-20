@@ -1,4 +1,5 @@
-﻿namespace Gradio.Net;
+﻿
+namespace Gradio.Net;
 
 public class FormComponent : Component
 {

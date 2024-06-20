@@ -4,27 +4,27 @@ namespace Gradio.Net;
 
 public static partial class gr
 {
-        
+
     public static File File(
         string value = null,
-        FileCount fileCount = FileCount.Single,
+        FileCount? fileCount = null,
         IEnumerable<string> fileTypes = null,
-        FileType type = FileType.Filepath,
+        FileType? type = null,
         string label = null,
         decimal? every = null,
         bool? showLabel = null,
 
-        bool container = true,
+        bool? container = null,
         int? scale = null,
-        int minWidth = 160,
+        int? minWidth = null,
         decimal? height = null,
         bool? interactive = null,
-        bool visible = true,
-       
+        bool? visible = null,
+
         string elemId = null,
         List<string> elemClasses = null,
-        bool render = true,
-        string key = null )
+        bool? render = null,
+        string key = null)
     {
         File block = new()
         {
@@ -39,14 +39,14 @@ public static partial class gr
             Scale = scale,
             MinWidth = minWidth,
             Height = height,
-            Interactive= interactive,
-            Visible= visible,
-            ElemId= elemId,
-            ElemClasses= elemClasses,
-            Render= render,
-            Key= key 
+            Interactive = interactive,
+            Visible = visible,
+            ElemId = elemId,
+            ElemClasses = elemClasses,
+            Render = render,
+            Key = key
         };
-         
+
 
         Context.AddToCurrentBlocks(block);
         return block;

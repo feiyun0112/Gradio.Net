@@ -1,6 +1,7 @@
 ﻿
 using Gradio.Net.Enums;
 using System.Collections;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 using System.Text.Json;
 using FnTarget = (int? Id, string EventName);
@@ -21,16 +22,16 @@ public class Blocks : Block, IList<Block>, IDisposable
     public bool IsReadOnly => false;
 
     internal string Title { get; set; }
-    internal string Theme { get;  set; }
-    internal bool? AnalyticsEnabled { get;  set; }
-    internal string Mode { get;  set; }
-    internal string Css { get;  set; }
-    internal string Js { get;  set; }
-    internal string Head { get;  set; }
-    internal bool? FillHeight { get;  set; }
-    internal Tuple<int, int> DeleteCache { get;  set; }
-    
-    public  virtual void Add(Block item)
+    internal string Theme { get; set; }
+    internal bool? AnalyticsEnabled { get; set; }
+    internal string Mode { get; set; }
+    internal string Css { get; set; }
+    internal string Js { get; set; }
+    internal string Head { get; set; }
+    internal bool? FillHeight { get; set; }
+    internal Tuple<int, int> DeleteCache { get; set; }
+
+    public virtual void Add(Block item)
     {
         if (item is Blocks blocks)
         {
@@ -63,30 +64,28 @@ public class Blocks : Block, IList<Block>, IDisposable
     {
         Dictionary<string, object> config = new()
         {
-            ["mode"] = this.Mode,
+            ["mode"] = this.GetPropertyValue<object>(nameof(this.Mode)),
             ["dev_mode"] = false,
-            ["analytics_enabled"] = this.AnalyticsEnabled,
+            ["analytics_enabled"] = this.GetPropertyValue<object>(nameof(this.AnalyticsEnabled)),
             ["components"] = GetComponents(),
-            ["css"] = this.Css,
+            ["css"] = this.GetPropertyValue<object>(nameof(this.Css)),
             ["connect_heartbeat"] = false,
-            ["js"] = this.Js,
-            ["head"] = this.Head,
-            ["title"] = this.Title,
+            ["js"] = this.GetPropertyValue<object>(nameof(this.Js)),
+            ["head"] = this.GetPropertyValue<object>(nameof(this.Head)),
+            ["title"] = this.GetPropertyValue<object>(nameof(this.Title)),
             ["space_id"] = null,
             ["enable_queue"] = true,
             ["show_error"] = false,
             ["show_api"] = true,
             ["is_colab"] = false,
             ["max_file_size"] = null,
-            
-            ["theme"] = this.Theme,
+
+            ["theme"] = this.GetPropertyValue<object>(nameof(this.Theme)),
             ["protocol"] = "sse_v3",
-           
-            ["fill_height"] = this.FillHeight,
+
+            ["fill_height"] = this.GetPropertyValue<object>(nameof(this.FillHeight)),
 
             ["layout"] = GetLayout(),
-
-
 
             ["dependencies"] = GetDependencies()
         };
@@ -102,7 +101,7 @@ public class Blocks : Block, IList<Block>, IDisposable
             result.Add(item.GetConfig());
             if (item is Blocks blocks)
             {
-                
+
                 result.AddRange(blocks.GetComponents());
             }
         }
@@ -143,8 +142,8 @@ public class Blocks : Block, IList<Block>, IDisposable
 
     internal (BlockFunction, int) SetEventTrigger(
         IEnumerable<EventListenerMethod> targets,
-        Func<Input,Task<Output>> fn = null,
-        Func<Input,IAsyncEnumerable<Output>> streamingFn = null,
+        Func<Input, Task<Output>> fn = null,
+        Func<Input, IAsyncEnumerable<Output>> streamingFn = null,
         IEnumerable<Component> inputs = null,
         IEnumerable<Component> outputs = null,
         bool preprocess = true,
@@ -168,7 +167,7 @@ public class Blocks : Block, IList<Block>, IDisposable
         bool showApi = true)
     {
         // Support for singular parameter
-        List<FnTarget> tmpTargets = targets.Select(target => (!no_target && target.Block != null) ? new FnTarget(target.Block.Id, target.EventName) : new FnTarget(null,target.EventName)).ToList();
+        List<FnTarget> tmpTargets = targets.Select(target => (!no_target && target.Block != null) ? new FnTarget(target.Block.Id, target.EventName) : new FnTarget(null, target.EventName)).ToList();
 
         inputs = inputs == null ? [] : inputs.ToList();
         outputs = outputs == null ? [] : outputs.ToList();
@@ -223,7 +222,8 @@ public class Blocks : Block, IList<Block>, IDisposable
 
         (IList _, int? progressIndex, int? eventDataIndex) = fn != null ? SpecialArgs(fn) : (null, null, null);
 
-        if (apiName != null && apiName.Trim() == "") {
+        if (apiName != null && apiName.Trim() == "")
+        {
             if (fn != null)
             {
                 apiName = "unnamed";
@@ -256,19 +256,19 @@ public class Blocks : Block, IList<Block>, IDisposable
 
         BlockFunction blockFn = new()
         {
-            Fn= fn,
-            StreamingFn= streamingFn,
-            Inputs=inputs,
-            Outputs =outputs,
-            Preprocess=preprocess,
-            Postprocess=postprocess,
+            Fn = fn,
+            StreamingFn = streamingFn,
+            Inputs = inputs,
+            Outputs = outputs,
+            Preprocess = preprocess,
+            Postprocess = postprocess,
             InputsAsDict = false,
             Targets = tmpTargets,
             Batch = batch,
             MaxBatchSize = maxBatchSize,
             ConcurrencyLimit = concurrencyLimit,
             ConcurrencyId = concurrencyId,
-            TracksProgress = progressIndex!=null,
+            TracksProgress = progressIndex != null,
             ApiName = apiName,
             Js = js,
             ShowProgress = showProgress,
@@ -296,7 +296,7 @@ public class Blocks : Block, IList<Block>, IDisposable
             Dictionary<string, object> dependency = func.GetConfig();
             dependency["id"] = id++;
             result.Add(dependency);
-            
+
         }
 
         return result;
@@ -307,15 +307,25 @@ public class Blocks : Block, IList<Block>, IDisposable
 
     public Block this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-    private (IList, int? progressIndex, int? eventDataIndex) SpecialArgs(Func<Input,Task<Output>> fn)
+    private (IList, int? progressIndex, int? eventDataIndex) SpecialArgs(Func<Input, Task<Output>> fn)
     {
         //todo:Checks if function has special arguments Request or EventData (via annotation) or Progress (via default value).
         return (null, null, null);
     }
 
-    protected override Dictionary<string, object> GetProps()
+    static Dictionary<string, object> _defaultProps = new Dictionary<string, object>()
     {
-        Dictionary<string, object> result = base.GetProps();
+        { nameof(Theme), "default" },
+        { nameof(AnalyticsEnabled), true },
+        { nameof(Mode), "blocks" },
+        { nameof(Title), "Gradio.Net" },
+        { nameof(FillHeight), false },
+    };
+    protected override object? GetDefaultProp(string name) => _defaultProps.ContainsKey(name) ? _defaultProps[name] : null;
+
+    protected override Dictionary<string, object> GetProps(bool useDefaultValue)
+    {
+        Dictionary<string, object> result = base.GetProps(useDefaultValue);
         if (result.ContainsKey("id"))
         {
             result.Remove("id");
@@ -341,6 +351,6 @@ public class Blocks : Block, IList<Block>, IDisposable
 
     public void RemoveAt(int index)
     {
-       _children.RemoveAt(index);
+        _children.RemoveAt(index);
     }
 }

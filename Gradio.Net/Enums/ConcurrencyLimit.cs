@@ -2,5 +2,5 @@
 
 public enum ConcurrencyLimit
 {
-    Default=0,
+    Default = 0,
 }

@@ -2,7 +2,13 @@
 
 public static partial class gr
 {
-    public static Tab Tab(string label = null,bool visible =true,bool interactive= true, string componentId = null, string elemId = null, string[] elemClasses = null,bool render= true)
+    public static Tab Tab(string label = null,
+        bool? visible = null,
+        bool? interactive = null,
+        string componentId = null,
+        string elemId = null,
+        string[] elemClasses = null,
+        bool? render = null)
     {
         Tab block = [];
 

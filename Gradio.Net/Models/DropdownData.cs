@@ -2,5 +2,5 @@
 
 internal class ChatbotData
 {
-    public List<string[]> Root { get; set; } 
+    public List<string[]> Root { get; set; }
 }

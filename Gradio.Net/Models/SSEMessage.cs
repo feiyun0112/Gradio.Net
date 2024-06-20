@@ -44,8 +44,9 @@ public class DoneMessage : SSEMessage
 public class ProcessStartsMessage : SSEMessage
 {
     public ProcessStartsMessage(string eventId)
-        : base(SSEMessageType.ProcessStarts, null, null) {
-        EventId = eventId; 
+        : base(SSEMessageType.ProcessStarts, null, null)
+    {
+        EventId = eventId;
     }
     public string EventId { get; set; }
     public decimal? Eta { get; set; }
@@ -54,7 +55,8 @@ public class ProcessStartsMessage : SSEMessage
 public class UnexpectedErrorMessage : SSEMessage
 {
     public UnexpectedErrorMessage(string eventId, string message)
-        : base(SSEMessageType.UnexpectedError, message, false) {
+        : base(SSEMessageType.UnexpectedError, message, false)
+    {
         EventId = eventId;
     }
     public string EventId { get; set; }
@@ -75,7 +77,8 @@ public class HeartbeatMessage : SSEMessage
 public class ProcessCompletedMessage : SSEMessage
 {
     public ProcessCompletedMessage(string eventId, Dictionary<string, object> output)
-        : base(SSEMessageType.ProcessCompleted, null, true) {
+        : base(SSEMessageType.ProcessCompleted, null, true)
+    {
         this.EventId = eventId;
         this.Output = output;
     }

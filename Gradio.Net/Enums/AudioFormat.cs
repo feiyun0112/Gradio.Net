@@ -2,6 +2,6 @@
 
 public enum AudioFormat
 {
-    Wav=0,
+    Wav = 0,
     Mp3
 }

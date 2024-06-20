@@ -1,4 +1,5 @@
 ﻿using Gradio.Net.Enums;
+using System.ComponentModel;
 using System.Text.Json;
 
 
@@ -7,8 +8,17 @@ namespace Gradio.Net;
 public class CheckboxGroup : FormComponent, IHaveChangeEvent, IHaveInputEvent, IHaveSelectEvent
 {
     internal CheckboxGroup() { }
-    internal IEnumerable<string> Choices { get;  set; }
-    internal CheckboxGroupType Type { get;  set; }
+    internal IEnumerable<string> Choices { get; set; }
+    internal CheckboxGroupType? Type { get; set; }
+    static Dictionary<string, object> _defaultProps = new Dictionary<string, object>()
+    {
+        { nameof(Type),  CheckboxGroupType.Value },
+         { nameof(Container), true },
+          { nameof(MinWidth), 160 },
+           { nameof(Visible), true },
+        { nameof(Render), true },
+    };
+    protected override object? GetDefaultProp(string name) => _defaultProps.ContainsKey(name) ? _defaultProps[name] : null;
 
     public static IEnumerable<string> Payload(object obj)
     {
@@ -25,11 +35,11 @@ public class CheckboxGroup : FormComponent, IHaveChangeEvent, IHaveInputEvent, I
         throw new ArgumentException($"Payload Type expect IEnumerable<string> actual {obj.GetType()}");
     }
 
-    protected override Dictionary<string, object> GetProps()
+    protected override Dictionary<string, object> GetProps(bool useDefaultValue)
     {
-        Dictionary<string, object> result = base.GetProps();
+        Dictionary<string, object> result = base.GetProps(useDefaultValue);
 
-        result["choices"]= this.Choices.Select(x => new[] { x,x}).ToArray();
+        result["choices"] = this.Choices.Select(x => new[] { x, x }).ToArray();
 
         return result;
     }
@@ -41,7 +51,7 @@ public class CheckboxGroup : FormComponent, IHaveChangeEvent, IHaveInputEvent, I
 
     internal override object PreProcess(object data)
     {
-        
+
         if (data == null)
         {
             return new List<string>();
@@ -65,9 +75,9 @@ public class CheckboxGroup : FormComponent, IHaveChangeEvent, IHaveInputEvent, I
         string[] choices = JsonUtils.Deserialize<string[]>(str);
         if (choices != null)
         {
-            return choices; 
+            return choices;
         }
-        
+
         return new[] { str };
     }
 

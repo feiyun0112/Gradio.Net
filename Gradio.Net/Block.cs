@@ -3,6 +3,7 @@ using Gradio.Net.Enums;
 using System.Collections;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Xml.Linq;
 
 namespace Gradio.Net;
 
@@ -22,7 +23,7 @@ public abstract class Block
     internal string Key { get; set; }
 
     [IgnoreDataMember]
-    internal bool Render { get; set; }
+    internal bool? Render { get; set; }
     internal string ElemId { get; set; }
     private IEnumerable<string> elemClasses;
     internal IEnumerable<string> ElemClasses { get { return elemClasses; } set { if (value == null) { value = new List<string>(); } elemClasses = value; } }
@@ -44,12 +45,12 @@ public abstract class Block
         Dictionary<string, object> blockConfig = new()
         {
             ["id"] = Id,
-            ["type"] = GetTypeName(),
-            ["props"] = GetProps(),
+            ["type"] = this.GetTypeName(),
+            ["props"] = this.GetProps(true),
             ["skip_api"] = true,
             ["key"] = Key,
 
-            ["component_class_id"] = GetComponentClassId()
+            ["component_class_id"] = this.GetComponentClassId()
         };
 
         return blockConfig;
@@ -64,11 +65,46 @@ public abstract class Block
     {
         return GetType().Name;
     }
-    internal bool Visible { get; set; } = true;
-    internal bool? Streaming { get;  set; }
-    internal bool? Likeable { get;  set; }
+    internal bool? Visible { get; set; } = true;
+    internal bool? Streaming { get; set; }
+    internal bool? Likeable { get; set; }
 
-    protected virtual Dictionary<string, object> GetProps() {
+    protected virtual object? GetDefaultProp(string name)
+    {
+        return null;
+    }
+
+    internal T GetPropertyValue<T>(string propertyName)
+    {
+        PropertyInfo? p = this.GetType().GetProperty(propertyName, BindingFlags.Instance |
+                         BindingFlags.NonPublic);
+        if (p == null)
+        {
+            throw new Exception($"{this.GetType()} no property {propertyName}");
+        }
+
+        object? value = this.GetPropValue(p);
+        if (value != null && value is T retValue)
+        {
+            return retValue;
+        }
+
+        return default(T);
+    }
+
+    private object? GetPropValue(PropertyInfo? p, bool useDefaultValue = true)
+    {
+        object? value = p.GetValue(this, null);
+        if (value == null && useDefaultValue)
+        {
+            value = this.GetDefaultProp(p.Name);
+        }
+
+        return value;
+    }
+
+    protected virtual Dictionary<string, object> GetProps(bool useDefaultValue)
+    {
         Dictionary<string, object> result = [];
 
         Type type = this.GetType();
@@ -81,17 +117,22 @@ public abstract class Block
                 continue;
             }
             string name = p.Name.ToSnakeCase();
-            object? value = p.GetValue(this, null);
+            object? value = this.GetPropValue(p);
             if (value != null)
             {
-                if (p.PropertyType.Namespace == typeof(ShowProgress).Namespace)
+                Type underlyingType = Nullable.GetUnderlyingType(p.PropertyType);
+                if (underlyingType == null)
+                {
+                    underlyingType = p.PropertyType;
+                }
+                if (underlyingType.Namespace == typeof(ShowProgress).Namespace)
                 {
                     result[name] = value.ToString().ToSnakeCase().ToLowerInvariant();
                 }
-                else if (p.PropertyType.IsGenericType  
-                    && typeof(IEnumerable).IsAssignableFrom(p.PropertyType) 
-                    && p.PropertyType.GenericTypeArguments.Count()==1
-                    && p.PropertyType.GenericTypeArguments[0].Namespace == typeof(ShowProgress).Namespace
+                else if (underlyingType.IsGenericType
+                    && typeof(IEnumerable).IsAssignableFrom(underlyingType)
+                    && underlyingType.GenericTypeArguments.Count() == 1
+                    && underlyingType.GenericTypeArguments[0].Namespace == typeof(ShowProgress).Namespace
                     )
                 {
                     IEnumerable? tmpList = value as IEnumerable;
@@ -101,13 +142,13 @@ public abstract class Block
                 else
                 {
                     result[name] = value;
-                } 
+                }
             }
-          }
+        }
 
         result["_selectable"] = _selectable;
         result["name"] = this.GetName();
-        
+
 
         return result;
     }
@@ -125,5 +166,39 @@ public abstract class Block
     internal virtual object PostProcess(string rootUrl, object data)
     {
         return data;
+    }
+
+    internal static object PostProcess(Block blockUpdate, Block block)
+    {
+        Dictionary<string, object> blockPropsUpdate = blockUpdate.GetProps(false);
+        Dictionary<string, object> blockProps = block.GetProps(false);
+        Dictionary<string, object> result = new();
+        foreach (KeyValuePair<string, object> prop in blockPropsUpdate)
+        {
+            object valueUpdate = prop.Value;
+            if (blockProps.ContainsKey(prop.Key))
+            {
+                object value = blockProps[prop.Key];
+
+                if (value == null && valueUpdate != null)
+                {
+                    result[prop.Key] = valueUpdate;
+                }
+                else if (value != null && valueUpdate != null)
+                {
+                    if (!JsonUtils.Serialize(value).Equals(JsonUtils.Serialize(valueUpdate)))
+                    {
+                        result[prop.Key] = valueUpdate;
+                    }
+                }
+            }
+            else
+            {
+                result[prop.Key] = valueUpdate;
+            }
+        }
+        result["__type__"] = "update";
+
+        return result;
     }
 }

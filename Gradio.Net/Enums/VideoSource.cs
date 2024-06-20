@@ -2,6 +2,6 @@
 
 public enum VideoSource
 {
-    Upload=0,
+    Upload = 0,
     Webcam
 }

@@ -6,27 +6,27 @@ public static partial class gr
 {
     public static Textbox Textbox(
         string value = null,
-        int lines = 1,
-        int maxLines = 20,
+        int? lines = null,
+        int? maxLines = null,
         string placeholder = null,
         string label = null,
         string info = null,
         decimal? every = null,
-        bool showLabel = true,
-        bool container = true,
+        bool? showLabel = null,
+        bool? container = null,
         int? scale = null,
-        int minWidth = 160,
+        int? minWidth = null,
         bool? interactive = null,
-        bool visible = true,
+        bool? visible = null,
         string elemId = null,
-        bool autofocus = false,
-        bool autoscroll = true,
+        bool? autofocus = null,
+        bool? autoscroll = null,
         IEnumerable<string> elemClasses = null,
-        bool render = true,
-        TextboxType type = TextboxType.Text,
-        TextboxTextAlign textAlign = TextboxTextAlign.Left,
-        bool rtl = false,
-        bool showCopyButton = false)
+        bool? render = null,
+        TextboxType? type = null,
+        TextboxTextAlign? textAlign = null,
+        bool? rtl = null,
+        bool? showCopyButton = null)
     {
         Textbox blocks = new()
         {

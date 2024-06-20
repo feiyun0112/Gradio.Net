@@ -1,8 +1,21 @@
-﻿namespace Gradio.Net;
+﻿using System.ComponentModel;
 
-public class Checkbox : FormComponent,IHaveChangeEvent, IHaveInputEvent,IHaveSelectEvent
+namespace Gradio.Net;
+
+public class Checkbox : FormComponent, IHaveChangeEvent, IHaveInputEvent, IHaveSelectEvent
 {
     internal Checkbox() { }
+
+    static Dictionary<string, object> _defaultProps = new Dictionary<string, object>()
+    {
+        { nameof(Value), false },
+        { nameof(Container), true },
+         { nameof(MinWidth), 160 },
+         { nameof(Visible), true },
+          { nameof(Render), true },
+    };
+    protected override object? GetDefaultProp(string name) => _defaultProps.ContainsKey(name) ? _defaultProps[name] : null;
+
     public static bool Payload(object obj)
     {
         if (obj == null)
@@ -24,7 +37,7 @@ public class Checkbox : FormComponent,IHaveChangeEvent, IHaveInputEvent,IHaveSel
     }
 
     internal override object PreProcess(object data)
-    {            
+    {
         if (data == null)
         {
             return false;

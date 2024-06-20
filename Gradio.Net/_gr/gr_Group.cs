@@ -2,11 +2,11 @@
 
 public static partial class gr
 {
-    public static Group Group(            
-        bool visible = true,
+    public static Group Group(
+        bool? visible = null,
         string elemId = null,
         IEnumerable<string> elemClasses = null,
-        bool render = true
+        bool? render = null
     )
     {
         Group block = [];

@@ -8,13 +8,13 @@ public abstract class Component : Block
     {
 
     }
-    
-    internal bool Rtl { get; set; }
+
+    internal bool? Rtl { get; set; }
     internal string Info { get; set; }
-    internal bool Container { get; set; } = true;
+    internal bool? Container { get; set; } = true;
     internal int? Scale { get; set; }
     internal int? MinWidth { get; set; }
-    
+
     [IgnoreDataMember]
     internal Action LoadFn { get; set; }
 
@@ -23,20 +23,10 @@ public abstract class Component : Block
     internal string Label { get; set; }
     internal decimal? Every { get; set; }
     internal bool? ShowLabel { get; set; }
-    
 
-    protected virtual Dictionary<string, object> GetApiInfo() { 
-    return [];
-    }
 
-    
-
-    protected override Dictionary<string, object> GetProps()
+    protected virtual Dictionary<string, object> GetApiInfo()
     {
-        Dictionary<string, object> result = base.GetProps();
-
-       
-
-        return result;
+        return [];
     }
 }

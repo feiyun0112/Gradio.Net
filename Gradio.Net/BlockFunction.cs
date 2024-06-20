@@ -6,26 +6,26 @@ namespace Gradio.Net;
 
 internal class BlockFunction
 {
-    internal bool Preprocess { get;  set; }
-    internal bool ShowApi { get;  set; }
-    internal bool ScrollToOutput { get;  set; }
-    internal bool? Queue { get;  set; }
-    internal bool TriggerOnlyOnSuccess { get;  set; }
-    internal int? TriggerAfter { get;  set; }
-    internal bool? CollectsEventData { get;  set; }
-    internal IEnumerable<int> Cancels { get;  set; }
-    internal decimal? Every { get;  set; }
-    internal bool TracksProgress { get;  set; }
-    internal string ConcurrencyId { get;  set; }
-    internal ConcurrencyLimit? ConcurrencyLimit { get;  set; }
-    internal bool Batch { get;  set; }
-    internal bool InputsAsDict { get;  set; }
-    internal bool Postprocess { get;  set; }
-    internal Func<Input,Task<Output>>? Fn { get;  set; }
-    internal Func<Input,IAsyncEnumerable<Output>>? StreamingFn { get; set; }
-    internal string? Js { get;  set; }
-    internal bool TypesContinuous { get;  set; }
-    internal bool TypesGenerator { get;  set; }
+    internal bool Preprocess { get; set; }
+    internal bool ShowApi { get; set; }
+    internal bool ScrollToOutput { get; set; }
+    internal bool? Queue { get; set; }
+    internal bool TriggerOnlyOnSuccess { get; set; }
+    internal int? TriggerAfter { get; set; }
+    internal bool? CollectsEventData { get; set; }
+    internal IEnumerable<int> Cancels { get; set; }
+    internal decimal? Every { get; set; }
+    internal bool TracksProgress { get; set; }
+    internal string ConcurrencyId { get; set; }
+    internal ConcurrencyLimit? ConcurrencyLimit { get; set; }
+    internal bool Batch { get; set; }
+    internal bool InputsAsDict { get; set; }
+    internal bool Postprocess { get; set; }
+    internal Func<Input, Task<Output>>? Fn { get; set; }
+    internal Func<Input, IAsyncEnumerable<Output>>? StreamingFn { get; set; }
+    internal string? Js { get; set; }
+    internal bool TypesContinuous { get; set; }
+    internal bool TypesGenerator { get; set; }
     internal bool ZeroGpu { get; set; }
     internal TriggerMode? TriggerMode { get; set; }
     internal int MaxBatchSize { get; set; } = 4;
@@ -69,10 +69,10 @@ internal class BlockFunction
 
     private IEnumerable<object[]> GetTargetsConfig()
     {
-        List<object[]> result = [];  
+        List<object[]> result = [];
         foreach ((int? Id, string EventName) target in this.Targets)
         {
-            result.Add([target.Id,target.EventName]);
+            result.Add([target.Id, target.EventName]);
         }
         return result;
     }

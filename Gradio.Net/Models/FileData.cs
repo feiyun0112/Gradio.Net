@@ -15,6 +15,6 @@ public class FileData
 
 public class VideoData
 {
-    public FileData Video {  get; set;}
+    public FileData Video { get; set; }
     public FileData Subtitles { get; set; }
 }

@@ -5,7 +5,7 @@ namespace Gradio.Net.jinja2;
 
 internal sealed class CodeBlock : Block
 {
-    internal CodeBlock(string content):base(content) { }
+    internal CodeBlock(string content) : base(content) { }
 
     internal override BlockTypes Type => BlockTypes.Code;
 
@@ -15,7 +15,7 @@ internal sealed class CodeBlock : Block
 
         if (this.Content.Equals("config | toorjson"))
         {
-            return JsonSerializer.Serialize(vars["config"]); 
+            return JsonSerializer.Serialize(vars["config"]);
         }
         else if (this.Content.StartsWith("config['"))
         {
@@ -49,7 +49,7 @@ internal sealed class CodeBlock : Block
                             return dictInner[innerKey].ToString();
                         }
 
-                        
+
                     }
                 }
 

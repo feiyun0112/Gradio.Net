@@ -11,8 +11,8 @@ public class ChatbotMessagePair
 {
     public ChatbotMessagePair(ChatMessage message, ChatMessage botMessage)
     {
-        HumanMessage=message;
-        AiMessage=botMessage;
+        HumanMessage = message;
+        AiMessage = botMessage;
     }
     public ChatbotMessagePair(string message, string botMessage)
     {

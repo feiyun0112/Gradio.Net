@@ -2,6 +2,6 @@
 
 public enum AudioSource
 {
-    Upload=0,
+    Upload = 0,
     Microphone
 }

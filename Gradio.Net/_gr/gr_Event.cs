@@ -845,7 +845,7 @@ public static partial class gr
     }
 
     public static async Task Click<T>(this T block,
-       Func<Input,Task<Output>> fn,
+       Func<Input, Task<Output>> fn,
        IEnumerable<Component> inputs = null,
        IEnumerable<Component> outputs = null,
        string apiName = null,
@@ -862,7 +862,7 @@ public static partial class gr
        string js = null,
        ConcurrencyLimit concurrencyLimit = ConcurrencyLimit.Default,
        string concurrencyId = null,
-       bool showApi = true) where T: Block,IHaveClickEvent
+       bool showApi = true) where T : Block, IHaveClickEvent
     {
         await Events.Click.EventTrigger(block,
             fn: fn,

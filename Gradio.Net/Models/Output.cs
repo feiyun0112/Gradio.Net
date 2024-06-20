@@ -6,8 +6,9 @@ public class Output
 }
 
 internal class ErrorOutput : Output
-{ 
-    public ErrorOutput(Exception ex) {
+{
+    public ErrorOutput(Exception ex)
+    {
         Exception = ex;
     }
 

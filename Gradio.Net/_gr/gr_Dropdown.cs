@@ -7,23 +7,23 @@ public static partial class gr
     public static Dropdown Dropdown(
         IEnumerable<string> choices = null,
         object value = null,
-        DropdownType type = DropdownType.Value,
+        DropdownType? type = null,
         bool? multiselect = null,
-        bool allowCustomValue = false,
+        bool? allowCustomValue = null,
         int? maxChoices = null,
-        bool filterable = true,
+        bool? filterable = null,
         string label = null,
         string info = null,
         decimal? every = null,
         bool? showLabel = null,
-        bool container = true,
+        bool? container = null,
         int? scale = null,
-        int minWidth = 160,
+        int? minWidth = null,
         bool? interactive = null,
-        bool visible = true,
+        bool? visible = null,
         string elemId = null,
         IEnumerable<string> elemClasses = null,
-        bool render = true
+        bool? render = null
     )
     {
         Dropdown block = new();
@@ -33,7 +33,7 @@ public static partial class gr
         block.MaxChoices = maxChoices;
         block.AllowCustomValue = allowCustomValue;
         block.Filterable = filterable;
-        
+
         block.Label = label;
         block.Info = info;
         block.Every = every;
@@ -47,7 +47,7 @@ public static partial class gr
         block.ElemClasses = elemClasses;
         block.Render = render;
         block.Value = value;
-        
+
         Context.AddToCurrentBlocks(block);
         return block;
     }

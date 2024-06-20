@@ -5,12 +5,23 @@ namespace Gradio.Net;
 public class File : Component, IHaveClearEvent, IHaveChangeEvent, IHaveSelectEvent, IHaveUploadEvent
 {
     internal File() { }
-    internal FileCount FileCount { get;  set; }
-    internal IEnumerable<string> FileTypes { get;  set; }
-    
-    internal FileType Type { get;  set; }
-    internal decimal? Height { get;  set; }
+    internal FileCount? FileCount { get; set; }
+    internal IEnumerable<string> FileTypes { get; set; }
 
+    internal FileType? Type { get; set; }
+    internal decimal? Height { get; set; }
+
+    static Dictionary<string, object> _defaultProps = new Dictionary<string, object>()
+    {
+        { nameof(FileCount),  Enums.FileCount.Single},
+         { nameof(Type), FileType.Filepath },
+
+         { nameof(Container),true },
+        {nameof(MinWidth),160 },
+           { nameof(Visible), true },
+        { nameof(Render), true },
+    };
+    protected override object? GetDefaultProp(string name) => _defaultProps.ContainsKey(name) ? _defaultProps[name] : null;
 
     public void CheckStreamable()
     {
@@ -29,7 +40,7 @@ public class File : Component, IHaveClearEvent, IHaveChangeEvent, IHaveSelectEve
         if (str.StartsWith("["))
         {
             FileData[] fileDatas = JsonUtils.Deserialize<FileData[]>(str);
-            return fileDatas.Select(p=>p.Path).ToArray();
+            return fileDatas.Select(p => p.Path).ToArray();
         }
 
         FileData fileData = JsonUtils.Deserialize<FileData>(str);

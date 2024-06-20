@@ -7,25 +7,25 @@ public static partial class gr
     public static CheckboxGroup CheckboxGroup(
         IEnumerable<string> choices = null,
         object value = null,
-       CheckboxGroupType type = CheckboxGroupType.Value,
+       CheckboxGroupType? type = null,
        string label = null,
-       string info = null,                       
+       string info = null,
         decimal? every = null,
         bool? showLabel = null,
-        bool container = true,
+        bool? container = null,
         int? scale = null,
-        int minWidth = 160,
+        int? minWidth = null,
         bool? interactive = null,
-        bool visible = true,
+        bool? visible = null,
         string elemId = null,
         IEnumerable<string> elemClasses = null,
-        bool render = true
+        bool? render = null
     )
     {
         CheckboxGroup block = new();
         block.Choices = choices;
         block.Type = type;
-        
+
         block.Label = label;
         block.Info = info;
         block.Every = every;
@@ -39,7 +39,7 @@ public static partial class gr
         block.ElemClasses = elemClasses;
         block.Render = render;
         block.Value = value;
-        
+
         Context.AddToCurrentBlocks(block);
         return block;
     }

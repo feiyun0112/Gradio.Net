@@ -3,12 +3,12 @@
 public static partial class gr
 {
     public static Accordion Accordion(
-        string label=null,        
-        bool open = true,        
-        bool visible = true,
+        string label = null,
+        bool? open = null,
+        bool? visible = null,
         string elemId = null,
         IEnumerable<string> elemClasses = null,
-        bool render = true
+        bool? render = null
     )
     {
         Accordion block = [];

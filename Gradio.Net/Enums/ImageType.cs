@@ -2,5 +2,5 @@
 
 public enum ImageType
 {
-    Filepath=0,
+    Filepath = 0,
 }

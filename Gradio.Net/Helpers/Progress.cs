@@ -19,9 +19,9 @@ public class Progress
 
     public void Report(
         int value,
-        string desc=null,
-        int? total=null,
-        string unit= "steps"            
+        string desc = null,
+        int? total = null,
+        string unit = "steps"
     )
     {
         Index = value;

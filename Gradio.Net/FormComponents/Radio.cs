@@ -4,11 +4,24 @@ using System.Text.Json;
 
 namespace Gradio.Net;
 
-public class Radio : FormComponent, IHaveChangeEvent, IHaveInputEvent,IHaveSelectEvent
+public class Radio : FormComponent, IHaveChangeEvent, IHaveInputEvent, IHaveSelectEvent
 {
     internal Radio() { }
-    internal IEnumerable<string> Choices { get;  set; }
-    internal RadioType Type { get;  set; }
+    internal IEnumerable<string> Choices { get; set; }
+    internal RadioType? Type { get; set; }
+
+    static Dictionary<string, object> _defaultProps = new Dictionary<string, object>()
+    {
+          { nameof(Type), RadioType.Value },
+            { nameof(Container), true },
+
+        { nameof(MinWidth), 160 },
+         { nameof(Visible), true},
+          { nameof(Render), true },
+
+
+    };
+    protected override object? GetDefaultProp(string name) => _defaultProps.ContainsKey(name) ? _defaultProps[name] : null;
 
     public static IEnumerable<string> Payload(object obj)
     {
@@ -25,11 +38,11 @@ public class Radio : FormComponent, IHaveChangeEvent, IHaveInputEvent,IHaveSelec
         throw new ArgumentException($"Payload Type expect IEnumerable<string> actual {obj.GetType()}");
     }
 
-    protected override Dictionary<string, object> GetProps()
+    protected override Dictionary<string, object> GetProps(bool useDefaultValue)
     {
-        Dictionary<string, object> result = base.GetProps();
+        Dictionary<string, object> result = base.GetProps(useDefaultValue);
 
-        result["choices"]= this.Choices.Select(x => new[] { x,x}).ToArray();
+        result["choices"] = this.Choices.Select(x => new[] { x, x }).ToArray();
 
         return result;
     }
@@ -41,7 +54,7 @@ public class Radio : FormComponent, IHaveChangeEvent, IHaveInputEvent,IHaveSelec
 
     internal override object PreProcess(object data)
     {
-        
+
         if (data == null)
         {
             return new List<string>();
@@ -65,9 +78,9 @@ public class Radio : FormComponent, IHaveChangeEvent, IHaveInputEvent,IHaveSelec
         string[] choices = JsonUtils.Deserialize<string[]>(str);
         if (choices != null)
         {
-            return choices; 
+            return choices;
         }
-        
+
         return new[] { str };
     }
 

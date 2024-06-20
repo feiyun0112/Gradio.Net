@@ -2,30 +2,30 @@
 
 public static partial class gr
 {
-    public static Chatbot  Chatbot(
+    public static Chatbot Chatbot(
         IEnumerable<object> value = null,
         string label = null,
         decimal? every = null,
         bool? showLabel = null,
-        bool container = true,
+        bool? container = null,
         int? scale = null,
-        int minWidth = 160,
-        bool visible = true,
+        int? minWidth = null,
+        bool? visible = null,
         string elemId = null,
         IEnumerable<string> elemClasses = null,
-        bool render = true,
+        bool? render = null,
         string key = null,
         int? height = null,
         IEnumerable<Dictionary<string, object>> latexDelimiters = null,
-        bool rtl = false,
+        bool? rtl = null,
         bool? showShareButton = null,
-        bool showCopyButton = false,
+        bool? showCopyButton = null,
         Tuple<string, string> avatarImages = null,
-        bool sanitizeHtml = true,
-        bool renderMarkdown = true,
-        bool bubbleFullWidth = true,
-        bool lineBreaks = true,
-        bool likeable = false,
+        bool? sanitizeHtml = null,
+        bool? renderMarkdown = null,
+        bool? bubbleFullWidth = null,
+        bool? lineBreaks = null,
+        bool? likeable = null,
         string layout = null,
         string placeholder = null)
     {
@@ -45,7 +45,7 @@ public static partial class gr
         block.Height = height;
         block.LatexDelimiters = latexDelimiters;
         block.Rtl = rtl;
-        block.ShowShareButton = showShareButton ?? (GradioUtils.GetSpace() != null);
+        block.ShowShareButton = showShareButton;
         block.RenderMarkdown = renderMarkdown;
         block.ShowCopyButton = showCopyButton;
         block.AvatarImages = avatarImages;

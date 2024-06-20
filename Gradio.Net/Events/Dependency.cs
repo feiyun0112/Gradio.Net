@@ -2,7 +2,7 @@
 
 internal class Dependency
 {
-    public Dependency(Block block, Dictionary<string, object> config, int dep_index, Func<Input,Task<Output>> fn)
+    public Dependency(Block block, Dictionary<string, object> config, int dep_index, Func<Input, Task<Output>> fn)
     {
         Block = block;
         Config = config;
@@ -13,5 +13,5 @@ internal class Dependency
     internal Block Block { get; }
     internal Dictionary<string, object> Config { get; }
     internal int DepIndex { get; }
-    internal Func<Input,Task<Output>> Fn { get; }
+    internal Func<Input, Task<Output>> Fn { get; }
 }

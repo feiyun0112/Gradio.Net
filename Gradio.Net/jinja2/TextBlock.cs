@@ -2,7 +2,7 @@
 
 internal sealed class TextBlock : Block
 {
-    internal TextBlock(string content):base(content) { }
+    internal TextBlock(string content) : base(content) { }
 
     internal override BlockTypes Type => BlockTypes.Text;
 

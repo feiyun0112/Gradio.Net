@@ -52,23 +52,23 @@ internal sealed class TemplateTokenizer()
                         blocks.Add(new TextBlock(text.Substring(endOfLastBlock, blockStartPos - endOfLastBlock)));
                     }
                     // Extract raw block
-                    string contentWithDelimiters = text.Substring(blockStartPos, cursor- blockStartPos + 1).Trim();
+                    string contentWithDelimiters = text.Substring(blockStartPos, cursor - blockStartPos + 1).Trim();
 
                     // Remove "{{" and "}}" delimiters and trim empty chars
                     string contentWithoutDelimiters = contentWithDelimiters
-                            .Substring(2, contentWithDelimiters.Length- 4)
+                            .Substring(2, contentWithDelimiters.Length - 4)
                             .Trim();
 
-                        blocks.Add(new CodeBlock(contentWithoutDelimiters));
-                        
-                        endOfLastBlock = cursor + 1;
-                        blockStartFound = false;
+                    blocks.Add(new CodeBlock(contentWithoutDelimiters));
+
+                    endOfLastBlock = cursor + 1;
+                    blockStartFound = false;
                 }
             }
         }
         if (endOfLastBlock < text.Length)
         {
-            blocks.Add(new TextBlock(text.Substring( endOfLastBlock, text.Length- endOfLastBlock)));
+            blocks.Add(new TextBlock(text.Substring(endOfLastBlock, text.Length - endOfLastBlock)));
         }
         return blocks;
     }

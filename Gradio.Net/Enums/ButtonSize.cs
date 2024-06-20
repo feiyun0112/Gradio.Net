@@ -2,6 +2,6 @@
 
 public enum ButtonSize
 {
-    Sm=0,
-    Lg=1,
+    Sm = 0,
+    Lg = 1,
 }

@@ -5,19 +5,19 @@ namespace Gradio.Net;
 public static partial class gr
 {
     public static Button Button(
-        string value = "Run",
+        string value = null,
         decimal? every = null,
-        ButtonVariant variant = ButtonVariant.Secondary,
+        ButtonVariant? variant = null,
         ButtonSize? size = null,
-       string icon = null,
+        string icon = null,
         string link = null,
-        bool visible = true,
-        bool interactive = true,
+        bool? visible = null,
+        bool? interactive = null,
         string elemId = null,
-       IEnumerable<string> elemClasses = null,
-       bool render = true,
+        IEnumerable<string> elemClasses = null,
+        bool? render = null,
         int? scale = null,
-       int? minWidth = null)
+        int? minWidth = null)
     {
         Button block = new()
         {

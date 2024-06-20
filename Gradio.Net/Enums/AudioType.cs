@@ -2,5 +2,5 @@
 
 public enum AudioType
 {
-    Filepath=0,
+    Filepath = 0,
 }

@@ -2,5 +2,5 @@
 
 public enum ImageFormat
 {
-    Webp=0
+    Webp = 0
 }

@@ -94,7 +94,7 @@ public static class MediaDemo
                     outputNumPause = gr.Number(label: "# Output Pause Events", value: 0);
                     outputNumStop = gr.Number(label: "# Output Stop Events", value: 0);
 
-                    inputAudio.Upload(fn: async (input) => gr.Output(input.Data[0],Gradio.Net.Number.Payload(input.Data[1]) + 1), inputs: [inputAudio, inputNumLoad], outputs: [outputAudio, inputNumLoad]);
+                    inputAudio.Upload(fn: async (input) => gr.Output(input.Data[0], Gradio.Net.Number.Payload(input.Data[1]) + 1), inputs: [inputAudio, inputNumLoad], outputs: [outputAudio, inputNumLoad]);
                     inputAudio.Change(fn: async (input) => gr.Output(Gradio.Net.Number.Payload(input.Data[0]) + 1), inputs: [inputNumChange], outputs: [inputNumChange]);
                     inputAudio.Play(fn: async (input) => gr.Output(Gradio.Net.Number.Payload(input.Data[0]) + 1), inputs: [inputNumPlay], outputs: [inputNumPlay]);
                     inputAudio.Pause(fn: async (input) => gr.Output(Gradio.Net.Number.Payload(input.Data[0]) + 1), inputs: [inputNumPause], outputs: [inputNumPause]);
@@ -148,7 +148,8 @@ public static class MediaDemo
     }
     static string DrawWaterMarkOnImage(string inputImageFilePath)
     {
-        if (inputImageFilePath == null) {
+        if (inputImageFilePath == null)
+        {
             return null;
         }
 

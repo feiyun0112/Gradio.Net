@@ -83,7 +83,7 @@ public static class GradioServiceExtensions
 
         webApplication.MapGet("/queue/data", async ([FromServices] GradioApp app, HttpContext context, CancellationToken stoppingToken) =>
         {
-            context.Response.Headers.Add("Content-Type", "text/event-stream");
+            context.Response.Headers.Append("Content-Type", "text/event-stream");
 
 
             StreamWriter streamWriter = new(context.Response.Body);
@@ -107,7 +107,7 @@ public static class GradioServiceExtensions
 
         webApplication.MapGet("/upload_progress", async ([FromServices] GradioApp app, HttpContext context, CancellationToken stoppingToken) =>
         {
-            context.Response.Headers.Add("Content-Type", "text/event-stream");
+            context.Response.Headers.Append("Content-Type", "text/event-stream");
 
             StreamWriter streamWriter = new(context.Response.Body);
 

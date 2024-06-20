@@ -16,7 +16,7 @@ public class Template
     {
         List<Block> blocks = new TemplateTokenizer().Tokenize(this._source);
         StringBuilder result = new();
-        foreach (Block block in blocks )
+        foreach (Block block in blocks)
         {
             result.Append(block.Render(vars));
         }

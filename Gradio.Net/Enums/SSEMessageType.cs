@@ -2,7 +2,7 @@
 
 public enum SSEMessageType
 {
-    SendHash =0,
+    SendHash = 0,
     QueueFull,
     Estimation,
     SendData,

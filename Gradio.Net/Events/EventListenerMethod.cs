@@ -9,5 +9,5 @@ internal class EventListenerMethod
     }
 
     internal Block Block { get; set; }
-    internal string EventName {  get; set; }
+    internal string EventName { get; set; }
 }

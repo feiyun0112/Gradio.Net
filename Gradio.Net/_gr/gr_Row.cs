@@ -5,20 +5,21 @@ namespace Gradio.Net;
 public static partial class gr
 {
     public static Row Row(
-        RowVariant variant = RowVariant.Default,
-        bool visible = true,
+        RowVariant? variant = null,
+        bool? visible = null,
         string elemId = null,
         IEnumerable<string> elemClasses = null,
-        bool render = true,
-        bool equalHeight = true)
+        bool? render = null,
+        bool? equalHeight = null)
     {
-        Row blocks = new() {
-            Variant= variant,
-            Visible= visible,
-            ElemId= elemId,
-            ElemClasses= elemClasses,
-            Render= render,
-            EqualHeight= equalHeight,
+        Row blocks = new()
+        {
+            Variant = variant,
+            Visible = visible,
+            ElemId = elemId,
+            ElemClasses = elemClasses,
+            Render = render,
+            EqualHeight = equalHeight,
         };
         Context.SetCurrentBlocks(blocks);
         return blocks;

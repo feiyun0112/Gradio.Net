@@ -2,14 +2,14 @@
 
 public enum ImageMode
 {
-    L=0, 
-    P, 
-    RGB, 
+    L = 0,
+    P,
+    RGB,
     RGBA,
-    CMYK, 
+    CMYK,
     YCbCr,
-    LAB, 
-    HSV, 
-    I, 
+    LAB,
+    HSV,
+    I,
     F
 }

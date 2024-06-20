@@ -3,20 +3,20 @@
 public static partial class gr
 {
     public static Checkbox Checkbox(
-        bool value=false,
-        string label=null,
+        bool? value = null,
+        string label = null,
         string info = null,
-        decimal? every= null,
-        bool? showLabel= null,
-        bool  container =true,
+        decimal? every = null,
+        bool? showLabel = null,
+        bool? container = null,
        int? scale = null,
-       int minWidth =160,
-      bool?  interactive = null,
-       bool  visible=true,
-      string  elemId = null,
-      IEnumerable<string>  elemClasses = null,
-       bool  render=true,
-      string   key=null
+       int? minWidth = null,
+      bool? interactive = null,
+       bool? visible = null,
+      string elemId = null,
+      IEnumerable<string> elemClasses = null,
+       bool? render = null,
+      string key = null
     )
     {
         Checkbox block = new();
@@ -35,7 +35,7 @@ public static partial class gr
         block.Render = render;
         block.Key = key;
         block.Value = value;
-    
+
         Context.AddToCurrentBlocks(block);
         return block;
     }

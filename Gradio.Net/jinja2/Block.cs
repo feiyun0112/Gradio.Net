@@ -3,14 +3,14 @@
 internal abstract class Block
 {
     internal Block(string content)
-    { 
+    {
         Content = content;
     }
     internal virtual BlockTypes Type => BlockTypes.Undefined;
 
     internal string Content { get; private set; }
 
-    internal abstract string Render(Dictionary<string,object> vars);
+    internal abstract string Render(Dictionary<string, object> vars);
 
     public override string ToString()
     {

@@ -2,7 +2,7 @@
 
 public enum ImageSource
 {
-    Upload=0,
-    Webcam, 
+    Upload = 0,
+    Webcam,
     Clipboard
 }

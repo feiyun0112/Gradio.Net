@@ -2,25 +2,25 @@
 
 public static partial class gr
 {
-   
+
     public static Slider Slider(
-        decimal minimum = 0,
-        decimal maximum = 100,            
+        decimal? minimum = null,
+        decimal? maximum = null,
         decimal? value = null,
         decimal? step = null,
         string label = null,
         string info = null,
         decimal? every = null,
-        bool showLabel = true,
-        bool container = true,
+        bool? showLabel = null,
+        bool? container = null,
         int? scale = null,
-        int minWidth = 160,
+        int? minWidth = null,
         bool? interactive = null,
-        bool visible = true,
+        bool? visible = null,
         string elemId = null,
         IEnumerable<string> elemClasses = null,
-        bool render = true,
-        bool randomize =false
+        bool? render = null,
+        bool? randomize = null
         )
     {
         Slider block = new()
@@ -35,22 +35,14 @@ public static partial class gr
             MinWidth = minWidth,
             Interactive = interactive,
             Visible = visible,
-            ElemId = elemId,                
+            ElemId = elemId,
             ElemClasses = elemClasses,
             Render = render,
+            Randomize = randomize,
         };
         block.Minimum = minimum;
         block.Maximum = maximum;
-        if (step == null)
-        {
-            decimal difference = maximum - minimum;
-            double power = Math.Floor(Math.Log10( double.Parse(difference.ToString())) - 2);
-            block.Step =decimal.Parse( Math.Pow( 10,double.Parse(power.ToString())).ToString());
-        }
-        else
-            block.Step = step.Value;
-        if (randomize)
-            value = block.GetRandomValue();
+        block.Step = step;
 
         Context.AddToCurrentBlocks(block);
         return block;

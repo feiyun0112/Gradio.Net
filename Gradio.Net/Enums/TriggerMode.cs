@@ -2,7 +2,7 @@
 
 public enum TriggerMode
 {
-    Once=0, 
-    Multiple=1, 
-    AlwaysLast=2,
+    Once = 0,
+    Multiple = 1,
+    AlwaysLast = 2,
 }

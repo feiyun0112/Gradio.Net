@@ -6,27 +6,27 @@ public static partial class gr
 {
     public static Image Image(
         string value = null,
-        ImageFormat format = ImageFormat.Webp,
+        ImageFormat? format = null,
         int? height = null,
         int? width = null,
-        ImageMode imageMode =  ImageMode.RGB,
+        ImageMode? imageMode = null,
         IEnumerable<ImageSource> sources = null,
-        ImageType type = ImageType.Filepath,
+        ImageType? type = null,
         string label = null,
         decimal? every = null,
         bool? showLabel = null,
-        bool showDownloadButton = true,
-        bool container = true,
+        bool? showDownloadButton = null,
+        bool? container = null,
         int? scale = null,
-        int minWidth = 160,
+        int? minWidth = null,
         bool? interactive = null,
-        bool visible = true,
-        bool streaming = false,
+        bool? visible = null,
+        bool? streaming = null,
         string elemId = null,
         List<string> elemClasses = null,
-        bool render = true,
+        bool? render = null,
         string key = null,
-        bool mirrorWebcam = true,
+        bool? mirrorWebcam = null,
         bool? showShareButton = null)
     {
         Image block = new()
@@ -37,28 +37,28 @@ public static partial class gr
             Height = height,
             Width = width,
             ImageMode = imageMode,
-            Sources = sources == null?(streaming? [ImageSource.Webcam]: [ImageSource.Upload, ImageSource.Webcam, ImageSource.Clipboard]) : sources,
+            Sources = sources,
             Streaming = streaming,
-            ShowDownloadButton = showDownloadButton,            
-            ShowShareButton = showShareButton == null ? (GradioUtils.GetSpace() != null) : showShareButton,
+            ShowDownloadButton = showDownloadButton,
+            ShowShareButton = showShareButton,
             Label = label,
-            Every= every,
-            ShowLabel= showLabel,
+            Every = every,
+            ShowLabel = showLabel,
             Container = container,
-            Scale= scale,
-            MinWidth= minWidth,
-            Interactive= interactive,
-            Visible= visible,
-            ElemId= elemId,
-            ElemClasses= elemClasses,
-            Render= render,
-            Key= key,
-            Value= value,
+            Scale = scale,
+            MinWidth = minWidth,
+            Interactive = interactive,
+            Visible = visible,
+            ElemId = elemId,
+            ElemClasses = elemClasses,
+            Render = render,
+            Key = key,
+            Value = value,
         };
 
-        if (streaming && block.Sources.Any(p=>p!= ImageSource.Webcam ))
+        if (block.GetPropertyValue<bool>(nameof(block.Streaming)) && block.GetPropertyValue<IEnumerable<ImageSource>>(nameof(block.Sources)).Any(p => p != ImageSource.Webcam))
         {
-                throw new ArgumentException("Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources.");
+            throw new ArgumentException("Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources.");
         }
 
         Context.AddToCurrentBlocks(block);

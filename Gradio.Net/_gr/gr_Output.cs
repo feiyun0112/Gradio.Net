@@ -30,6 +30,10 @@ public static partial class gr
 
         for (int i = 0; i < data.Length; i++)
         {
+            if (blockFunction.Outputs.ElementAt(i) is State && !(data[i] is State))
+            {
+                data[i] = gr.State(data[i]);
+            }
             if (data[i] is Component component)
             {
                 if (data[i].GetType() != blockFunction.Outputs.ElementAt(i).GetType())

@@ -68,7 +68,7 @@ public static class GradioServiceExtensions
 
         webApplication.MapGet("/config", (HttpRequest request, [FromServices] GradioApp app) =>
         {
-            return app.GetConfig(request.GetRootUrl());
+            return app.GetConfig(request.GetRootUrl(), false);
         });
 
         webApplication.MapGet("/info", (HttpRequest request, [FromServices] GradioApp app) =>

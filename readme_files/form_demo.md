@@ -51,9 +51,24 @@ async Task<Blocks> CreateBlocks()
             category_dropdown.Change(update_symbols, inputs: [category_dropdown], outputs: [symbol_dropdown]);
         }
 
+        using (gr.Row())
+        {
+            var click_count = gr.State(value: 0);
+
+            var btn = gr.Button("Show");
+            var textCount = gr.Textbox(label: "Count", visible: false);
+            btn.Click(update_props, inputs: [click_count], outputs: [click_count, btn, textCount]);
+        }
+
         return blocks;
     }
 
+    private static async Task<Output> update_props(Input input)
+    {
+        var click_count = int.Parse(input.Data[0].ToString()) + 1;
+        return gr.Output(click_count,gr.Button(value: (click_count + 1) % 2 == 0 ?"Hide" : "Show"),
+            gr.Textbox(value: ((click_count + 1) / 2).ToString(), visible: (click_count + 1) % 2 == 0));
+    }
     private static async Task<Output> update_symbols(Input input)
     {
         var symbols = new[] { "FFIU", "IGEB", "VCIT", "FCOR", "SKOR", "KORP", "LQDI" };

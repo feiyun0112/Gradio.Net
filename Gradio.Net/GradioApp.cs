@@ -21,7 +21,11 @@ public class GradioApp
 
     public Dictionary<string, object> GetConfig(string rootUrl)
     {
-        Dictionary<string, object> result = Context.RootBlock.GetConfig();
+        return GetConfig(rootUrl, true);
+    }
+    public Dictionary<string, object> GetConfig(string rootUrl, bool init)
+    {
+        Dictionary<string, object> result = Context.RootBlock.GetConfig(init);
 
         result["stylesheets"] = this._gradioServiceConfig.Stylesheets;
         result["body_css"] = this._gradioServiceConfig.BodyCss;

@@ -60,8 +60,12 @@ public class Blocks : Block, IList<Block>, IDisposable
         Context.SetCurrentBlocks(null);
     }
 
-    internal Dictionary<string, object> GetConfig()
+    internal Dictionary<string, object> GetConfig(bool init)
     {
+        if (init)
+        {
+            InitComponents();
+        }
         Dictionary<string, object> config = new()
         {
             ["mode"] = this.GetPropertyValue<object>(nameof(this.Mode)),
@@ -91,6 +95,19 @@ public class Blocks : Block, IList<Block>, IDisposable
         };
 
         return config;
+    }
+
+    protected void InitComponents()
+    {
+        foreach (Block item in _children)
+        {
+            item.Init();
+            if (item is Blocks blocks)
+            {
+
+                blocks.InitComponents();
+            }
+        }
     }
 
     internal List<Dictionary<string, object>> GetComponents()

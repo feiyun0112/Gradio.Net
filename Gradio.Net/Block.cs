@@ -10,6 +10,7 @@ namespace Gradio.Net;
 public abstract class Block
 {
     private bool _selectable;
+    private Dictionary<string, object> _updateProps = new();
 
     internal async Task SetSelectable(bool selectable)
     {
@@ -103,6 +104,11 @@ public abstract class Block
         return value;
     }
 
+    protected Dictionary<string, object> GetUpdatedProps()
+    {
+        return _updateProps;
+    }
+
     protected virtual Dictionary<string, object> GetProps(bool useDefaultValue)
     {
         Dictionary<string, object> result = [];
@@ -172,9 +178,14 @@ public abstract class Block
     {
         Dictionary<string, object> blockPropsUpdate = blockUpdate.GetProps(false);
         Dictionary<string, object> blockProps = block.GetProps(false);
+        Dictionary<string, object> blockUpdatedProps = block.GetUpdatedProps();
         Dictionary<string, object> result = new();
         foreach (KeyValuePair<string, object> prop in blockPropsUpdate)
         {
+            if (prop.Key.Equals("id", StringComparison.InvariantCultureIgnoreCase))
+            {
+                continue;
+            }
             object valueUpdate = prop.Value;
             if (blockProps.ContainsKey(prop.Key))
             {
@@ -183,22 +194,35 @@ public abstract class Block
                 if (value == null && valueUpdate != null)
                 {
                     result[prop.Key] = valueUpdate;
+                    blockUpdatedProps[prop.Key] = valueUpdate;
                 }
                 else if (value != null && valueUpdate != null)
                 {
+                    if (blockUpdatedProps.ContainsKey(prop.Key))
+                    {
+                        value = blockUpdatedProps[prop.Key];
+                    }
+
                     if (!JsonUtils.Serialize(value).Equals(JsonUtils.Serialize(valueUpdate)))
                     {
                         result[prop.Key] = valueUpdate;
+                        blockUpdatedProps[prop.Key] = valueUpdate;
                     }
                 }
             }
             else
             {
                 result[prop.Key] = valueUpdate;
+                blockUpdatedProps[prop.Key] = valueUpdate;
             }
         }
         result["__type__"] = "update";
 
         return result;
+    }
+
+    internal void Init()
+    {
+        _updateProps.Clear();
     }
 }

@@ -2,12 +2,13 @@
 
 public class Output
 {
+    internal Output() { }
     public object[] Data { get; set; }
 }
 
 internal class ErrorOutput : Output
 {
-    public ErrorOutput(Exception ex)
+    internal ErrorOutput(Exception ex)
     {
         Exception = ex;
     }

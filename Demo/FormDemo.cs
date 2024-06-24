@@ -68,6 +68,7 @@ public static class FormDemo
 
     private static async Task<Output> update_symbols(Input input)
     {
+        await Task.Delay(1000);
         var symbols = new[] { "FFIU", "IGEB", "VCIT", "FCOR", "SKOR", "KORP", "LQDI" };
         return gr.Output(gr.Dropdown(choices: symbols, interactive: true));
     }

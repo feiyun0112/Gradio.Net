@@ -152,13 +152,14 @@ public class GradioApp
                         {
                             if (eventResult.Input.Progress != null)
                             {
-                                yield return new ProgressMessage(eventResult.Event.Id, eventResult.Input.Progress);
+                                yield return new ProgressMessage(eventResult.Event.Id, eventResult.Input.Progress);                               
                             }
                             else
                             {
-                                yield return new HeartbeatMessage();
+                                yield return new HeartbeatMessage();                                
                             }
                             await Task.Delay(checkRate);
+                            continue;
                         }
                     }
 

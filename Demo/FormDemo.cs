@@ -68,7 +68,12 @@ public static class FormDemo
 
     private static async Task<Output> update_symbols(Input input)
     {
+        gr.Warning("This is some warning.");
+    
         await Task.Delay(1000);
+        
+        gr.Info("This is some info.");
+
         var symbols = new[] { "FFIU", "IGEB", "VCIT", "FCOR", "SKOR", "KORP", "LQDI" };
         return gr.Output(gr.Dropdown(choices: symbols, interactive: true));
     }

@@ -122,6 +122,11 @@ public class GradioApp
 
             foreach (string pendingEventId in pendingEventIds)
             {
+                while (Context.LogMessageChannel.Reader.TryRead(out LogMessage logMessage))
+                {
+                    yield return logMessage;
+                }
+
                 if (!Context.EventResults.TryGetValue(pendingEventId, out EventResult eventResult))
                 {
                     if (heartbeatCount++ > heartbeatRate)
@@ -203,6 +208,11 @@ public class GradioApp
                     catch (Exception ex)
                     {
                         outputEx = ex;
+                    }
+
+                    while (Context.LogMessageChannel.Reader.TryRead(out LogMessage logMessage))
+                    {
+                        yield return logMessage;
                     }
 
                     if (outputEx != null)
@@ -313,7 +323,7 @@ public class GradioApp
         }
     }
 
-    public List<string>? ClonseSession(string sessionHash)
+    public List<string>? CloseSession(string sessionHash)
     {
         Context.PendingEventIdsSession.TryRemove(sessionHash, out List<string>? tmpIds);
         return tmpIds;

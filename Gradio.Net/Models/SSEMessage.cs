@@ -2,8 +2,9 @@
 using Gradio.Net.Helpers;
 using System.Text.Json.Serialization;
 
-namespace Gradio.Net.Models;
+namespace Gradio.Net;
 
+[JsonDerivedType(typeof(LogMessage))]
 [JsonDerivedType(typeof(DoneMessage))]
 [JsonDerivedType(typeof(ProcessCompletedMessage))]
 [JsonDerivedType(typeof(UnexpectedErrorMessage))]
@@ -29,6 +30,32 @@ public abstract class SSEMessage
     public string ProcessMsg()
     {
         return $"data: {JsonUtils.Serialize(this)}\n\n";
+    }
+}
+
+public class LogMessage : SSEMessage
+{
+    private LogMessage() : base(SSEMessageType.Log, null, null) { }
+    public string Log { get; set; }
+    public string Level { get; set; }
+
+
+    internal static LogMessage Info(string message)
+    {
+        return new LogMessage()
+        {
+            Log = message,
+            Level = "info",
+        };
+    }
+
+    internal static LogMessage Warning(string message)
+    {
+        return new LogMessage()
+        {
+            Log = message,
+            Level = "warning",
+        };
     }
 }
 

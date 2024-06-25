@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using Gradio.Net.Models;
+using System.Collections.Concurrent;
 using System.Threading.Channels;
 
 
@@ -12,6 +13,8 @@ internal static class Context
     internal static ConcurrentDictionary<string, EventResult> EventResults { get; private set; } = new ConcurrentDictionary<string, EventResult>();
     internal static Channel<Event> EventChannel { get; private set; } = Channel.CreateUnbounded<Event>();
     internal static Blocks RootBlock { get; private set; } = null;
+
+    internal static readonly Channel<LogMessage> LogMessageChannel = Channel.CreateUnbounded<LogMessage>();
 
     private static Blocks _currentBlocks = null;
     internal static void SetCurrentBlocks(Blocks blocks)

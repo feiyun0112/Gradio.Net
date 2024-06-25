@@ -95,7 +95,7 @@ public static class GradioServiceExtensions
             }
             await streamWriter.WriteLineAsync(new CloseStreamMessage().ProcessMsg());
             await streamWriter.FlushAsync();
-            app.ClonseSession(sessionHash);
+            app.CloseSession(sessionHash);
         });
 
         webApplication.MapPost("/upload", async (HttpRequest request, [FromServices] GradioApp app) =>

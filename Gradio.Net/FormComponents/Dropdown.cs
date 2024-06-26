@@ -44,9 +44,11 @@ public class Dropdown : FormComponent, IHaveChangeEvent, IHaveInputEvent, IHaveS
     protected override Dictionary<string, object> GetProps(bool useDefaultValue)
     {
         Dictionary<string, object> result = base.GetProps(useDefaultValue);
-
-        result["choices"] = this.Choices.Select(x => new[] { x, x }).ToArray();
-
+        if (useDefaultValue || this.Choices != null)
+        {
+            var choices = this.GetPropertyValue<IEnumerable<string>>(nameof(Choices)) ?? Array.Empty<string>();
+            result["choices"] = choices.Select(x => new[] { x, x }).ToArray();
+        }
         return result;
     }
 

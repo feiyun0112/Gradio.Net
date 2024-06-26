@@ -13,7 +13,7 @@ public static partial class gr
 
     public static void Info(string message)
     {
-        Context.LogMessageChannel.Writer.TryWrite(LogMessage.Info( message));   
+        Context.LogMessageChannel.Writer.TryWrite(LogMessage.Info(message));
     }
     public static void Warning(string message)
     {

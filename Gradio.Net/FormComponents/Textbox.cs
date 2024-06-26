@@ -35,7 +35,16 @@ public class Textbox : FormComponent, IHaveChangeEvent, IHaveInputEvent, IHaveSe
              { nameof(Rtl), false },
                { nameof(ShowCopyButton), false },
     };
-    protected override object? GetDefaultProp(string name) => _defaultProps.ContainsKey(name) ? _defaultProps[name] : null;
+    protected override object? GetDefaultProp(string name)
+    {
+        Dictionary<string, object> result = _defaultProps;
+        if (name == nameof(MaxLines))
+        {
+            result[nameof(MaxLines)] = (this.GetPropertyValue<TextboxType>(nameof(Type)) == TextboxType.Text ? 20 : 1);
+        }
+
+        return result.ContainsKey(name) ? result[name] : null;
+    }
 
 
     public static string Payload(object obj)

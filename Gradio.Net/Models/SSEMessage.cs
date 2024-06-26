@@ -38,7 +38,7 @@ public class LogMessage : SSEMessage
     private LogMessage() : base(SSEMessageType.Log, null, null) { }
     public string Log { get; set; }
     public string Level { get; set; }
-
+    public string EventId { get; set; }
 
     internal static LogMessage Info(string message)
     {

@@ -13,7 +13,7 @@ public static class FormDemo
         gr.Markdown("## Get Component Property");
         using (gr.Column())
         {
-            Textbox text1 = gr.Textbox();
+            Textbox text1 = gr.Textbox(type: Gradio.Net.Enums.TextboxType.Password);
             Dropdown dropdown1 = gr.Dropdown(choices: ["First Choice", "Second Choice", "Third Choice"]);
             Checkbox checkbox1 = gr.Checkbox();
             CheckboxGroup checkboxGroup1 = gr.CheckboxGroup(choices: ["First Choice", "Second Choice", "Third Choice"]);
@@ -46,7 +46,7 @@ public static class FormDemo
             var symbol_dropdown = gr.Dropdown(label: "Symbols", choices: []);
 
             // Update the symbols dropdown when the category changes
-            category_dropdown.Change(update_symbols, inputs: [category_dropdown], outputs: [symbol_dropdown]);
+            category_dropdown.Change(update_symbols, inputs: [category_dropdown], outputs: [category_dropdown, symbol_dropdown]);
         }
 
         using (gr.Row())
@@ -68,13 +68,15 @@ public static class FormDemo
 
     private static async Task<Output> update_symbols(Input input)
     {
-        gr.Warning("This is some warning.");
-    
-        await Task.Delay(1000);
-        
-        gr.Info("This is some info.");
-
         var symbols = new[] { "FFIU", "IGEB", "VCIT", "FCOR", "SKOR", "KORP", "LQDI" };
-        return gr.Output(gr.Dropdown(choices: symbols, interactive: true));
+        if (((string[])input.Data[0])[0].ToString() == "Long-Short Equity")
+            gr.Warning("This is some warning.");
+
+        ////await Task.Delay(1000);
+
+        ////gr.Info("This is some info.");
+
+
+        return gr.Output(gr.Dropdown(value: "", interactive: true), gr.Dropdown(choices: symbols, interactive: true));
     }
 }

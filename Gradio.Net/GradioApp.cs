@@ -124,6 +124,7 @@ public class GradioApp
             {
                 while (Context.LogMessageChannel.Reader.TryRead(out LogMessage logMessage))
                 {
+                    logMessage.EventId = pendingEventId;
                     yield return logMessage;
                 }
 
@@ -157,11 +158,11 @@ public class GradioApp
                         {
                             if (eventResult.Input.Progress != null)
                             {
-                                yield return new ProgressMessage(eventResult.Event.Id, eventResult.Input.Progress);                               
+                                yield return new ProgressMessage(eventResult.Event.Id, eventResult.Input.Progress);
                             }
                             else
                             {
-                                yield return new HeartbeatMessage();                                
+                                yield return new HeartbeatMessage();
                             }
                             await Task.Delay(checkRate);
                             continue;
@@ -212,6 +213,7 @@ public class GradioApp
 
                     while (Context.LogMessageChannel.Reader.TryRead(out LogMessage logMessage))
                     {
+                        logMessage.EventId = pendingEventId;
                         yield return logMessage;
                     }
 

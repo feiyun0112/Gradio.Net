@@ -1,6 +1,6 @@
 # Gradio.NET: .NETで機械学習Webアプリを構築 [![main](https://github.com/feiyun0112/Gradio.Net/actions/workflows/main.yml/badge.svg)](https://github.com/feiyun0112/Gradio.Net/actions/workflows/main.yml) [![NuGet](https://img.shields.io/nuget/v/Gradio.Net.svg)](https://nuget.org/packages/Gradio.Net)
 
-**[English](../README.md)** | **[简体中文](readme_files/README_zh-cn.md)**
+**[English](../README.md)** | **[简体中文](readme_files/README_zh-cn.md)** | **日本語**
 
 Gradio for .NET – [Gradio](https://github.com/gradio-app/gradio) の .NET 移植版で、機械学習モデル、API、または任意のPython関数のデモやWebアプリケーションを迅速に**構築**するためのオープンソースのPythonパッケージです。*JavaScript、CSS、またはWebホスティングの経験は不要です！*
 

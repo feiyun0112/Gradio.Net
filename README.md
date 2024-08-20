@@ -1,6 +1,6 @@
 # Gradio.NET: Build Machine Learning Web Apps — in .NET [![main](https://github.com/feiyun0112/Gradio.Net/actions/workflows/main.yml/badge.svg)](https://github.com/feiyun0112/Gradio.Net/actions/workflows/main.yml) [![NuGet](https://img.shields.io/nuget/v/Gradio.Net.svg)](https://nuget.org/packages/Gradio.Net)
 
-**English** | **[简体中文](readme_files/README_zh-cn.md)**
+**English** | **[简体中文](readme_files/README_zh-cn.md)** | **[日本語](readme_files/README_ja.md)**
 
 Gradio for .NET – a port of [Gradio](https://github.com/gradio-app/gradio), an open-source Python package that allows you to quickly **build** a demo or web application for your machine learning model, API, or any arbitrary Python function. *No JavaScript, CSS, or web hosting experience needed!*
 

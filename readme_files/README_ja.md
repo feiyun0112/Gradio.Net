@@ -4,7 +4,7 @@
 
 Gradio for .NET – [Gradio](https://github.com/gradio-app/gradio) の .NET 移植版で、機械学習モデル、API、または任意のPython関数のデモやWebアプリケーションを迅速に**構築**するためのオープンソースのPythonパッケージです。*JavaScript、CSS、またはWebホスティングの経験は不要です！*
 
-![demo](readme_files/demo.gif)
+![demo](./demo.gif)
 
 上記のような美しいデモを作成するには、ほんの数行の .NET コードが必要です。それでは始めましょう 💫
 
@@ -58,10 +58,10 @@ app.Run();
 
 ### デモ
 
-| ソースコード | デモ画像 |
+| Source Code | Demo Image |
 | ----------- | ---------- |
-| [レイアウト](./readme_files/layout_demo.md) | ![image](./readme_files/layout_demo.gif) |
-| [フォーム](./readme_files/form_demo.md) | ![image](./readme_files/form_demo.gif) |
-| [メディア](./readme_files/media_demo.md) | ![image](./readme_files/media_demo.gif) |
-| [チャットボット](./readme_files/chatbot_demo.md) | ![image](./readme_files/chatbot_demo.gif) |
-| [進行状況](./readme_files/progress_demo.md) | ![image](./readme_files/progress_demo.gif) |
+| [Layout](./layout_demo.md) | ![image](./layout_demo.gif) |
+| [Form](./form_demo.md) | ![image](./form_demo.gif) |
+| [Media](./media_demo.md) | ![image](./media_demo.gif) |
+| [Chatbot](./chatbot_demo.md) | ![image](./chatbot_demo.gif) |
+| [Progress](./progress_demo.md) | ![image](./progress_demo.gif) |

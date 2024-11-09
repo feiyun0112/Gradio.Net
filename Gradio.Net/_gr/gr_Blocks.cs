@@ -1,11 +1,12 @@
-﻿namespace Gradio.Net;
+﻿using Gradio.Net.Themes;
+
+namespace Gradio.Net;
 
 public static partial class gr
 {
-    public static Blocks Blocks(string theme = null,
+    public static Blocks Blocks(
     bool? analyticsEnabled = null,
     string? mode = null,
-    string title = null,
     string css = null,
     string js = null,
     string head = null,
@@ -14,10 +15,9 @@ public static partial class gr
     {
         Blocks blocks = new()
         {
-            Theme = theme,
+
             AnalyticsEnabled = analyticsEnabled,
             Mode = mode,
-            Title = title,
             Css = css,
             Js = js,
             Head = head,

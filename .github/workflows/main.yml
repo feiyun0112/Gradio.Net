@@ -17,7 +17,7 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release
       - name: Pack
-        run: dotnet pack --no-build --configuration Release
+        run: dotnet pack --no-build --configuration Release /p:PackageReleaseNotes="See https://github.com/feiyun0112/Gradio.Net/blob/main/CHANGELOG.md for release history."
       - name: Push NuGet package
         run: |
           dotnet nuget push **/*.nupkg --skip-duplicate --source "nuget.org" --api-key ${{ secrets.NUGET_KEY }} || true

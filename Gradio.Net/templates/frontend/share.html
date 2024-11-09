@@ -39,7 +39,7 @@
 			}
 		</style>
 
-		<meta property="og:url" content="https://github.com/feiyun0112/Gradio.Net/" />
+		<meta property="og:url" content="https://gradio.app/" />
 		<meta property="og:type" content="website" />
 		<meta property="og:image" content="{{ config['thumbnail'] or '' }}" />
 		<meta property="og:title" content="{{ config['title'] or '' }}" />
@@ -67,7 +67,7 @@
 			);
 		</script>
 
-		<script>window.gradio_config = {{ config | toorjson }};</script>
+		<script>window.gradio_config = {{ config | toorjson }};</script><script>window.gradio_api_info = {{ gradio_api_info | toorjson }};</script>
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link
@@ -79,7 +79,7 @@
 			src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.contentWindow.min.js"
 			async
 		></script>
-		<script type="module" crossorigin src="https://gradio.s3-us-west-2.amazonaws.com/4.32.2/gradio.js"></script>
+		<script type="module" crossorigin src="https://gradio.s3-us-west-2.amazonaws.com/5.5.0/gradio.js"></script>
 		
 	</head>
 

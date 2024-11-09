@@ -65,3 +65,4 @@ app.Run();
 | [Media](./readme_files/media_demo.md) | ![image](./readme_files/media_demo.gif) |
 | [Chatbot](./readme_files/chatbot_demo.md) | ![image](./readme_files/chatbot_demo.gif) |
 | [Progress](./readme_files/progress_demo.md) | ![image](./readme_files/progress_demo.gif) |
+| [Theme](./readme_files/theme_demo.md) | ![image](./readme_files/theme_demo.gif) |

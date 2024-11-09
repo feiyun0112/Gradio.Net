@@ -17,6 +17,10 @@ internal sealed class CodeBlock : Block
         {
             return JsonSerializer.Serialize(vars["config"]);
         }
+        else if (this.Content.Equals("gradio_api_info | toorjson"))
+        {
+            return JsonSerializer.Serialize(vars["gradio_api_info"]);
+        }
         else if (this.Content.StartsWith("config['"))
         {
             if (vars["config"] is Dictionary<string, object> dictConfig)
@@ -41,12 +45,12 @@ internal sealed class CodeBlock : Block
                 string key = match.Groups[1].Value;
                 if (dictConfig.ContainsKey(key))
                 {
-                    if (dictConfig[key] is Dictionary<string, object> dictInner)
+                    if (dictConfig[key] is Dictionary<string, string> dictInner)
                     {
                         string innerKey = match.Groups[2].Value;
                         if (dictInner.ContainsKey(innerKey))
                         {
-                            return dictInner[innerKey].ToString();
+                            return dictInner[innerKey];
                         }
 
 

@@ -1,5 +1,6 @@
 ﻿
 using Gradio.Net.Enums;
+using Gradio.Net.Themes;
 using System.Collections;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -21,8 +22,7 @@ public class Blocks : Block, IList<Block>, IDisposable
 
     public bool IsReadOnly => false;
 
-    internal string Title { get; set; }
-    internal string Theme { get; set; }
+
     internal bool? AnalyticsEnabled { get; set; }
     internal string Mode { get; set; }
     internal string Css { get; set; }
@@ -76,15 +76,15 @@ public class Blocks : Block, IList<Block>, IDisposable
             ["connect_heartbeat"] = false,
             ["js"] = this.GetPropertyValue<object>(nameof(this.Js)),
             ["head"] = this.GetPropertyValue<object>(nameof(this.Head)),
-            ["title"] = this.GetPropertyValue<object>(nameof(this.Title)),
             ["space_id"] = null,
             ["enable_queue"] = true,
             ["show_error"] = false,
-            ["show_api"] = true,
+            ["show_api"] = false,
             ["is_colab"] = false,
             ["max_file_size"] = null,
 
-            ["theme"] = this.GetPropertyValue<object>(nameof(this.Theme)),
+
+
             ["protocol"] = "sse_v3",
 
             ["fill_height"] = this.GetPropertyValue<object>(nameof(this.FillHeight)),
@@ -239,7 +239,7 @@ public class Blocks : Block, IList<Block>, IDisposable
 
         (IList _, int? progressIndex, int? eventDataIndex) = fn != null ? SpecialArgs(fn) : (null, null, null);
 
-        if (apiName != null && apiName.Trim() == "")
+        if (apiName == null || apiName.Trim() == "")
         {
             if (fn != null)
             {
@@ -262,14 +262,18 @@ public class Blocks : Block, IList<Block>, IDisposable
             collects_event_data = eventDataIndex != null;
         }
 
-        if (fn == null && streamingFn == null)
+        if (js == null)
         {
-            throw new InvalidOperationException("Please set fn or streamingFn");
+            if (fn == null && streamingFn == null)
+            {
+                throw new InvalidOperationException("Please set fn or streamingFn");
+            }
+            if (fn != null && streamingFn != null)
+            {
+                throw new InvalidOperationException("Please set fn or streamingFn");
+            }
         }
-        if (fn != null && streamingFn != null)
-        {
-            throw new InvalidOperationException("Please set fn or streamingFn");
-        }
+
 
         BlockFunction blockFn = new()
         {
@@ -287,7 +291,7 @@ public class Blocks : Block, IList<Block>, IDisposable
             ConcurrencyId = concurrencyId,
             TracksProgress = progressIndex != null,
             ApiName = apiName,
-            Js = js,
+            Js = js != null ? js.Replace("\r\n", "\n") : null,
             ShowProgress = showProgress,
             Every = every,
             Cancels = cancels,
@@ -335,7 +339,6 @@ public class Blocks : Block, IList<Block>, IDisposable
         { nameof(Theme), "default" },
         { nameof(AnalyticsEnabled), true },
         { nameof(Mode), "blocks" },
-        { nameof(Title), "Gradio.Net" },
         { nameof(FillHeight), false },
     };
     protected override object? GetDefaultProp(string name) => _defaultProps.ContainsKey(name) ? _defaultProps[name] : null;

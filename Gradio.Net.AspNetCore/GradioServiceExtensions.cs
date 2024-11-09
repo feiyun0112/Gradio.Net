@@ -63,7 +63,12 @@ public static class GradioServiceExtensions
         webApplication.MapGet("/", (HttpRequest request, [FromServices] GradioApp app) =>
         {
             Template template = new(new StreamReader(fileProvider.GetFileInfo("index.html").CreateReadStream()).ReadToEnd());
-            return Results.Content(template.Render(new Dictionary<string, object>() { { "config", app.GetConfig(request.GetRootUrl()) } }), "text/html");
+            return Results.Content(template.Render(new Dictionary<string, object>() { { "config", app.GetConfig(request.GetRootUrl()) }, { "gradio_api_info", new { named_endpoints = new Dictionary<string, object>(), unnamed_endpoints = new Dictionary<string, object>() } } }), "text/html");
+        });
+
+        webApplication.MapGet("/theme.css", (HttpRequest request, [FromServices] GradioApp app) =>
+        {
+            return Results.Content(app.GetThemeCss(), "text/css");
         });
 
         webApplication.MapGet("/config", (HttpRequest request, [FromServices] GradioApp app) =>
@@ -76,12 +81,12 @@ public static class GradioServiceExtensions
             return app.GetApiInfo();
         });
 
-        webApplication.MapPost("/queue/join", async (HttpRequest request, PredictBodyIn body, [FromServices] GradioApp app) =>
+        webApplication.MapPost($"{GradioApp.API_PREFIX}/queue/join", async (HttpRequest request, PredictBodyIn body, [FromServices] GradioApp app) =>
         {
             return await app.QueueJoin(request.GetRootUrl(), body);
         });
 
-        webApplication.MapGet("/queue/data", async ([FromServices] GradioApp app, HttpContext context, CancellationToken stoppingToken) =>
+        webApplication.MapGet($"{GradioApp.API_PREFIX}/queue/data", async ([FromServices] GradioApp app, HttpContext context, CancellationToken stoppingToken) =>
         {
             context.Response.Headers.Append("Content-Type", "text/event-stream");
 
@@ -98,14 +103,14 @@ public static class GradioServiceExtensions
             app.CloseSession(sessionHash);
         });
 
-        webApplication.MapPost("/upload", async (HttpRequest request, [FromServices] GradioApp app) =>
+        webApplication.MapPost($"{GradioApp.API_PREFIX}/upload", async (HttpRequest request, [FromServices] GradioApp app) =>
         {
-            string? uploadId = request.Query["upload_id"].First();
+            string? uploadId = request.Query["upload_id"].FirstOrDefault();
             IFormFileCollection files = request.Form.Files;
             return await app.Upload(uploadId, files.Select(x => (x.OpenReadStream(), x.FileName)).ToList());
         });
 
-        webApplication.MapGet("/upload_progress", async ([FromServices] GradioApp app, HttpContext context, CancellationToken stoppingToken) =>
+        webApplication.MapGet($"{GradioApp.API_PREFIX}/upload_progress", async ([FromServices] GradioApp app, HttpContext context, CancellationToken stoppingToken) =>
         {
             context.Response.Headers.Append("Content-Type", "text/event-stream");
 
@@ -115,7 +120,7 @@ public static class GradioServiceExtensions
             await streamWriter.FlushAsync();
         });
 
-        webApplication.MapGet("/file", ([FromServices] GradioApp app, HttpContext context) =>
+        webApplication.MapGet($"{GradioApp.API_PREFIX}/file", ([FromServices] GradioApp app, HttpContext context) =>
         {
             return context.Request.Path;
         });

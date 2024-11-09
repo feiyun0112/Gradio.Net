@@ -72,7 +72,7 @@ public class Image : Component, IStreamingInput, IHaveClearEvent, IHaveChangeEve
             return new FileData { Path = null, Url = str };
         }
 
-        return new FileData { Path = str, Url = $"{rootUrl}/file={str}" };
+        return new FileData { Path = str, Url = $"{rootUrl}{GradioApp.API_PREFIX}/file={str}" };
     }
 
     public static string Payload(object obj)

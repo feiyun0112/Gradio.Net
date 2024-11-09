@@ -75,7 +75,7 @@ public class File : Component, IHaveClearEvent, IHaveChangeEvent, IHaveSelectEve
         }
 
         FileInfo fileInfo = new FileInfo(str);
-        return new FileData { Path = str, Url = $"{rootUrl}/file={str}", Size = fileInfo.Length, OrigName = fileInfo.Name };
+        return new FileData { Path = str, Url = $"{rootUrl}{GradioApp.API_PREFIX}/file={str}", Size = fileInfo.Length, OrigName = fileInfo.Name };
     }
 
     public static string Payload(object obj)

@@ -13,6 +13,7 @@ internal static class Context
     internal static ConcurrentDictionary<string, EventResult> EventResults { get; private set; } = new ConcurrentDictionary<string, EventResult>();
     internal static Channel<Event> EventChannel { get; private set; } = Channel.CreateUnbounded<Event>();
     internal static Blocks RootBlock { get; private set; } = null;
+    internal static GradioApp App { get; set; } = null;
 
     internal static readonly Channel<LogMessage> LogMessageChannel = Channel.CreateUnbounded<LogMessage>();
 

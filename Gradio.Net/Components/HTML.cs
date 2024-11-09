@@ -5,7 +5,8 @@ public class HTML : Component
     static Dictionary<string, object> _defaultProps = new Dictionary<string, object>()
     { { nameof(Value), "" },
            { nameof(Visible), true },
-        { nameof(ShowLabel), true },
+        { nameof(ShowLabel), false },
+        { nameof(Container), false },
     };
     protected override object? GetDefaultProp(string name) => _defaultProps.ContainsKey(name) ? _defaultProps[name] : null;
 

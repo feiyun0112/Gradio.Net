@@ -1,9 +1,52 @@
 ﻿namespace Gradio.Net;
 
 using System.Text;
+using System.Text.RegularExpressions;
 
 internal static class StringExtensions
 {
+    internal static string ToCamelCase(this string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return input;
+        }
+
+        StringBuilder result = new StringBuilder();
+        bool isFirstWord = true;
+
+        foreach (char c in input)
+        {
+            if (c == '_')
+            {
+                isFirstWord = true;
+            }
+            else
+            {
+                if (isFirstWord)
+                {
+                    if (c >= '0' && c <= '9')
+                    {
+                        result.Append('_');
+                        result.Append(char.ToUpper(c));
+                    }
+                    else
+                    {
+                        result.Append(char.ToUpper(c));
+                    }
+
+                    isFirstWord = false;
+                }
+                else
+                {
+                    result.Append(c);
+                }
+            }
+        }
+
+        return result.ToString();
+    }
+
     internal static string ToSnakeCase(this string text)
     {
         if (text == null)

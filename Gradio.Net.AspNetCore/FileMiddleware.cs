@@ -19,7 +19,7 @@ namespace Gradio.Net.AspNetCore
         public async Task InvokeAsync(HttpContext httpContext, GradioApp gradioApp)
         {
             string path = httpContext.Request.Path.ToString();
-            const string FILE_URL = "/file=";
+            const string FILE_URL = $"{GradioApp.API_PREFIX}/file=";
             if (path.StartsWith(FILE_URL))
             {
                 (string filePath, string contentType) = await gradioApp.GetUploadedFile(path.Substring(FILE_URL.Length));

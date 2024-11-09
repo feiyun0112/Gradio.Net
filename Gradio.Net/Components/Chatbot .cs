@@ -1,4 +1,7 @@
-﻿namespace Gradio.Net;
+﻿using Gradio.Net.ChatBot;
+using Gradio.Net.Enums;
+
+namespace Gradio.Net;
 
 public class Chatbot : Component
 {
@@ -16,11 +19,23 @@ public class Chatbot : Component
     internal bool? Likeable { get; set; }
     internal string Layout { get; set; }
     internal string Placeholder { get; set; }
+    internal string Type { get; set; }
 
     static Dictionary<string, object> _defaultProps = new Dictionary<string, object>()
     {
+        { nameof(LatexDelimiters), JsonUtils.Deserialize<IEnumerable<Dictionary<string,object>>>("""
+            [
+                {
+                    "left": "$$",
+                    "right": "$$",
+                    "display": true
+                }
+            ]
+            """) },
+        { nameof(Type), "messages" },
         { nameof(Container), true },
         { nameof(MinWidth), 160 },
+        { nameof(Height), 400 },
         { nameof(Visible), true},
         { nameof(Render), true },
          { nameof(Rtl), false },
@@ -47,7 +62,7 @@ public class Chatbot : Component
         }
         else if (chatMessage.Contains("gradio.FileMessage"))
         {
-            FileMessage fileMessage = JsonUtils.Deserialize<FileMessage>(chatMessage);
+            ChatBot.FileMessage fileMessage = JsonUtils.Deserialize<ChatBot.FileMessage>(chatMessage);
             if (!string.IsNullOrEmpty(fileMessage.AltText))
             {
                 return new ChatMessage { FilePath = fileMessage.File.Path, AltText = fileMessage.AltText };
@@ -71,18 +86,46 @@ public class Chatbot : Component
         }
         string? str = data.ToString();
 
-        List<string[]> listMessagePair = JsonUtils.Deserialize<List<string[]>>(str);
+        List<Message> listMessage = JsonUtils.Deserialize<List<Message>>(str);
 
-
-        foreach (string[] messagePair in listMessagePair)
+        Message previousMessage = null;
+        foreach (var message in listMessage)
         {
-            if (messagePair.Length != 2)
+            if (previousMessage == null)
             {
-                throw new InvalidDataException(
-                    $"Expected a list of lists of length 2 or list of tuples of length 2. Received: {messagePair}"
-                );
+                previousMessage = message;
             }
-            processedMessages.Add(new ChatbotMessagePair(PreprocessChatMessages(messagePair[0]), PreprocessChatMessages(messagePair[1])));
+            else
+            {
+                if (previousMessage.Role == "user" && message.Role == "assistant")
+                {
+                    processedMessages.Add(new ChatbotMessagePair(PreprocessChatMessages(previousMessage.Content.ToString()), PreprocessChatMessages(message.Content.ToString())));
+                    previousMessage = null;
+                }
+                else if (previousMessage.Role == "user")
+                {
+                    processedMessages.Add(new ChatbotMessagePair(PreprocessChatMessages(previousMessage.Content.ToString()), null));
+                    previousMessage = message;
+                }
+                else
+                {
+                    processedMessages.Add(new ChatbotMessagePair(null, PreprocessChatMessages(previousMessage.Content.ToString())));
+                    previousMessage = message;
+                }
+            }
+
+        }
+
+        if (previousMessage != null)
+        {
+            if (previousMessage.Role == "user")
+            {
+                processedMessages.Add(new ChatbotMessagePair(PreprocessChatMessages(previousMessage.Content.ToString()), null));
+            }
+            else
+            {
+                processedMessages.Add(new ChatbotMessagePair(null, PreprocessChatMessages(previousMessage.Content.ToString())));
+            }
         }
         return processedMessages;
     }
@@ -98,7 +141,7 @@ public class Chatbot : Component
             string filePath = chatMessage.FilePath;
 
             string mimeType = ClientUtils.GetMimeType(filePath);
-            return new FileMessage()
+            return new ChatBot.FileMessage()
             {
                 File = new FileData() { Path = filePath, MimeType = mimeType },
                 AltText = chatMessage.AltText,
@@ -106,7 +149,12 @@ public class Chatbot : Component
         }
         else
         {
-            return chatMessage.TextMessage;
+            return new ChatBot.Message()
+            {
+                Role = chatMessage.Role,
+                Content = chatMessage.TextMessage,
+                Metadata = new ChatBot.Metadata() { },
+            };
         }
     }
 
@@ -119,10 +167,10 @@ public class Chatbot : Component
 
         IList<ChatbotMessagePair>? value = data as IList<ChatbotMessagePair>;
 
-        List<object[]> processedMessages = [];
+        List<object> processedMessages = [];
         foreach (ChatbotMessagePair messagePair in value)
         {
-            processedMessages.Add(
+            processedMessages.AddRange(
                 [
                     PostprocessChatMessages(messagePair.HumanMessage),
                     PostprocessChatMessages(messagePair.AiMessage),

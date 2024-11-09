@@ -4,19 +4,22 @@ using Microsoft.Extensions.FileProviders;
 using System.Reflection;
 using System.Text;
 using System.Collections.Concurrent;
+using Gradio.Net.Utils;
 
 namespace Gradio.Net;
 
 public class GradioApp
 {
-    const string GRADIO_VERSION = "4.32.2";
+    const string GRADIO_VERSION = "5.5.0";
+    public const string API_PREFIX = "/gradio_api";
     private readonly long _appId;
 
-    private GradioServiceConfig _gradioServiceConfig;
+    internal GradioServiceConfig GradioServiceConfig { get; set; }
 
     public GradioApp()
     {
         _appId = new Random(DateTime.Now.Millisecond).NextInt64();
+        Context.App = this;
     }
 
     public Dictionary<string, object> GetConfig(string rootUrl)
@@ -26,18 +29,26 @@ public class GradioApp
     public Dictionary<string, object> GetConfig(string rootUrl, bool init)
     {
         Dictionary<string, object> result = Context.RootBlock.GetConfig(init);
-
-        result["stylesheets"] = this._gradioServiceConfig.Stylesheets;
-        result["body_css"] = this._gradioServiceConfig.BodyCss;
+        result["title"] = this.GradioServiceConfig.Title;
+        result["theme"] = this.GradioServiceConfig.Theme.Name.ToSnakeCase();
+        result["theme_hash"] = HashUtils.Sha256(this.GradioServiceConfig.Theme.GetCss());
+        result["stylesheets"] = this.GradioServiceConfig.Theme.Name == "default" && this.GradioServiceConfig.Stylesheets is not null ? this.GradioServiceConfig.Stylesheets : this.GradioServiceConfig.Theme.GetStylesheets();
+        result["body_css"] = this.GradioServiceConfig.Theme.Name == "default" && this.GradioServiceConfig.BodyCss is not null ? this.GradioServiceConfig.BodyCss : new Dictionary<string, string> {
+                { "body_background_fill",this.GradioServiceConfig.Theme.GetComputedValue("body_background_fill") },
+                { "body_text_color", this.GradioServiceConfig.Theme.GetComputedValue("body_text_color")},
+                { "body_background_fill_dark",  this.GradioServiceConfig.Theme.GetComputedValue("body_background_fill_dark") },
+                { "body_text_color_dark", this.GradioServiceConfig.Theme.GetComputedValue("body_text_color_dark") },
+            };
         result["root"] = rootUrl;
         result["version"] = GRADIO_VERSION;
+        result["api_prefix"] = API_PREFIX;
         result["app_id"] = _appId;
         return result;
     }
 
     public void SetConfig(GradioServiceConfig gradioServiceConfig)
     {
-        this._gradioServiceConfig = gradioServiceConfig;
+        this.GradioServiceConfig = gradioServiceConfig;
     }
 
     public object GetApiInfo()
@@ -48,6 +59,11 @@ public class GradioApp
             ["unnamed_endpoints"] = new Dictionary<string, object>()
         };
         return result;
+    }
+
+    public string GetThemeCss()
+    {
+        return this.GradioServiceConfig.Theme.GetCss();
     }
 
     public async Task<QueueJoinOut> QueueJoin(string rootUrl, PredictBodyIn body)

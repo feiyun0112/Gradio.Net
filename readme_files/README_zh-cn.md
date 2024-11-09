@@ -73,3 +73,4 @@ app.Run();
 | [Media](./media_demo.md) | ![image](./media_demo.gif) |
 | [Chatbot](./chatbot_demo.md) | ![image](./chatbot_demo.gif) |
 | [Progress](./progress_demo.md) | ![image](./progress_demo.gif) |
+| [Theme](./theme_demo.md) | ![image](./theme_demo.gif) |

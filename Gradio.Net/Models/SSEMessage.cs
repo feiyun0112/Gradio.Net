@@ -26,6 +26,7 @@ public abstract class SSEMessage
     public SSEMessageType Msg { get; set; }
     public string Message { get; set; }
     public bool? Success { get; set; }
+    public string EventId { get; set; }
 
     public string ProcessMsg()
     {
@@ -38,7 +39,7 @@ public class LogMessage : SSEMessage
     private LogMessage() : base(SSEMessageType.Log, null, null) { }
     public string Log { get; set; }
     public string Level { get; set; }
-    public string EventId { get; set; }
+
 
     internal static LogMessage Info(string message)
     {
@@ -75,7 +76,7 @@ public class ProcessStartsMessage : SSEMessage
     {
         EventId = eventId;
     }
-    public string EventId { get; set; }
+
     public decimal? Eta { get; set; }
 }
 
@@ -86,7 +87,7 @@ public class UnexpectedErrorMessage : SSEMessage
     {
         EventId = eventId;
     }
-    public string EventId { get; set; }
+
 }
 
 public class CloseStreamMessage : SSEMessage
@@ -110,7 +111,7 @@ public class ProcessCompletedMessage : SSEMessage
         this.Output = output;
     }
 
-    public string EventId { get; set; }
+
     public Dictionary<string, object> Output { get; set; }
 }
 
@@ -150,7 +151,7 @@ public class ProcessGeneratingMessage : SSEMessage
         this.Output = output;
     }
 
-    public string EventId { get; set; }
+
     public Dictionary<string, object> Output { get; set; }
     public bool IsGenerating { get; set; } = true;
 }

@@ -12,6 +12,9 @@ on:
 jobs:
   deploy-nuget:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/Gradio.Net
     steps:
       - uses: actions/checkout@v3
       - name: Build

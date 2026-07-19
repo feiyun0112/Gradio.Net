@@ -1,4 +1,5 @@
 ﻿using Gradio.Net;
+using Gradio.Net.Components;
 
 namespace demo;
 
@@ -11,20 +12,31 @@ public static class ChatbotDemo
         Chatbot chatbot = gr.Chatbot();
         Textbox msg = gr.Textbox(placeholder: "Enter to Submit");
 
-        await msg.Submit(streamingFn: (input) => Respond(Textbox.Payload(input.Data[0]), Chatbot.Payload(input.Data[1])),
-            inputs: [msg, chatbot], outputs: [msg, chatbot]);
+        msg.Submit(
+            fn: new Func<string, object, IAsyncEnumerable<object>>(Respond),
+            inputs: new object[] { msg, chatbot }, outputs: new object[] { msg, chatbot });
     }
 
-    static async IAsyncEnumerable<Output> Respond(string message, IList<ChatbotMessagePair> chatHistory)
+    static async IAsyncEnumerable<object> Respond(string message, object chatHistoryArg)
     {
-        chatHistory.Add(new ChatbotMessagePair(message, ""));
-        message = "You typed: " + message;
-        for (int i = 0; i < message.Length; i++)
+        var historyList = new List<object>();
+        if (chatHistoryArg is System.Collections.IEnumerable enumerable && chatHistoryArg is not string)
         {
-            await Task.Delay(500);
-            chatHistory.Last().AiMessage.TextMessage += message[i];
+            foreach (var item in enumerable)
+                historyList.Add(item);
+        }
 
-            yield return gr.Output("", chatHistory);
+        historyList.Add(new Dictionary<string, object> { { "role", "user" }, { "content", message } });
+        historyList.Add(new Dictionary<string, object> { { "role", "assistant" }, { "content", "" } });
+
+        string response = "You typed: " + message;
+        for (int i = 0; i < response.Length; i++)
+        {
+            await Task.Delay(50);
+            var lastMsg = historyList.Last() as Dictionary<string, object>;
+            if (lastMsg != null) lastMsg["content"] = response.Substring(0, i + 1);
+
+            yield return Tuple.Create("", (object)historyList);
         }
     }
 }

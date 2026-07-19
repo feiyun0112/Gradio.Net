@@ -1,0 +1,73 @@
+using Gradio.Net.Components;
+
+namespace Gradio.Net;
+
+public static partial class gr
+{
+    public static ImageEditor ImageEditor(
+        object value = null,
+        object height = null,
+        object width = null,
+        string imageMode = "RGBA",
+        object sources = null,
+        string type = "numpy",
+        string label = null,
+        object every = null,
+        object inputs = null,
+        bool? showLabel = null,
+        List<string> buttons = null,
+        bool container = true,
+        int? scale = null,
+        int minWidth = 160,
+        bool? interactive = null,
+        object visible = null,
+        string elemId = null,
+        object elemClasses = null,
+        bool render = true,
+        object key = null,
+        object preservedByKey = null,
+        string placeholder = null,
+        bool selectable = false,
+        object transforms = null,
+        object eraser = null,
+        object brush = null,
+        string format = "webp",
+        object layers = null,
+        Tuple<int, int> canvasSize = null,
+        bool fixedCanvas = false,
+        WebcamOptions webcamOptions = null)
+    {
+        return new ImageEditor(
+            value: value,
+            height: height,
+            width: width,
+            imageMode: imageMode,
+            sources: sources,
+            type: type,
+            label: label,
+            every: every,
+            inputs: inputs,
+            showLabel: showLabel,
+            buttons: buttons,
+            container: container,
+            scale: scale,
+            minWidth: minWidth,
+            interactive: interactive,
+            visible: visible,
+            elemId: elemId,
+            elemClasses: elemClasses,
+            render: render,
+            key: key,
+            preservedByKey: preservedByKey,
+            placeholder: placeholder,
+            _selectable: selectable,
+            transforms: transforms,
+            eraser: eraser,
+            brush: brush,
+            format: format,
+            layers: layers,
+            canvasSize: canvasSize,
+            fixedCanvas: fixedCanvas,
+            webcamOptions: webcamOptions);
+    }
+}

@@ -1,0 +1,71 @@
+using Gradio.Net.Components;
+
+namespace Gradio.Net;
+
+public static partial class gr
+{
+    public static MultimodalTextbox MultimodalTextbox(
+        object value = null,
+        string label = null,
+        object every = null,
+        object inputs = null,
+        bool? showLabel = null,
+        bool container = true,
+        int? scale = null,
+        int minWidth = 160,
+        bool? interactive = null,
+        object visible = null,
+        string elemId = null,
+        object elemClasses = null,
+        bool autofocus = false,
+        bool render = true,
+        object key = null,
+        object preservedByKey = null,
+        object sources = null,
+        List<string> fileTypes = null,
+        string fileCount = "single",
+        int lines = 1,
+        int maxLines = 20,
+        object placeholder = null,
+        object submitBtn = null,
+        object stopBtn = null,
+        bool autoscroll = true,
+        string textAlign = null,
+        bool rtl = false,
+        int maxPlainTextLength = 1000,
+        InputHTMLAttributes htmlAttributes = null,
+        string info = null)
+    {
+        return new MultimodalTextbox(
+            value: value,
+            label: label,
+            every: every,
+            inputs: inputs,
+            showLabel: showLabel,
+            container: container,
+            scale: scale,
+            minWidth: minWidth,
+            interactive: interactive,
+            visible: visible,
+            elemId: elemId,
+            elemClasses: elemClasses,
+            autofocus: autofocus,
+            render: render,
+            key: key,
+            preservedByKey: preservedByKey,
+            sources: sources,
+            fileTypes: fileTypes,
+            fileCount: fileCount,
+            lines: lines,
+            maxLines: maxLines,
+            placeholder: placeholder,
+            submitBtn: submitBtn,
+            stopBtn: stopBtn,
+            autoscroll: autoscroll,
+            textAlign: textAlign,
+            rtl: rtl,
+            maxPlainTextLength: maxPlainTextLength,
+            htmlAttributes: htmlAttributes,
+            info: info);
+    }
+}

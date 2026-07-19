@@ -396,4 +396,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-/demo/Properties/launchSettings.json
+
+**/.gradio/**
+.trae/
+
+temp/
+plan/

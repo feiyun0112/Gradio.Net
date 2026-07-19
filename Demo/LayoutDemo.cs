@@ -1,4 +1,5 @@
 ﻿using Gradio.Net;
+using Gradio.Net.Components;
 
 namespace demo;
 

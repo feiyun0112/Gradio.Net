@@ -1,4 +1,5 @@
 ﻿using Gradio.Net;
+using Gradio.Net.Components;
 
 namespace demo;
 
@@ -16,6 +17,6 @@ public static class FirstDemo
             output = gr.Textbox();
         }
         Button btn = gr.Button("Run");
-        await btn.Click(fn: async (input) => gr.Output($"Welcome to Gradio.Net, {Textbox.Payload(input.Data[0])}!", ""), inputs: [input], outputs: [output, input]);
+        btn.Click(fn: new Func<string, (string, string)>(name => ($"Welcome to Gradio.Net, {name}!", "")), inputs: new[] { input }, outputs: new[] { output, input });
     }
 }

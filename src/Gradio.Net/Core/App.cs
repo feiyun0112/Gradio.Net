@@ -47,7 +47,10 @@ namespace Gradio.Net.Core
         {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
+            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+            // Tuples must serialize as JSON arrays (Python parity). Without this, tuple-typed
+            // component properties such as Radio.Choices become "{}" in update payloads.
+            Converters = { new Gradio.Net.Utils.TupleJsonConverterFactory() }
         };
 
         // No naming policy for MCP responses — property names must match the MCP spec exactly (camelCase).

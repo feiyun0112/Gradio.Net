@@ -30,7 +30,9 @@ public class QueueManager
     private static readonly JsonSerializerOptions _logJsonOptions = new JsonSerializerOptions
     {
         WriteIndented = false,
-        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never,
+        // Keep log output consistent with the response payloads (tuples as arrays).
+        Converters = { new Gradio.Net.Utils.TupleJsonConverterFactory() }
     };
 
     private bool _stopped;

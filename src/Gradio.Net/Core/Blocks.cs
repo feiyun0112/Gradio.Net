@@ -1,4 +1,7 @@
 using System.Collections.Concurrent;
+using System.Collections;
+using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -1562,11 +1565,119 @@ namespace Gradio.Net.Core
                     return;
                 }
 
+                // Config-shaped values describe tuples as JSON arrays (choices, row_count, ...), so
+                // rebuild the typed value before falling back to a plain conversion.
+                if (TryConvertTupleValue(targetType, value, out object? tupleValue))
+                {
+                    prop.SetValue(target, tupleValue);
+                    return;
+                }
+
                 prop.SetValue(target, Convert.ChangeType(value, targetType));
             }
             catch
             {
                 // Best-effort; ignore if conversion fails
+            }
+        }
+
+        /// <summary>
+        /// Rebuilds a tuple-typed property value from its config representation.
+        /// A component's config describes tuples as JSON arrays: a Radio's choices become
+        /// <c>[["label", "value"], ...]</c> and a Dataframe's row count becomes <c>[3, "fixed"]</c>,
+        /// while the properties are typed as value tuples
+        /// (<c>List&lt;(string Name, object Value)&gt;</c> and <c>(int Count, string Mode)</c>).
+        /// Without this, returning a component instance from an event handler could never update
+        /// those properties, so the frontend kept rendering the original choices.
+        /// </summary>
+        private static bool TryConvertTupleValue(Type targetType, object? value, out object? converted)
+        {
+            converted = null;
+            if (value is null || value is string || value is not IEnumerable items)
+            {
+                return false;
+            }
+
+            // (int Count, string Mode) <- [3, "fixed"]
+            if (typeof(ITuple).IsAssignableFrom(targetType))
+            {
+                return TryBuildTuple(targetType, items, out converted);
+            }
+
+            // List<(string Name, object Value)> <- [["label", "value"], ...]
+            if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                Type elementType = targetType.GetGenericArguments()[0];
+                if (!typeof(ITuple).IsAssignableFrom(elementType))
+                {
+                    return false;
+                }
+
+                var list = (IList)Activator.CreateInstance(targetType)!;
+                foreach (object? item in items)
+                {
+                    if (item is null || item is string || item is not IEnumerable parts
+                        || !TryBuildTuple(elementType, parts, out object? element))
+                    {
+                        return false;
+                    }
+
+                    list.Add(element);
+                }
+
+                converted = list;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryBuildTuple(Type tupleType, IEnumerable parts, out object? tuple)
+        {
+            tuple = null;
+            Type[] itemTypes = tupleType.GetGenericArguments();
+            var values = parts.Cast<object?>().ToList();
+            if (values.Count != itemTypes.Length)
+            {
+                return false;
+            }
+
+            var items = new object?[itemTypes.Length];
+            for (int i = 0; i < itemTypes.Length; i++)
+            {
+                items[i] = ConvertTupleItem(values[i], itemTypes[i]);
+                if (items[i] is null
+                    && itemTypes[i].IsValueType
+                    && Nullable.GetUnderlyingType(itemTypes[i]) is null)
+                {
+                    return false;
+                }
+            }
+
+            tuple = Activator.CreateInstance(tupleType, items);
+            return tuple is not null;
+        }
+
+        private static object? ConvertTupleItem(object? value, Type itemType)
+        {
+            if (value is null)
+            {
+                return null;
+            }
+
+            Type targetType = Nullable.GetUnderlyingType(itemType) ?? itemType;
+            if (targetType == typeof(object) || targetType.IsInstanceOfType(value))
+            {
+                return value;
+            }
+
+            try
+            {
+                return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                return null;
             }
         }
 
@@ -3425,6 +3536,15 @@ namespace Gradio.Net.Core
             for (int i = 0; i < inputBlocks.Count; i++)
             {
                 var block = inputBlocks[i];
+
+                // Python parity: gradio/blocks.py preprocess_data replaces the input block with the
+                // per-session override when one exists ("if block._id in state: block = state[block._id]"),
+                // so props updated earlier in the session (for example new choices) are used for
+                // validation instead of the props the component was created with.
+                if (!block.Stateful && sessionState is not null && sessionState[block._id] is Block sessionBlock)
+                {
+                    block = sessionBlock;
+                }
 
                 object input;
                 if (block.Stateful && sessionState != null)

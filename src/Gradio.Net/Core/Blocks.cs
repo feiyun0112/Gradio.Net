@@ -3698,6 +3698,153 @@ namespace Gradio.Net.Core
             }
         }
 
+        /// <summary>
+        /// Materialises a structured payload (the Dictionary / List graph produced by component
+        /// preprocessing) as a strongly-typed CLR value.
+        /// <para>
+        /// Without this, a handler could only accept <c>object</c> for inputs such as a Chatbot
+        /// history, because the payload arrives as <c>List&lt;Dictionary&lt;string, object&gt;&gt;</c>
+        /// and no conversion existed for anything else. With it, handlers can declare concrete
+        /// types such as <c>List&lt;ChatMessage&gt;</c>, <c>List&lt;Message&gt;</c> or their own POCOs.
+        /// </para>
+        /// Returns <c>null</c> when the payload cannot be mapped onto <paramref name="targetType"/>,
+        /// so the caller can fall back to its previous behaviour.
+        /// </summary>
+        private static object? TryConvertToTypedObject(object? rawValue, Type targetType)
+        {
+            Type nonNullableType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+            if (rawValue == null || nonNullableType == typeof(object) || nonNullableType.IsInstanceOfType(rawValue))
+            {
+                return rawValue;
+            }
+
+            // Generic collections: List<T>, IList<T>, IEnumerable<T>, ICollection<T>,
+            // IReadOnlyList<T>, IReadOnlyCollection<T>.
+            if (nonNullableType.IsGenericType && IsGenericCollectionInterface(nonNullableType.GetGenericTypeDefinition()))
+            {
+                if (rawValue is not IEnumerable rawEnumerable || rawValue is string)
+                {
+                    return null;
+                }
+
+                Type elementType = nonNullableType.GetGenericArguments()[0];
+                Type listType = typeof(List<>).MakeGenericType(elementType);
+                IList typedList = (IList)Activator.CreateInstance(listType)!;
+
+                foreach (object item in rawEnumerable)
+                {
+                    typedList.Add(TryConvertToTypedObject(item, elementType));
+                }
+
+                return typedList;
+            }
+
+            // String-keyed dictionaries: Dictionary<string, TValue> and friends.
+            if (nonNullableType.IsGenericType && IsGenericDictionaryInterface(nonNullableType.GetGenericTypeDefinition()))
+            {
+                Type[] typeArguments = nonNullableType.GetGenericArguments();
+                if (typeArguments[0] != typeof(string) || rawValue is not IDictionary sourceDictionary)
+                {
+                    return null;
+                }
+
+                Type dictionaryType = typeof(Dictionary<,>).MakeGenericType(typeArguments[0], typeArguments[1]);
+                IDictionary typedDictionary = (IDictionary)Activator.CreateInstance(dictionaryType)!;
+
+                foreach (DictionaryEntry entry in sourceDictionary)
+                {
+                    if (entry.Key is string key)
+                    {
+                        typedDictionary[key] = TryConvertToTypedObject(entry.Value, typeArguments[1]);
+                    }
+                }
+
+                return typedDictionary;
+            }
+
+            // Arrays.
+            if (nonNullableType.IsArray && rawValue is IEnumerable arraySource && rawValue is not string)
+            {
+                Type elementType = nonNullableType.GetElementType()!;
+                List<object> items = [.. arraySource.Cast<object>()];
+                Array typedArray = Array.CreateInstance(elementType, items.Count);
+
+                for (int i = 0; i < items.Count; i++)
+                {
+                    typedArray.SetValue(TryConvertToTypedObject(items[i], elementType), i);
+                }
+
+                return typedArray;
+            }
+
+            // Plain old CLR objects: match dictionary keys onto writable properties.
+            if (rawValue is not IDictionary<string, object> sourceProperties)
+            {
+                return null;
+            }
+
+            object instance;
+            try
+            {
+                instance = Activator.CreateInstance(nonNullableType)!;
+            }
+            catch
+            {
+                // No usable parameterless constructor - leave it to the caller.
+                return null;
+            }
+
+            foreach (PropertyInfo property in nonNullableType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!property.CanWrite || property.GetIndexParameters().Length > 0)
+                {
+                    continue;
+                }
+
+                if (TryGetPropertyValue(sourceProperties, property.Name, out object propertyValue))
+                {
+                    property.SetValue(instance, TryConvertToTypedObject(propertyValue, property.PropertyType));
+                }
+            }
+
+            return instance;
+        }
+
+        private static bool IsGenericCollectionInterface(Type genericDefinition) =>
+            genericDefinition == typeof(List<>)
+            || genericDefinition == typeof(IList<>)
+            || genericDefinition == typeof(ICollection<>)
+            || genericDefinition == typeof(IEnumerable<>)
+            || genericDefinition == typeof(IReadOnlyList<>)
+            || genericDefinition == typeof(IReadOnlyCollection<>);
+
+        private static bool IsGenericDictionaryInterface(Type genericDefinition) =>
+            genericDefinition == typeof(Dictionary<,>)
+            || genericDefinition == typeof(IDictionary<,>)
+            || genericDefinition == typeof(IReadOnlyDictionary<,>);
+
+        /// <summary>Looks a key up exactly first, then case-insensitively (JSON payloads are lower-case).</summary>
+        private static bool TryGetPropertyValue(IDictionary<string, object> source, string name, out object value)
+        {
+            if (source.TryGetValue(name, out value))
+            {
+                return true;
+            }
+
+            foreach (KeyValuePair<string, object> pair in source)
+            {
+                if (string.Equals(pair.Key, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = pair.Value;
+                    return true;
+                }
+            }
+
+            value = null;
+            return false;
+        }
+
         private async Task<Dictionary<string, object>> CallFunction(
             BlockFunction blockFn,
             List<object> inputs,
@@ -3977,6 +4124,16 @@ namespace Gradio.Net.Core
                             if (nonNullableType.IsEnum)
                             {
                                 return Enum.Parse(nonNullableType, rawValue.ToString() ?? string.Empty, ignoreCase: true);
+                            }
+
+                            // Structured payload (the Dictionary/List graph produced by component
+                            // preprocessing) -> strongly-typed CLR object. This is what lets a handler
+                            // declare a concrete parameter type such as List<ChatMessage> for a Chatbot
+                            // history input instead of falling back to object.
+                            object? typedValue = TryConvertToTypedObject(rawValue, nonNullableType);
+                            if (typedValue != null)
+                            {
+                                return typedValue;
                             }
 
                             return Convert.ChangeType(rawValue, nonNullableType, System.Globalization.CultureInfo.InvariantCulture);

@@ -1120,9 +1120,9 @@ namespace Gradio.Net.Utils
             }
 
             // Handle tuple returns
-            if (returnType.IsGenericType && returnType.Name.StartsWith("Tuple`") || returnType.Name.StartsWith("ValueTuple`"))
+            if (IsTupleType(returnType))
             {
-                types.AddRange(returnType.GetGenericArguments());
+                types.AddRange(FlattenTupleTypes(returnType));
             }
             else if (returnType != typeof(void) && returnType != typeof(Task))
             {
@@ -1130,6 +1130,33 @@ namespace Gradio.Net.Utils
             }
 
             return types;
+        }
+
+
+        private static bool IsTupleType(Type type) =>
+            type.IsGenericType &&
+            (type.Name.StartsWith("Tuple`", StringComparison.Ordinal) ||
+             type.Name.StartsWith("ValueTuple`", StringComparison.Ordinal));
+
+
+        private static IEnumerable<Type> FlattenTupleTypes(Type tupleType)
+        {
+            Type[] arguments = tupleType.GetGenericArguments();
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                Type argument = arguments[i];
+                if (i == 7 && IsTupleType(argument))
+                {
+                    foreach (Type nested in FlattenTupleTypes(argument))
+                    {
+                        yield return nested;
+                    }
+                }
+                else
+                {
+                    yield return argument;
+                }
+            }
         }
 
         public static string DeepHash(object? obj)

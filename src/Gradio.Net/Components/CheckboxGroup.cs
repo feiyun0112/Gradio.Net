@@ -40,6 +40,10 @@ public class CheckboxGroup : FormComponent
         List<string>? buttons = null)
     {
         Choices = NormalizeChoices(choices);
+        if (choices is not null)
+        {
+            MarkExplicitConstructorArg("choices");
+        }
 
         var validTypes = new[] { "value", "index" };
         if (!validTypes.Contains(type))
@@ -51,6 +55,10 @@ public class CheckboxGroup : FormComponent
         ShowSelectAll = showSelectAll;
 
         Value = value == null ? new List<object>() : Postprocess(value);
+        if (value is not null)
+        {
+            MarkExplicitConstructorArg("value");
+        }
         Label = label;
         Info = info;
         ShowLabel = showLabel ?? ShowLabel;
@@ -88,6 +96,14 @@ public class CheckboxGroup : FormComponent
         {
             foreach (var c in enumerable)
             {
+                // Python's choices allow (name, value) tuples; in C# these are
+                // ValueTuple / Tuple which implement ITuple, not IEnumerable.
+                if (c is System.Runtime.CompilerServices.ITuple tuple && tuple.Length >= 2)
+                {
+                    result.Add((tuple[0]?.ToString() ?? string.Empty, tuple[1]!));
+                    continue;
+                }
+
                 if (c is IEnumerable pair && c is not string)
                 {
                     var pairList = new List<object>();

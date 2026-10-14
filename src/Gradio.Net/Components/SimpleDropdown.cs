@@ -28,6 +28,10 @@ public class SimpleDropdown : FormComponent
         object? preservedByKey = null)
     {
         Choices = NormalizeChoices(choices);
+        if (choices is not null)
+        {
+            MarkExplicitConstructorArg("choices");
+        }
 
         Value = value;
         Label = label;
@@ -110,6 +114,14 @@ public class SimpleDropdown : FormComponent
         {
             foreach (var c in enumerable)
             {
+                // Python's choices allow (name, value) tuples; in C# these are
+                // ValueTuple / Tuple which implement ITuple, not IEnumerable.
+                if (c is System.Runtime.CompilerServices.ITuple tuple && tuple.Length >= 2)
+                {
+                    result.Add((tuple[0]?.ToString() ?? string.Empty, tuple[1]!));
+                    continue;
+                }
+
                 if (c is IEnumerable pair && c is not string)
                 {
                     var pairList = new List<object>();

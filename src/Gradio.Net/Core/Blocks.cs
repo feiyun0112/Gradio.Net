@@ -1350,6 +1350,12 @@ namespace Gradio.Net.Core
                     continue;
                 }
 
+                if (returnedBlock.HasExplicitConstructorArg(key))
+                {
+                    asUpdate[key] = kvp.Value;
+                    continue;
+                }
+
                 if (!defaultConfig.TryGetValue(key, out var defaultValue) || !AreEquivalent(kvp.Value, defaultValue))
                 {
                     asUpdate[key] = kvp.Value;

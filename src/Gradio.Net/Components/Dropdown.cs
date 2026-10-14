@@ -43,6 +43,10 @@ public class Dropdown : FormComponent
         object? preservedByKey = null)
     {
         Choices = NormalizeChoices(choices);
+        if (choices is not null)
+        {
+            MarkExplicitConstructorArg("choices");
+        }
 
         var validTypes = new[] { "value", "index" };
         if (!validTypes.Contains(type))
@@ -253,6 +257,14 @@ public class Dropdown : FormComponent
         {
             foreach (var item in enumerable)
             {
+                // Python's choices allow (name, value) tuples; in C# these are
+                // ValueTuple / Tuple which implement ITuple, not IEnumerable.
+                if (item is System.Runtime.CompilerServices.ITuple tuple && tuple.Length >= 2)
+                {
+                    result.Add((tuple[0]?.ToString() ?? string.Empty, tuple[1]!));
+                    continue;
+                }
+
                 if (item is IEnumerable pair && item is not string)
                 {
                     var pairList = new List<object>();

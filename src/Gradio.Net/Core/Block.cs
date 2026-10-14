@@ -161,6 +161,18 @@ namespace Gradio.Net.Core
             }
         }
 
+        internal HashSet<string> ExplicitConstructorArgs { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+        protected void MarkExplicitConstructorArg(string name)
+        {
+            ExplicitConstructorArgs.Add(name);
+        }
+
+        internal bool HasExplicitConstructorArg(string name)
+        {
+            return ExplicitConstructorArgs.Contains(name);
+        }
+
         public virtual List<EventListener> Events => new List<EventListener>();
 
         public virtual IReadOnlyList<string> KeepNullProps => Array.Empty<string>();

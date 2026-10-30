@@ -1,0 +1,1 @@
+import{r as e,t}from"./glTFLoaderExtensionRegistry-CCZy_zZM.js";var n=`KHR_mesh_quantization`,r=class{constructor(e){this.name=n,this.enabled=e.isExtensionUsed(n)}dispose(){}};e(n),t(n,!0,e=>new r(e));export{r as KHR_mesh_quantization};

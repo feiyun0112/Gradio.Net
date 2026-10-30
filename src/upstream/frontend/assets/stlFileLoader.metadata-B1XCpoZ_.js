@@ -1,0 +1,1 @@
+var e={name:`stl`,extensions:{".stl":{isBinary:!0}}};export{e as t};

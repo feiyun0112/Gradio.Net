@@ -1,0 +1,104 @@
+# What is not part of this repository.
+#
+# Everything a reader needs to build or run the tree is checked in, so a rule here is a
+# rule about something generated: build output, tooling state, or the folders this
+# framework writes while an application runs.
+
+## Build output
+
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+artifacts/
+out/
+*.binlog
+[Ll]og/
+[Ll]ogs/
+*.log
+
+## Test and coverage output
+
+[Tt]est[Rr]esult*/
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.coveragexml
+
+## NuGet
+
+*.nupkg
+*.snupkg
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+
+# The packages folder, kept for a project that restores into one; its build/ folder is
+# an MSBuild target and stays tracked.
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+## Editors and user settings
+
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+_ReSharper*/
+*.sln.iml
+.history/
+.localhistory/
+.vshistory/
+.trae/
+
+## Node
+
+node_modules/
+.ntvs_analysis.dat
+
+# The vendored SSR runtime ships its dependencies. The tree under src/upstream/ssr is the
+# Python version's compiled server, checked in byte for byte, and Node resolves these packages
+# from the directory it is started in - there is no install step at run time or in CI. The
+# blanket rule above would drop them, and the runtime would die on its first import.
+!src/upstream/ssr/node/build/node_modules/
+!src/upstream/ssr/node/build/node_modules/**
+
+## Secrets and machine-specific publish settings
+
+*.pfx
+*.pubxml
+*.publishsettings
+*.azurePubxml
+
+## Operating system
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## This framework's own output
+
+# The cache folder an application gets beside itself: the media helpers write the sample
+# files there, and run history is kept there when an application turns it on.
+**/.gradio/**
+
+# Scratch space for whoever is working in the tree.
+temp/
+plan/
+
+# Tool state that belongs to a working copy rather than to the framework: session notes and
+# memory written by an assistant working in the tree. Never published.
+.workbuddy-ai/

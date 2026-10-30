@@ -1,0 +1,1 @@
+import{J as e,O as t,X as n,k as r,mt as i,r as a}from"./index-D88pgWqG.js";import"./core-DZ_8y5W8.js";var o=n(`<div></div>`);function s(n,s){let c=a(s,`selected`,3,!1);var l=o();let u;i(()=>{t(l,`background-color: ${(s.value?s.value:`black`)??``}`),u=r(l,1,`svelte-1k1s8qu`,null,u,{table:s.type===`table`,gallery:s.type===`gallery`,selected:c()})}),e(n,l)}export{s as default};

@@ -1,0 +1,10 @@
+import { K as h } from './2-C9eYyMgE.js';
+import { p } from './statustracker-Bh1XNgjP.js';
+import { n, V as Ve, q as p$1 } from './src3-C1zEyqUA.js';
+import './async-Cv1-GZGV.js';
+import { a as attr_class, f as attr, e as escape_html, c as bind_props, d as derived, s as spread_props } from './renderer-RGQlaTg4.js';
+
+function o(e,t){e.component(e=>{let{label:n=`Checkbox`,value:r=void 0,indeterminate:i=false,interactive:o=true,show_label:s=true,tab_index:c=void 0,on_change:l,on_input:u,on_select:d}=t,f=derived(()=>!o);e.push(`<label${attr_class(`checkbox-container svelte-1q8xtp9`,void 0,{disabled:f()})}><input${attr(`checked`,r,true)}${attr(`disabled`,f(),true)} type="checkbox" name="test" data-testid="checkbox"${attr(`tabindex`,c)} class="svelte-1q8xtp9"/> `),s?(e.push(`<!--[0-->`),e.push(`<span class="label-text svelte-1q8xtp9">${escape_html(n)}</span>`)):e.push(`<!--[-1-->`),e.push(`<!--]--></label>`),bind_props(t,{value:r});});}function s(s,c){s.component(s=>{let{$$slots:l,$$events:u,...d}=c,f=new h(d),p$2=true,m;function h$1(e){n(e,{visible:f.shared.visible,elem_id:f.shared.elem_id,elem_classes:f.shared.elem_classes,children:e=>{p(e,spread_props([{autoscroll:f.shared.autoscroll,i18n:f.i18n},f.shared.loading_status,{on_clear_status:()=>f.dispatch(`clear_status`,f.shared.loading_status)}])),e.push(`<!----> `),f.shared.show_label&&f.props.buttons&&f.props.buttons.length>0?(e.push(`<!--[0-->`),Ve(e,{buttons:f.props.buttons,on_custom_button_click:e=>{f.dispatch(`custom_button_click`,{id:e});}})):e.push(`<!--[-1-->`),e.push(`<!--]--> `),o(e,{label:f.shared.label||f.i18n(`checkbox.checkbox`),interactive:f.shared.interactive,show_label:f.shared.show_label,on_change:e=>f.dispatch(`change`,e),on_input:()=>f.dispatch(`input`),on_select:e=>f.dispatch(`select`,e),get value(){return f.props.value},set value(e){f.props.value=e,p$2=false;}}),e.push(`<!----> `),f.props.info?(e.push(`<!--[0-->`),p$1(e,{info:f.props.info})):e.push(`<!--[-1-->`),e.push(`<!--]-->`);},$$slots:{default:true}});}do p$2=true,m=s.copy(),h$1(m);while(!p$2);s.subsume(m);});}
+
+export { o, s };
+//# sourceMappingURL=Index14-C6ZKJc6Q.js.map

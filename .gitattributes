@@ -1,0 +1,39 @@
+# Line endings: the repository stores LF, and a Windows working copy may use CRLF
+# (core.autocrlf). Shell scripts are pinned to LF in both, because a CRLF script fails
+# to run under bash on Linux CI.
+
+*.sh text eol=lf
+
+# Binary assets: never normalise.
+*.png binary
+*.gif binary
+*.ico binary
+*.dll binary
+*.pdb binary
+*.nupkg binary
+*.snupkg binary
+
+# The upstream declarations the build reads are JSON, compared as text, so the endings are pinned
+# to keep a Windows working copy from disagreeing with a Linux one. This is stated first because the
+# vendored trees below live under the same directory and must not inherit it: the last matching
+# pattern wins.
+src/upstream/** text eol=lf
+
+# The vendored frontend is upstream's compiled bundle, checked in byte for byte (ADR-0002).
+# Text normalisation would rewrite line endings on checkout and change the tree that is
+# embedded in the assembly, so it is excluded from it entirely. GitHub is told not to count
+# it as hand-written source.
+src/upstream/frontend/** -text linguist-vendored
+
+# The same for the vendored SSR runtime, which is upstream's compiled SvelteKit server.
+src/upstream/ssr/** -text linguist-vendored
+
+# And for the curated workflow template list, which is upstream's own data served to the canvas.
+# It is text, so this is the one tree where the rule above matters on every checkout rather than
+# only for compiled bytes.
+src/upstream/workflow/** -text linguist-vendored
+
+# The sample media the five helpers hand a handler. Most of it is binary, but the tree also
+# carries text - a subtitle file, a plain-text sample - and a checkout that rewrote those would
+# change the bytes the helpers serve without changing a byte a reader can see.
+src/upstream/media/** -text linguist-vendored

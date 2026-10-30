@@ -1,0 +1,28 @@
+<Project>
+
+  <!--
+    ==========================================================================
+    SINGLE SOURCE OF TRUTH for every version number in this repository.
+    ==========================================================================
+
+    Nothing else in the tree may declare a version literal. The NuGet package
+    version, the assembly version, the informational version and the public
+    Gradio.Net.Abstractions.GradioVersion constants are all derived from
+    GradioUpstreamVersion below.
+
+    Mapping: the Python version X.Y.Z  ->  Gradio.Net 0.X.Y
+    The Python patch component is carried in the informational version only.
+
+    The assignment is unconditional on purpose: an environment variable must not
+    be able to override the version, or the declared version could disagree with
+    the package version. (An explicit `dotnet build -p:GradioUpstreamVersion=...`
+    still wins, because MSBuild global properties outrank project properties, but
+    that is a deliberate, visible act - and the version tests report the resulting
+    disagreement with this file.)
+  -->
+  <PropertyGroup>
+    <!-- Python Gradio release this build targets. -->
+    <GradioUpstreamVersion>6.30.0</GradioUpstreamVersion>
+  </PropertyGroup>
+
+</Project>

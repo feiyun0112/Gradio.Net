@@ -1,0 +1,242 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    The single shipped package. The folders (Abstractions / Core / Components / Layouts /
+    Server) group the code by concern; every type in them is in one namespace, `Gradio.Net`,
+    and there is one assembly.
+  -->
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <OutputType>Library</OutputType>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!--
+    The Python version's compiled frontend, vendored verbatim.
+  -->
+  <PropertyGroup>
+    <GradioFrontendRoot>$(RepoRoot)src/upstream/frontend</GradioFrontendRoot>
+  </PropertyGroup>
+
+  <!--
+    The vendored tree is embedded in the assembly rather than copied beside it, so that
+    serving the page needs no loose files: a package reference, a publish and a
+    single-file deployment all carry the frontend, and nothing at run time has to know
+    where the package was unpacked.
+
+    The logical name is the asset's path under the frontend root, with '/' as the
+    separator on every platform - which is what the property function is for: MSBuild's
+    %(RecursiveDir) yields the platform separator, and a Windows build would otherwise
+    embed names a Linux build could not look up. Gradio.Net.Server.Frontend.FrontendAssets
+    prefixes them back into names at run time; a test walks the tree on disk and asserts
+    every file is reachable, so the two cannot drift apart silently.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="$(GradioFrontendRoot)/**/*"
+                      LogicalName="Gradio.Net.frontend/$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!--
+    The Python version's compiled SSR runtime, vendored verbatim: the Node entry point, the module hook
+    it registers, and the SvelteKit server it loads.
+  -->
+  <PropertyGroup>
+    <GradioSsrRoot>$(RepoRoot)src/upstream/ssr</GradioSsrRoot>
+  </PropertyGroup>
+
+  <!--
+    The SSR tree is embedded for the same reason the frontend is, with one difference in how
+    it is used: Node can only load a module from a file, so an application that turns SSR on
+    writes the tree to a temporary directory at start-up. Embedding is what lets a package
+    reference, a publish and a single-file deployment all carry it - the alternative, loose
+    files beside the binary, is exactly what single-file publishing loses.
+
+    The logical name keeps the tree's own layout under the root, because the register hook
+    resolves relative to itself: register.mjs sits beside node/build, and moving either one
+    would change what Node loads. Gradio.Net.Server.Ssr.SsrAssets is the only reader.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="$(GradioSsrRoot)/**/*"
+                      LogicalName="Gradio.Net.ssr/$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!--
+    The Python version's curated workflow templates, vendored verbatim: one JSON document that lists the
+    spaces and models the canvas offers an author as a starting point.
+
+    It is embedded for the same reason the frontend is: the canvas asks the server which templates
+    there are, and answering must not depend on a loose file beside the binary. The logical name is
+    the file's name under the root, and Gradio.Net.Core.WorkflowCurated is the only reader.
+  -->
+  <PropertyGroup>
+    <GradioWorkflowRoot>$(RepoRoot)src/upstream/workflow</GradioWorkflowRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="$(GradioWorkflowRoot)/**/*"
+                      LogicalName="Gradio.Net.workflow/$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!--
+    The Python version's sample media, vendored verbatim: the files the five helpers hand a handler. The rule
+    is the one the frontend follows too - it is the Python version's data, and the helpers exist to return a
+    path to it.
+
+    It is embedded for the same reason the frontend is, with the same consequence: a handler opens
+    a path, not an embedded resource, so Gradio.Net.Core.MediaAssets writes the tree to the
+    application's cache folder the first time a helper is asked for something in it.
+  -->
+  <PropertyGroup>
+    <GradioMediaRoot>$(RepoRoot)src/upstream/media</GradioMediaRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="$(GradioMediaRoot)/**/*"
+                      LogicalName="Gradio.Net.media/$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!--
+    The image library. The only third-party runtime dependency the package carries, and
+    the only place it is referenced: what a component and an application see is RasterImage, which
+    holds pixels rather than a decoder's objects, so the library can be replaced without the surface
+    moving. The Linux native assets are named rather than assumed, because a Linux host has no copy
+    of them to find and a package that expects one is a package that fails at the first image.
+  -->
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <PackageId>Gradio.Net</PackageId>
+    <Title>Gradio.Net</Title>
+    <Authors>feiyun0112</Authors>
+    <Description>Gradio for .NET – a port of Gradio, an open-source Python package that allows you to quickly build a demo or web application for your machine learning model, API, or any arbitrary Python function.  Gradio for .NET – 基于 Gradio 的 .NET 移植，Gradio 是一个开源 Python 包，允许你为机器学习模型、API 或任意 Python 函数快速构建演示或 Web 应用程序。</Description>
+    <ProjectUrl>https://github.com/feiyun0112/Gradio.Net</ProjectUrl>
+    <Tags>Gradio, UI, UI-Components</Tags>
+    <RepositoryUrl>https://github.com/feiyun0112/Gradio.Net</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>See https://github.com/feiyun0112/Gradio.Net/blob/main/CHANGELOG.md for release history.</PackageReleaseNotes>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!--
+    Exposes the derived versions to the Roslyn source generator that emits
+    Gradio.Net.Abstractions.GradioVersion, so that the declared version cannot
+    disagree with the package version.
+  -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="GradioUpstreamVersion" />
+    <CompilerVisibleProperty Include="GradioNetVersion" />
+  </ItemGroup>
+
+  <!--
+    The Python parameter manifest the component generator maps blocks from. It is
+    extracted from the pinned release, reviewed, and checked in under src/the Python version: it is an
+    the Python version declaration the build reads, so it lives beside the code that consumes it.
+    The build never needs Python.
+  -->
+  <PropertyGroup>
+    <GradioComponentParamsFile>$(RepoRoot)src/upstream/component-params.json</GradioComponentParamsFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(GradioComponentParamsFile)" />
+
+    <!--
+      The names the Python version exports at its top level, recorded the same way and read by the same
+      build. The factories are named after what the Python version exports — including the aliases, because
+      a ported file writes whichever spelling it wrote in Python — so the export list is the
+      declaration they are generated from rather than a list kept beside them.
+    -->
+    <AdditionalFiles Include="$(RepoRoot)src/upstream/exports.json" />
+
+    <!--
+      The events each block raises, recorded the same way. A component's trigger set and its raw
+      bindings are generated from it: which signals a textbox raises is the Python version's fact,
+      and a list copied by hand per component is a list that ends up short — `Html` declared nine of
+      its thirty-four for two releases and nothing noticed.
+    -->
+    <AdditionalFiles Include="$(RepoRoot)src/upstream/component-events.json" />
+  </ItemGroup>
+
+  <!--
+    A manifest that is not there would leave every block without a parameter mapping, and the
+    generated mapping is what makes a Python parameter this build does not declare a compile
+    error. Fail here, where the reason is legible, rather than further down as a config that is
+    quietly missing keys.
+  -->
+  <Target Name="GradioVerifyComponentManifest" BeforeTargets="CoreCompile">
+    <Error Condition="!Exists('$(GradioComponentParamsFile)')"
+           Text="The Python parameter manifest '$(GradioComponentParamsFile)' is missing." />
+  </Target>
+
+  <ItemGroup>
+    <None Include="$(RepoRoot)README.md" Pack="true" PackagePath="/" Link="README.md" />
+  </ItemGroup>
+
+  <!--
+    The test suite builds pages directly rather than through `gr`, which is what lets it
+    assert the tree the factories produce instead of the factories' own output. That is the whole of
+    what it is given: writing into a page (BeginRender, Add, Reserve, Attach, Enter) is internal,
+    because a page an application writes is written by calling the factories.
+  -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Gradio.Net.Tests" />
+  </ItemGroup>
+
+  <!--
+    ==========================================================================
+    What the package carries.
+    ==========================================================================
+
+    The assembly, and nothing else. A project that installs Gradio.Net gets
+    `lib/<tfm>/Gradio.Net.dll` — the factories, the `WriteProps` mapping and the event bindings are
+    compiled into it — and no analyzer, no targets file and no manifest beside it.
+
+    Gradio.Net.Analyzers is a build-time dependency of this repository only: it is
+    `IsPackable=false` and wired in with `PrivateAssets="all"`, so the generators run while this
+    assembly is built and reach nothing beyond it. A consuming project therefore cannot declare a
+    new block of its own with `[GradioBlock]` — the generators are not in the package to see it —
+    which is the trade a package that carries only its assembly makes.
+  -->
+
+  <!--
+    ==========================================================================
+    The vendored trees, embedded.
+    ==========================================================================
+
+    These are upstream's compiled artifacts, and none of them is a culture resource - but the
+    build has to be told that, and only one platform says otherwise.
+
+    AssignCulture infers a culture from a resource's file name, using the platform's culture
+    data. One chunk in the compiled frontend is named assets/splatFileLoader.metadata-C_pWpMDJ.js,
+    and "metadata-C_pWpMDJ" reads as a culture under ICU, which is what a Linux build uses,
+    while NLS on Windows rejects it. A resource that carries a culture is compiled into a
+    satellite assembly rather than this one, so the same checked-in tree was whole on Windows
+    and exactly one file short on Linux: the page asked for a chunk the assembly did not have,
+    and answered 404.
+
+    The flags are cleared after the split by culture and before the names are made, which is
+    where the decision is still open. Renaming the file would change a vendored tree, and this
+    repository does not do that to one.
+  -->
+  <Target Name="GradioClearVendoredCulture" AfterTargets="SplitResourcesByCulture">
+    <ItemGroup>
+      <EmbeddedResource Update="@(EmbeddedResource)"
+                        Culture=""
+                        WithCulture="false"
+                        Condition="$([System.String]::Copy('%(EmbeddedResource.LogicalName)').StartsWith('Gradio.Net.frontend/'))
+                                   or $([System.String]::Copy('%(EmbeddedResource.LogicalName)').StartsWith('Gradio.Net.ssr/'))
+                                   or $([System.String]::Copy('%(EmbeddedResource.LogicalName)').StartsWith('Gradio.Net.workflow/'))
+                                   or $([System.String]::Copy('%(EmbeddedResource.LogicalName)').StartsWith('Gradio.Net.media/'))" />
+    </ItemGroup>
+  </Target>
+
+</Project>

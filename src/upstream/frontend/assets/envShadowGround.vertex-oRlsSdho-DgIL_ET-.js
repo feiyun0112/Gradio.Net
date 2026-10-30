@@ -1,0 +1,2 @@
+import{t as e}from"./shaderStore-D-XQlhUT.js";var t=`envShadowGroundVertexShader`,n=`attribute position: vec3f;attribute uv: vec2f;uniform viewProjection: mat4x4f;uniform worldViewProjection: mat4x4f;varying vUV: vec2f;@vertex
+fn main(input : VertexInputs)->FragmentInputs {vertexOutputs.position=uniforms.worldViewProjection*vec4f(input.position,1.0);vertexOutputs.vUV=input.uv;}`;e.ShadersStoreWGSL[t]||(e.ShadersStoreWGSL[t]=n);var r={name:t,shader:n};export{r as envShadowGroundVertexShaderWGSL};

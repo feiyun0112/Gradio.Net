@@ -1,0 +1,1 @@
+var e=class e{constructor(e,t,n,r){this.x=e,this.y=t,this.width=n,this.height=r}toGlobal(t,n){return new e(this.x*t,this.y*n,this.width*t,this.height*n)}toGlobalToRef(e,t,n){return n.x=this.x*e,n.y=this.y*t,n.width=this.width*e,n.height=this.height*t,this}clone(){return new e(this.x,this.y,this.width,this.height)}};export{e as t};

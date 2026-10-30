@@ -1,0 +1,7 @@
+import './async-Cv1-GZGV.js';
+import { a as attr_class, h as ensure_array_like, f as attr, e as escape_html } from './renderer-RGQlaTg4.js';
+
+function t(t,n){t.component(t=>{let{value:r,type:i,selected:a=false}=n;if(t.push(`<div${attr_class(`container svelte-xds4q5`,void 0,{table:i===`table`,gallery:i===`gallery`,selected:a})}>`),r&&r.length>0){t.push(`<!--[0-->`),t.push(`<div class="images-wrapper svelte-xds4q5"><!--[-->`);let n=ensure_array_like(r.slice(0,3));for(let r=0,i=n.length;r<i;r++){let i=n[r];`image`in i&&i.image?(t.push(`<!--[0-->`),t.push(`<div class="image-container svelte-xds4q5"><img${attr(`src`,i.image.url)}${attr(`alt`,i.caption||``)} class="svelte-xds4q5"/> `),i.caption?(t.push(`<!--[0-->`),t.push(`<span class="caption svelte-xds4q5">${escape_html(i.caption)}</span>`)):t.push(`<!--[-1-->`),t.push(`<!--]--></div>`)):`video`in i&&i.video?(t.push(`<!--[1-->`),t.push(`<div class="image-container svelte-xds4q5"><video${attr(`src`,i.video.url)}${attr(`controls`,false,true)} muted="" preload="metadata" class="svelte-xds4q5"></video> `),i.caption?(t.push(`<!--[0-->`),t.push(`<span class="caption svelte-xds4q5">${escape_html(i.caption)}</span>`)):t.push(`<!--[-1-->`),t.push(`<!--]--></div>`)):t.push(`<!--[-1-->`),t.push(`<!--]-->`);}t.push(`<!--]--> `),r.length>3?(t.push(`<!--[0-->`),t.push(`<div class="more-indicator svelte-xds4q5">…</div>`)):t.push(`<!--[-1-->`),t.push(`<!--]--></div>`);}else t.push(`<!--[-1-->`);t.push(`<!--]--></div>`);});}
+
+export { t as default };
+//# sourceMappingURL=Example24-DFC-yqoe.js.map

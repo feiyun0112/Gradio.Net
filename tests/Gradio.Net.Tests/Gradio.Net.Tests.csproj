@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The one test seam for this batch: assertions about the build baseline and the
+    architecture rules. Behavioural tests for the framework itself arrive with the
+    kernel (batch 03 onwards) and run against a real HTTP host.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <!-- This project declares its own reference to the analyzers, below. -->
+    <GradioApplyRepoAnalyzers>false</GradioApplyRepoAnalyzers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3.mtp-v2" />
+    <PackageReference Include="NetArchTest.Rules" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+
+    <!--
+      The one test that is not about HTTP: it loads the served page in a real browser and clicks
+      it, which is the only way to observe that the vendored frontend consumes this server's
+      protocol. It drives a browser that is already installed (Chrome or Edge) and skips when
+      there is none, so the test stage needs no browser download; see BrowserEndToEndTests.
+    -->
+    <PackageReference Include="Microsoft.Playwright" />
+  </ItemGroup>
+
+  <!--
+    The behavioural seam is the HTTP boundary: these tests start a real host and send real
+    requests, so they need the ASP.NET Core shared framework the package itself targets.
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)src\Gradio.Net\Gradio.Net.csproj" />
+
+    <!--
+      Referenced with ReferenceOutputAssembly left at its default so that the tests can
+      instantiate the analyzers and run them over compiled snippets, while the analyzers
+      still run on the test code itself. Unlike the shared wiring in
+      Directory.Build.targets, this project does not multi-target net8.0, so pulling in
+      the Roslyn assemblies causes no reference conflicts.
+    -->
+    <ProjectReference Include="$(RepoRoot)src\Gradio.Net.Analyzers\Gradio.Net.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

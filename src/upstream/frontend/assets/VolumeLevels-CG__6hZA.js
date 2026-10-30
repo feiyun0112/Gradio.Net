@@ -1,0 +1,1 @@
+import{J as e,U as t,Y as n,bt as r}from"./index-D88pgWqG.js";import{b as i,x as a,y as o}from"./src-CC39XcQU.js";import"./core-DZ_8y5W8.js";function s(s,c){var l=n(),u=r(l),d=e=>{o(e,{})},f=e=>{a(e,{})},p=e=>{i(e,{})};t(u,e=>{c.currentVolume==0?e(d):c.currentVolume<.5?e(f,1):c.currentVolume>=.5&&e(p,2)}),e(s,l)}export{s as t};

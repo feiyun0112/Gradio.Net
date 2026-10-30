@@ -1,0 +1,37 @@
+<Project>
+
+  <!--
+    Central package management: every package version lives here, projects never
+    carry a Version attribute.
+  -->
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Roslyn platform used by the analyzers/generators project and the tests that drive them. -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+
+    <!--
+      The image library. The package is MIT; the native half is what does the decoding,
+      so the Linux one is named too rather than left to the operating system's copy.
+    -->
+    <PackageVersion Include="SkiaSharp" Version="4.153.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.153.1" />
+
+    <!-- Test stack: xUnit v3 on Microsoft.Testing.Platform. -->
+    <PackageVersion Include="xunit.v3.mtp-v2" Version="3.2.2" />
+
+    <!-- Architecture tests read the compiled package assembly and its IL-level dependencies. -->
+    <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
+
+    <!--
+      The browser end-to-end test. It drives a browser that is already installed, so the test
+      stage downloads no browser; only this driver is restored (see BrowserEndToEndTests).
+    -->
+    <PackageVersion Include="Microsoft.Playwright" Version="1.63.0" />
+  </ItemGroup>
+
+</Project>

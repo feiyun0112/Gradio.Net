@@ -1,0 +1,17 @@
+<Project>
+
+  <!--
+    Mechanical validation of the version mapping. The mapping itself is pure
+    derivation in Directory.Build.props; this target exists so that a Python version
+    that cannot be mapped fails the build with an explanation instead of silently
+    producing a wrong package version.
+  -->
+
+  <Target Name="GradioValidateVersionSource" BeforeTargets="CoreCompile">
+    <Error Condition="'$(GradioUpstreamVersionBuild)' == '-1'"
+           Text="GradioUpstreamVersion must have three parts (X.Y.Z) so that it can be mapped to a package version; got '$(GradioUpstreamVersion)'. Fix eng/Versions.props." />
+    <Error Condition="'$(GradioUpstreamVersionRevision)' != '-1'"
+           Text="GradioUpstreamVersion must have exactly three parts (X.Y.Z); got '$(GradioUpstreamVersion)'. Fix eng/Versions.props." />
+  </Target>
+
+</Project>

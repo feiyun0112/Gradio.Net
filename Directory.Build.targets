@@ -1,0 +1,20 @@
+<Project>
+
+  <Import Project="$(GradioEngDirectory)Versioning.targets" />
+
+  <!--
+    The repository's Roslyn analyzers and source generators are part of the build
+    baseline, not an opt-in: every project in the tree gets them.
+
+    The assembly is referenced as a build-time analyzer only. Projects that need to
+    drive the analyzers from code turn GradioApplyRepoAnalyzers off and declare the
+    reference themselves (see tests/Gradio.Net.Tests).
+  -->
+  <ItemGroup Condition="'$(GradioApplyRepoAnalyzers)' == 'true'">
+    <ProjectReference Include="$(RepoRoot)src\Gradio.Net.Analyzers\Gradio.Net.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

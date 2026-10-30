@@ -1,0 +1,1 @@
+import{t as e}from"./flowGraphCachedOperationBlock-DbBeaFy2.js";var t=class extends e{constructor(e,t,n,r,i,a){super(n,a),this._operation=r,this._className=i,this.a=this.registerDataInput(`a`,e),this.b=this.registerDataInput(`b`,t)}_doOperation(e){let t=this.a.getValue(e),n=this.b.getValue(e);return this._operation(t,n)}getClassName(){return this._className}};export{t};

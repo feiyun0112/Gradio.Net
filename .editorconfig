@@ -1,0 +1,134 @@
+# Gradio.Net editor configuration.
+#
+# These rules are not advisory: EnforceCodeStyleInBuild=true plus
+# TreatWarningsAsErrors=true turn every rule marked `warning` or `error` into a
+# build failure (ADR-0004).
+
+root = true
+
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+end_of_line = lf
+
+[*.{json,yml,yaml,props,targets,csproj,proj,sln,editorconfig}]
+indent_size = 2
+
+[*.{md,markdown}]
+trim_trailing_whitespace = false
+
+[*.cs]
+
+# --- Language and formatting -------------------------------------------------
+csharp_style_namespace_declarations = file_scoped:error
+csharp_using_directive_placement = outside_namespace:error
+csharp_prefer_braces = true:warning
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
+csharp_prefer_static_local_function = true:suggestion
+csharp_style_prefer_readonly_struct = true:suggestion
+
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# --- Qualifiers and modifiers -----------------------------------------------
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_event = false:warning
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+dotnet_style_readonly_field = true:warning
+
+# --- Expression preferences --------------------------------------------------
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_predefined_type_for_member_access = true:warning
+dotnet_style_object_initializer = true:warning
+dotnet_style_collection_initializer = true:warning
+dotnet_style_coalesce_expression = true:warning
+dotnet_style_null_propagation = true:warning
+dotnet_style_explicit_tuple_names = true:warning
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:warning
+
+# --- Naming ------------------------------------------------------------------
+dotnet_naming_rule.interfaces_begin_with_i.severity = warning
+dotnet_naming_rule.interfaces_begin_with_i.symbols = interface_symbols
+dotnet_naming_rule.interfaces_begin_with_i.style = i_prefixed_pascal_case
+
+dotnet_naming_symbols.interface_symbols.applicable_kinds = interface
+dotnet_naming_symbols.interface_symbols.applicable_accessibilities = *
+
+dotnet_naming_style.i_prefixed_pascal_case.required_prefix = I
+dotnet_naming_style.i_prefixed_pascal_case.capitalization = pascal_case
+
+dotnet_naming_rule.private_fields_begin_with_underscore.severity = warning
+dotnet_naming_rule.private_fields_begin_with_underscore.symbols = private_field_symbols
+dotnet_naming_rule.private_fields_begin_with_underscore.style = underscore_camel_case
+
+dotnet_naming_symbols.private_field_symbols.applicable_kinds = field
+dotnet_naming_symbols.private_field_symbols.applicable_accessibilities = private
+
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+
+# --- The gr compatibility layer ----------------------------------------------
+# ADR-0025: this layer's *parameter* names are upstream's, snake_case and all, because a ported call
+# is supposed to read the same in both languages — `gr.Textbox(value: "x", max_lines: 3)` is the
+# Python line with one character changed. That is the whole of the exemption: member and type names
+# in this layer are still PascalCase, and a test asserts it (GrNamingTests), because a naming rule
+# switched off for a directory would otherwise let anything through.
+[src/Gradio.Net/Gr/*.cs]
+dotnet_diagnostic.CA1707.severity = none
+
+# CS8981 warns that a type name made only of lower-case letters may collide with a keyword a future
+# version of C# reserves. This one is deliberate: the layer's entry point is upstream's module name
+# `gr`, lower case on purpose, because a ported call should read the same in both languages and
+# because a type named `Gr` would be shadowed by the `Gradio.Net.Gr` namespace it sits beside.
+# This entry covers the hand-written declaration only; the generated ones carry the same exemption
+# as a `#pragma` in the file, because a severity set here does not reach a source file the compiler
+# never read from disk (ADR-0027).
+dotnet_diagnostic.CS8981.severity = none
+
+# CA1708 objects to two members whose names differ only in case, and this layer has five pairs that
+# must: upstream exports `JSON` and `Json`, `Dataframe` and `DataFrame`, `CheckboxGroup` and
+# `Checkboxgroup`, `AnnotatedImage` and `Annotatedimage`, `HighlightedText` and
+# `Highlightedtext`, because a ported file writes whichever spelling it wrote in Python.
+#
+# Unlike CS8981 this one is reported once, at the type declaration — the members are compared as a
+# set of names rather than each being checked where it is written — and that declaration is in this
+# directory, so this entry reaches it and the generated files need nothing.
+dotnet_diagnostic.CA1708.severity = none
+
+# --- Analyzer severities -----------------------------------------------------
+# Nothing is switched off pre-emptively: a rule that turns out to be wrong for this
+# repository gets an entry here with the reason, once there is code that trips it.
+
+# `Interface` is the name of the class this project ports, and the correspondence is the point:
+# renaming it would make every Python example harder to read against its C# counterpart. The rule
+# exists for languages that reserve the word, which C# does not.
+[src/Gradio.Net/Interface.cs]
+dotnet_diagnostic.CA1716.severity = none
+
+# Upstream's `gr.Error` is the application saying "no", and the word is the API: a Python handler
+# that raises `gr.Error` finds the same type name here, which is what makes the two files read
+# against each other. The rule exists for languages that reserve the word, which C# does not — the
+# same reason `Interface` is exempt above.
+[src/Gradio.Net/Core/Errors/Error.cs]
+dotnet_diagnostic.CA1716.severity = none
+
+# Upstream's exception is called `CacheMissError`, and the name is part of the API being ported: a
+# Python handler that catches `CacheMissError` finds the same word here. The rule wants every
+# exception to end in "Exception", which would make the two sides harder to read against each other
+# for no gain — nothing dispatches on the name.
+[src/Gradio.Net/Core/Caching/CacheMissError.cs]
+dotnet_diagnostic.CA1710.severity = none
+
+# --- Test projects -----------------------------------------------------------
+# Test names are sentences rather than PascalCase identifiers, so the naming rules
+# that assume PascalCase do not apply to them.
+[tests/**/*.cs]
+dotnet_diagnostic.IDE1006.severity = none
+dotnet_diagnostic.CA1707.severity = none

@@ -1,0 +1,644 @@
+{
+  "schemaVersion": 1,
+  "kind": "component-events",
+  "upstreamVersion": "6.30.0",
+  "source": {
+    "kind": "release",
+    "distribution": {
+      "filename": "gradio-6.30.0-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/4a/dc/508968f50e8c6d067f7821b5e18a180a74589621f10f4680f8d23b90564f/gradio-6.30.0-py3-none-any.whl",
+      "sha256": "aae3aa81ec9f44e55781b498ad2ba12b117aa512e8d2bb0ef3e52af7f2ee6305",
+      "size": 31365745
+    },
+    "installedVersion": "6.30.0",
+    "pythonVersion": "3.13.14"
+  },
+  "blocks": {
+    "accordion": {
+      "class": "Accordion",
+      "events": [
+        "expand",
+        "collapse"
+      ]
+    },
+    "annotatedimage": {
+      "class": "AnnotatedImage",
+      "events": [
+        "change",
+        "select"
+      ]
+    },
+    "audio": {
+      "class": "Audio",
+      "events": [
+        "stream",
+        "change",
+        "clear",
+        "play",
+        "pause",
+        "stop",
+        "pause",
+        "start_recording",
+        "pause_recording",
+        "stop_recording",
+        "upload",
+        "input"
+      ]
+    },
+    "barplot": {
+      "class": "BarPlot",
+      "events": [
+        "change",
+        "select",
+        "double_click"
+      ]
+    },
+    "browserstate": {
+      "class": "BrowserState",
+      "events": [
+        "change"
+      ]
+    },
+    "button": {
+      "class": "Button",
+      "events": [
+        "change",
+        "click"
+      ]
+    },
+    "chatbot": {
+      "class": "Chatbot",
+      "events": [
+        "change",
+        "select",
+        "like",
+        "retry",
+        "undo",
+        "example_select",
+        "option_select",
+        "clear",
+        "copy",
+        "edit"
+      ]
+    },
+    "checkbox": {
+      "class": "Checkbox",
+      "events": [
+        "change",
+        "input",
+        "select"
+      ]
+    },
+    "checkboxgroup": {
+      "class": "CheckboxGroup",
+      "events": [
+        "change",
+        "input",
+        "select"
+      ]
+    },
+    "clearbutton": {
+      "class": "ClearButton",
+      "events": [
+        "change",
+        "click"
+      ]
+    },
+    "code": {
+      "class": "Code",
+      "events": [
+        "change",
+        "input",
+        "focus",
+        "blur"
+      ]
+    },
+    "colorpicker": {
+      "class": "ColorPicker",
+      "events": [
+        "change",
+        "input",
+        "release",
+        "submit",
+        "focus",
+        "blur"
+      ]
+    },
+    "dataframe": {
+      "class": "Dataframe",
+      "events": [
+        "change",
+        "input",
+        "select",
+        "edit"
+      ]
+    },
+    "dataset": {
+      "class": "Dataset",
+      "events": [
+        "change",
+        "click",
+        "select"
+      ]
+    },
+    "datetime": {
+      "class": "DateTime",
+      "events": [
+        "change",
+        "submit"
+      ]
+    },
+    "deeplinkbutton": {
+      "class": "DeepLinkButton",
+      "events": [
+        "change",
+        "click"
+      ]
+    },
+    "dialogue": {
+      "class": "Dialogue",
+      "events": [
+        "change",
+        "input",
+        "submit"
+      ]
+    },
+    "downloadbutton": {
+      "class": "DownloadButton",
+      "events": [
+        "change",
+        "click"
+      ]
+    },
+    "dropdown": {
+      "class": "Dropdown",
+      "events": [
+        "change",
+        "input",
+        "select",
+        "focus",
+        "blur",
+        "key_up"
+      ]
+    },
+    "duplicatebutton": {
+      "class": "DuplicateButton",
+      "events": [
+        "change",
+        "click"
+      ]
+    },
+    "fallback": {
+      "class": "Fallback",
+      "events": [
+        "change"
+      ]
+    },
+    "file": {
+      "class": "File",
+      "events": [
+        "change",
+        "select",
+        "clear",
+        "upload",
+        "delete",
+        "download"
+      ]
+    },
+    "fileexplorer": {
+      "class": "FileExplorer",
+      "events": [
+        "change",
+        "input",
+        "select"
+      ]
+    },
+    "files": {
+      "class": "Files",
+      "events": [
+        "change",
+        "select",
+        "clear",
+        "upload",
+        "delete",
+        "download"
+      ]
+    },
+    "gallery": {
+      "class": "Gallery",
+      "events": [
+        "select",
+        "upload",
+        "change",
+        "delete",
+        "preview_close",
+        "preview_open"
+      ]
+    },
+    "highlightedtext": {
+      "class": "HighlightedText",
+      "events": [
+        "change",
+        "select"
+      ]
+    },
+    "html": {
+      "class": "HTML",
+      "events": [
+        "change",
+        "input",
+        "click",
+        "double_click",
+        "submit",
+        "stop",
+        "edit",
+        "clear",
+        "play",
+        "pause",
+        "end",
+        "start_recording",
+        "pause_recording",
+        "stop_recording",
+        "focus",
+        "blur",
+        "upload",
+        "release",
+        "select",
+        "stream",
+        "like",
+        "example_select",
+        "option_select",
+        "load",
+        "key_up",
+        "apply",
+        "delete",
+        "tick",
+        "undo",
+        "retry",
+        "expand",
+        "collapse",
+        "download",
+        "copy"
+      ]
+    },
+    "image": {
+      "class": "Image",
+      "events": [
+        "clear",
+        "change",
+        "stream",
+        "select",
+        "upload",
+        "input"
+      ]
+    },
+    "imageeditor": {
+      "class": "ImageEditor",
+      "events": [
+        "clear",
+        "change",
+        "input",
+        "select",
+        "upload",
+        "apply"
+      ]
+    },
+    "imagemask": {
+      "class": "ImageMask",
+      "events": [
+        "clear",
+        "change",
+        "input",
+        "select",
+        "upload",
+        "apply"
+      ]
+    },
+    "imageslider": {
+      "class": "ImageSlider",
+      "events": [
+        "clear",
+        "change",
+        "stream",
+        "select",
+        "upload",
+        "input"
+      ]
+    },
+    "json": {
+      "class": "JSON",
+      "events": [
+        "change"
+      ]
+    },
+    "label": {
+      "class": "Label",
+      "events": [
+        "change",
+        "select"
+      ]
+    },
+    "lineplot": {
+      "class": "LinePlot",
+      "events": [
+        "change",
+        "select",
+        "double_click"
+      ]
+    },
+    "list": {
+      "class": "List",
+      "events": [
+        "change",
+        "input",
+        "select",
+        "edit"
+      ]
+    },
+    "loginbutton": {
+      "class": "LoginButton",
+      "events": [
+        "change",
+        "click"
+      ]
+    },
+    "markdown": {
+      "class": "Markdown",
+      "events": [
+        "change",
+        "copy"
+      ]
+    },
+    "matrix": {
+      "class": "Matrix",
+      "events": [
+        "change",
+        "input",
+        "select",
+        "edit"
+      ]
+    },
+    "microphone": {
+      "class": "Microphone",
+      "events": [
+        "stream",
+        "change",
+        "clear",
+        "play",
+        "pause",
+        "stop",
+        "pause",
+        "start_recording",
+        "pause_recording",
+        "stop_recording",
+        "upload",
+        "input"
+      ]
+    },
+    "model3d": {
+      "class": "Model3D",
+      "events": [
+        "change",
+        "upload",
+        "edit",
+        "clear"
+      ]
+    },
+    "multimodaltextbox": {
+      "class": "MultimodalTextbox",
+      "events": [
+        "change",
+        "input",
+        "select",
+        "submit",
+        "focus",
+        "blur",
+        "stop"
+      ]
+    },
+    "navbar": {
+      "class": "Navbar",
+      "events": [
+        "change"
+      ]
+    },
+    "number": {
+      "class": "Number",
+      "events": [
+        "change",
+        "input",
+        "submit",
+        "focus",
+        "blur"
+      ]
+    },
+    "numpy": {
+      "class": "Numpy",
+      "events": [
+        "change",
+        "input",
+        "select",
+        "edit"
+      ]
+    },
+    "paint": {
+      "class": "Paint",
+      "events": [
+        "clear",
+        "change",
+        "input",
+        "select",
+        "upload",
+        "apply"
+      ]
+    },
+    "paramviewer": {
+      "class": "ParamViewer",
+      "events": [
+        "change",
+        "upload"
+      ]
+    },
+    "playablevideo": {
+      "class": "PlayableVideo",
+      "events": [
+        "change",
+        "clear",
+        "start_recording",
+        "stop_recording",
+        "stop",
+        "play",
+        "pause",
+        "end",
+        "upload",
+        "input"
+      ]
+    },
+    "plot": {
+      "class": "Plot",
+      "events": [
+        "change"
+      ]
+    },
+    "radio": {
+      "class": "Radio",
+      "events": [
+        "select",
+        "change",
+        "input"
+      ]
+    },
+    "scatterplot": {
+      "class": "ScatterPlot",
+      "events": [
+        "change",
+        "select",
+        "double_click"
+      ]
+    },
+    "sidebar": {
+      "class": "Sidebar",
+      "events": [
+        "expand",
+        "collapse"
+      ]
+    },
+    "simpledropdown": {
+      "class": "SimpleDropdown",
+      "events": [
+        "change",
+        "input",
+        "select"
+      ]
+    },
+    "simpleimage": {
+      "class": "SimpleImage",
+      "events": [
+        "clear",
+        "change",
+        "upload"
+      ]
+    },
+    "simpletextbox": {
+      "class": "SimpleTextbox",
+      "events": [
+        "change",
+        "input",
+        "submit"
+      ]
+    },
+    "sketchpad": {
+      "class": "Sketchpad",
+      "events": [
+        "clear",
+        "change",
+        "input",
+        "select",
+        "upload",
+        "apply"
+      ]
+    },
+    "slider": {
+      "class": "Slider",
+      "events": [
+        "change",
+        "input",
+        "release"
+      ]
+    },
+    "state": {
+      "class": "State",
+      "events": [
+        "change"
+      ]
+    },
+    "step": {
+      "class": "Step",
+      "events": [
+        "select"
+      ]
+    },
+    "tab": {
+      "class": "Tab",
+      "events": [
+        "select"
+      ]
+    },
+    "tabs": {
+      "class": "Tabs",
+      "events": [
+        "change",
+        "select"
+      ]
+    },
+    "textarea": {
+      "class": "TextArea",
+      "events": [
+        "change",
+        "input",
+        "select",
+        "submit",
+        "focus",
+        "blur",
+        "stop",
+        "copy"
+      ]
+    },
+    "textbox": {
+      "class": "Textbox",
+      "events": [
+        "change",
+        "input",
+        "select",
+        "submit",
+        "focus",
+        "blur",
+        "stop",
+        "copy"
+      ]
+    },
+    "timer": {
+      "class": "Timer",
+      "events": [
+        "change",
+        "tick"
+      ]
+    },
+    "uploadbutton": {
+      "class": "UploadButton",
+      "events": [
+        "change",
+        "click",
+        "upload"
+      ]
+    },
+    "video": {
+      "class": "Video",
+      "events": [
+        "change",
+        "clear",
+        "start_recording",
+        "stop_recording",
+        "stop",
+        "play",
+        "pause",
+        "end",
+        "upload",
+        "input"
+      ]
+    },
+    "walkthrough": {
+      "class": "Walkthrough",
+      "events": [
+        "change",
+        "select"
+      ]
+    },
+    "workflowcanvas": {
+      "class": "WorkflowCanvas",
+      "events": [
+        "change"
+      ]
+    }
+  }
+}

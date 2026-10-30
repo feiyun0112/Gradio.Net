@@ -1,0 +1,1 @@
+var e=class{constructor(e,t,n){this.bu=e,this.bv=t,this.distance=n,this.faceId=0,this.subMeshId=0,this._internalSubMeshId=0}};export{e as t};

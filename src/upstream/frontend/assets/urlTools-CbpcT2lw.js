@@ -1,0 +1,1 @@
+function e(e){let t=e.split(`?`)[0],n=t.lastIndexOf(`.`);return n>-1?t.substring(n).toLowerCase():``}export{e as t};

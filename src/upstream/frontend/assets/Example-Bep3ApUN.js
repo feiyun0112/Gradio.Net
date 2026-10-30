@@ -1,0 +1,1 @@
+import{$ as e,J as t,K as n,Xt as r,mt as i}from"./index-D88pgWqG.js";import"./core-DZ_8y5W8.js";function a(a,o){r();var s=e();i(()=>n(s,o.value||``)),t(a,s)}export{a as default};

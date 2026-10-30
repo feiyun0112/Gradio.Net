@@ -1,0 +1,1 @@
+var e={name:`splat`,extensions:{".splat":{isBinary:!0},".ply":{isBinary:!0},".spz":{isBinary:!0},".json":{isBinary:!1},".sog":{isBinary:!0}}};export{e as t};

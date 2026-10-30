@@ -1,0 +1,2 @@
+import{t as e}from"./shaderStore-D-XQlhUT.js";var t=`oitFinalSimpleBlendPixelShader`,n=`precision highp float;uniform sampler2D uFrontColor;void main() {ivec2 fragCoord=ivec2(gl_FragCoord.xy);vec4 frontColor=texelFetch(uFrontColor,fragCoord,0);glFragColor=frontColor;}
+`;e.ShadersStore[t]||(e.ShadersStore[t]=n);var r={name:t,shader:n};export{r as oitFinalSimpleBlendPixelShader};

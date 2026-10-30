@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    A demo is a program a person runs, not a library: `dotnet run` in this directory starts the
+    application. It references the package's project rather than a published package, so a demo
+    always demonstrates the tree it is checked in with.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Gradio.Net.Demo.Chat</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Gradio.Net\Gradio.Net.csproj" />
+  </ItemGroup>
+
+</Project>

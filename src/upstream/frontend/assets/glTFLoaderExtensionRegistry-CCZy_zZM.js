@@ -1,0 +1,1 @@
+import{t as e}from"./logger-CuBYPcDK.js";var t=new Map,n=t;function r(n,r,a){i(n)&&e.Warn(`Extension with the name '${n}' already exists`),t.set(n,{isGLTFExtension:r,factory:a})}function i(e){return t.delete(e)}export{n,i as r,r as t};

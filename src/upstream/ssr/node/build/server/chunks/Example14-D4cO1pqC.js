@@ -1,0 +1,7 @@
+import './async-Cv1-GZGV.js';
+import { a as attr_class, e as escape_html, h as ensure_array_like, d as derived } from './renderer-RGQlaTg4.js';
+
+function t(t,n){t.component(t=>{let{value:r,type:i,selected:a=false,index:o}=n,s=derived(()=>Array.isArray(r)),c=derived(()=>s()&&(r.length===0||r[0].length===0));if(s()){if(t.push(`<!--[0-->`),t.push(`<div${attr_class(`svelte-wcwkqi`,void 0,{table:i===`table`,gallery:i===`gallery`,selected:a})}>`),typeof r==`string`)t.push(`<!--[0-->`),t.push(`${escape_html(r)}`);else if(c())t.push(`<!--[1-->`),t.push(`<table class="svelte-wcwkqi"><tbody><tr class="svelte-wcwkqi"><td class="svelte-wcwkqi">Empty</td></tr></tbody></table>`);else {t.push(`<!--[-1-->`),t.push(`<table class="svelte-wcwkqi"><tbody><!--[-->`);let n=ensure_array_like(r.slice(0,3));for(let r=0,i=n.length;r<i;r++){let i=n[r];t.push(`<tr class="svelte-wcwkqi"><!--[-->`);let a=ensure_array_like(i.slice(0,3));for(let n=0,r=a.length;n<r;n++){let r=a[n];t.push(`<td class="svelte-wcwkqi">${escape_html(r)}</td>`);}t.push(`<!--]-->`),i.length>3?(t.push(`<!--[0-->`),t.push(`<td class="svelte-wcwkqi">…</td>`)):t.push(`<!--[-1-->`),t.push(`<!--]--></tr>`);}t.push(`<!--]--></tbody></table> `),r.length>3?(t.push(`<!--[0-->`),t.push(`<div${attr_class(`overlay svelte-wcwkqi`,void 0,{odd:o%2!=0,even:o%2==0,button:i===`gallery`})}></div>`)):t.push(`<!--[-1-->`),t.push(`<!--]-->`);}t.push(`<!--]--></div>`);}else t.push(`<!--[-1-->`);t.push(`<!--]-->`);});}
+
+export { t as default };
+//# sourceMappingURL=Example14-D4cO1pqC.js.map

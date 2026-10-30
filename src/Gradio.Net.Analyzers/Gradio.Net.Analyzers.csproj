@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The repository's Roslyn analyzers and source generators.
+    Build-time only: this project is never packed, and Directory.Build.targets wires it
+    into every other project as an analyzer.
+
+    Targets netstandard2.0 because the compiler host may be either .NET Framework or .NET.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <!-- A project cannot consume its own output. -->
+    <GradioApplyRepoAnalyzers>false</GradioApplyRepoAnalyzers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

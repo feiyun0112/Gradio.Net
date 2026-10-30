@@ -1,0 +1,62 @@
+<Project>
+
+  <!--
+    Repo-wide build baseline.
+
+    Everything under this directory inherits these properties. Quality constraints
+    live here so that they are enforced by the build rather than by convention:
+    nullable analysis is on, warnings are errors, and the .NET analyzers plus the
+    repo's own Roslyn analyzers (Directory.Build.targets) run on every project.
+  -->
+
+  <Import Project="$(MSBuildThisFileDirectory)eng\Versions.props" />
+
+  <PropertyGroup>
+    <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+    <GradioEngDirectory>$(MSBuildThisFileDirectory)eng\</GradioEngDirectory>
+  </PropertyGroup>
+
+  <!--
+    Version derivation. The only version literal in the tree is
+    GradioUpstreamVersion (eng/Versions.props); everything below is computed, and this is
+    the only place that parses it. eng/Versioning.targets only validates the result.
+  -->
+  <PropertyGroup>
+    <GradioUpstreamVersionMajor>$([System.Version]::new('$(GradioUpstreamVersion)').Major)</GradioUpstreamVersionMajor>
+    <GradioUpstreamVersionMinor>$([System.Version]::new('$(GradioUpstreamVersion)').Minor)</GradioUpstreamVersionMinor>
+    <GradioUpstreamVersionBuild>$([System.Version]::new('$(GradioUpstreamVersion)').Build)</GradioUpstreamVersionBuild>
+    <GradioUpstreamVersionRevision>$([System.Version]::new('$(GradioUpstreamVersion)').Revision)</GradioUpstreamVersionRevision>
+
+    <GradioNetVersion>0.$(GradioUpstreamVersionMajor).$(GradioUpstreamVersionMinor)</GradioNetVersion>
+    <Version>$(GradioNetVersion)</Version>
+    <PackageVersion>$(GradioNetVersion)</PackageVersion>
+    <InformationalVersion>$(GradioNetVersion)+gradio.$(GradioUpstreamVersion)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Quality gates: no warning may be left behind, and no project may raise the floor. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Recommended</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <Deterministic>true</Deterministic>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <!--
+    Whether the repository's own analyzers/generators are applied to this project.
+    Opt out only when a project cannot consume them (the analyzer project itself) or
+    needs to reference them as an ordinary assembly instead (the test project).
+  -->
+  <PropertyGroup>
+    <GradioApplyRepoAnalyzers Condition="'$(GradioApplyRepoAnalyzers)' == ''">true</GradioApplyRepoAnalyzers>
+  </PropertyGroup>
+
+</Project>

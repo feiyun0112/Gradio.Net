@@ -12,8 +12,14 @@ namespace Gradio.Net;
 /// A step written straight into an application is grouped into a walkthrough of its own, for the
 /// same reason a tab is grouped into a tabs.
 /// </para>
+/// <para>
+/// The two signals the frontend raises are bindable like a button's click:
+/// <c>walkthrough.Select(fn, inputs, outputs)</c> binds the user's pick and
+/// <c>walkthrough.Change(fn, ...)</c> binds the selection changing at all.
+/// </para>
 /// </remarks>
 [GradioBlock("walkthrough")]
+[HandlerValue("SelectData", EventNames.Select)]
 public sealed partial class Walkthrough : BlockContext
 {
     internal Walkthrough()
@@ -22,10 +28,4 @@ public sealed partial class Walkthrough : BlockContext
 
     /// <summary>The step shown when the page loads, by number; the first one by default.</summary>
     public int? Selected { get; set; }
-
-    /// <summary>The signal raised when the selected step changes.</summary>
-    public EventTrigger Change => new(this, EventNames.Change);
-
-    /// <summary>The signal raised when the user selects a step.</summary>
-    public EventTrigger Select => new(this, EventNames.Select);
 }

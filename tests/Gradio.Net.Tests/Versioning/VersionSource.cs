@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace Gradio.Net.Tests.Versioning;
@@ -18,6 +19,10 @@ internal static class VersionSource
         @"<GradioUpstreamVersion[^>]*>([^<]+)</GradioUpstreamVersion>",
         RegexOptions.CultureInvariant);
 
+    private static readonly Regex _patchDeclaration = new(
+        @"<GradioNetPatchVersion[^>]*>([^<]+)</GradioNetPatchVersion>",
+        RegexOptions.CultureInvariant);
+
     private static readonly string[] _msbuildFilePatterns = ["*.props", "*.targets", "*.csproj", "*.proj"];
 
     internal static string FilePath => System.IO.Path.Combine(RepositoryRoot.FullPath, "eng", "Versions.props");
@@ -31,12 +36,24 @@ internal static class VersionSource
             : throw new InvalidOperationException($"{RelativePath} declares no GradioUpstreamVersion.");
     }
 
-    /// <summary>The Python version <c>X.Y.Z</c> maps to Gradio.Net <c>0.X.Y</c>.</summary>
+    /// <summary>The port's own patch number, or zero when the file declares none.</summary>
+    internal static int ReadPatchVersion()
+    {
+        var declaration = _patchDeclaration.Match(System.IO.File.ReadAllText(FilePath));
+
+        return declaration.Success ? int.Parse(declaration.Groups[1].Value.Trim(), CultureInfo.InvariantCulture) : 0;
+    }
+
+    /// <summary>The Python version <c>X.Y.Z</c> maps to Gradio.Net <c>0.X.Y</c>, plus a patch when
+    /// the port has shipped fixes on top of it.</summary>
     internal static string DerivePackageVersion(string upstreamVersion)
     {
         var version = Version.Parse(upstreamVersion);
+        var patch = ReadPatchVersion();
 
-        return $"0.{version.Major}.{version.Minor}";
+        return patch == 0
+            ? $"0.{version.Major}.{version.Minor}"
+            : $"0.{version.Major}.{version.Minor}.{patch}";
     }
 
     /// <summary>Every MSBuild file in the repository, skipping build output and tool caches.</summary>

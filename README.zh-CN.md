@@ -129,8 +129,9 @@ app.Run();
 这一层，移植也从这一层开始。
 
 **底下的类型 —— C# 会给它们的写法。** `gr.Textbox(...)` 返回一个 `Textbox`，`gr.Blocks()` 返回一个
-`Blocks`，它们都是普通类型：事件是组件上的方法（`button.Click(fn, inputs, outputs)`），组件列表是
-`Block[]`，处理函数是委托。可以持有它们、传递它们、继承某个组件 —— 没有任何东西被包装起来。
+`Blocks`，它们都是普通类型：事件是块上的方法（`button.Click(fn, inputs, outputs)`，布局则是
+`tabs.Select(fn, inputs, outputs)`），组件列表是 `Block[]`，处理函数是委托。可以持有它们、传递它们、
+继承某个组件 —— 没有任何东西被包装起来。
 
 有意**不**公开的是手工往页面里写。`Blocks.BeginRender`、`Add`、`Reserve`、`Attach` 和 `Enter` 都是
 程序集内部的：页面靠调用工厂来写，因为 `gr.Textbox(...)` 是页面上的一行而不是一个值，而
@@ -142,7 +143,7 @@ app.Run();
 | 示例 | 展示了什么 | 改这里 |
 | --- | --- | --- |
 | [Quickstart](Demo/Quickstart/) | `gr.Interface`：一个函数、两个输入、一个输出，没有布局代码。 | `Greet` —— 处理函数；页面由它的签名生成。 |
-| [Blocks](Demo/Blocks/) | 手写的页面：`Row` 和 `Column`、两个文本框、一个按钮、两个事件，以及一个 `Tabs`/`Tab` 栏。 | `Shout`，以及说明每个事件读写哪些组件的列表。 |
+| [Blocks](Demo/Blocks/) | 手写的页面：`Row` 和 `Column`、两个文本框、一个按钮、两个事件，以及一个 `Tabs`/`Tab` 栏——它的 `select` 绑定了处理器，也能由处理器切换（`gr.Update`）。 | `Shout`，以及说明每个事件读写哪些组件的列表。 |
 | [Chat](Demo/Chat/) | `gr.ChatInterface`，处理函数从某个端点流式取回答案。 | `Answer` —— 它发出的请求。`LocalModel.cs` 负责回答。 |
 | [Streaming](Demo/Streaming/) | 生成器处理函数：每次 `yield` 替换输出，同时 `Progress` 推进进度条。 | `Type` —— 每一小段是什么，以及它们到达得多快。 |
 | [Form](Demo/Form/) | 八个字段由一个按钮一起提交，其中一个字段决定另一个字段提供什么（`gr.Update`）。 | `Describe` —— 表单给出的回答。 |

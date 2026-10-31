@@ -11,28 +11,30 @@ using Microsoft.CodeAnalysis.Text;
 namespace Gradio.Net.Analyzers;
 
 /// <summary>
-/// Generates each component's trigger set and raw bindings from the recorded Python events.
+/// Generates each block's trigger set and raw bindings from the recorded Python events.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Which signals a component raises is a fact about the Python release, not about this project:
-/// a textbox raises eight, an HTML block raises all thirty-four, a button raises two. Written by
-/// hand that fact appears three times per component — once as a trigger property, once as a
-/// binding, once in a doc comment — and the way the copy fails is by being short:
-/// <c>Html</c> declared nine of its thirty-four for two releases, and nothing noticed, because the
-/// only comparison was a person reading the Python version's class body.
+/// Which signals a block raises is a fact about the Python release, not about this project:
+/// a textbox raises eight, an HTML block raises all thirty-four, a button raises two, and a tab
+/// raises one. Written by hand that fact appears three times per block — once as a trigger
+/// property, once as a binding, once in a doc comment — and the way the copy fails is by being
+/// short: <c>Html</c> declared nine of its thirty-four for two releases, and nothing noticed,
+/// because the only comparison was a person reading the Python version's class body.
 /// </para>
 /// <para>
 /// So the list is recorded (<c>component-events.json</c>, read from the Python version's
 /// <c>EVENTS</c>) and the two mechanical halves are generated from it. What stays hand-written is
 /// the half that is not mechanical: the typed binding of each event, whose handler parameter is
 /// this build's choice of C# type for the component's value, and the prose that explains an event's
-/// meaning.
+/// meaning. A layout has no value, so what it gets is the raw binding alone — which is what
+/// <c>tabs.Select(fn, inputs, outputs)</c> is.
 /// </para>
 /// <para>
-/// A component whose base already declares its triggers generates nothing: a template's events are
-/// its base's (the Python version inherits <c>EVENTS</c> the same way), so generating them twice
-/// would be two declarations of one set.
+/// A block whose base already declares its triggers generates nothing: a template's events are
+/// its base's (the Python version inherits <c>EVENTS</c> the same way), and a block that re-uses
+/// another block's name inherits them too. Generating them twice would be two declarations of one
+/// set.
 /// </para>
 /// </remarks>
 [Generator(LanguageNames.CSharp)]
@@ -49,7 +51,6 @@ public sealed class ComponentEventsGenerator : IIncrementalGenerator
     private const string HandlerValueAttributeName = "Gradio.Net.HandlerValueAttribute";
     private const string ManifestSuffix = "component-events.json";
     private const string EventsBaseType = "Gradio.Net.ComponentEvents";
-    private const string ComponentType = "Gradio.Net.Component";
     private const string EventNamesType = "Gradio.Net.EventNames";
     private const string TriggerType = "Gradio.Net.EventTrigger";
     private const string Category = "Gradio.Architecture";
@@ -96,9 +97,11 @@ public sealed class ComponentEventsGenerator : IIncrementalGenerator
 
     private static void Emit(SourceProductionContext production, Block block, ImmutableArray<string?> manifests)
     {
-        // A layout is a block but not a component: it raises no value, so the framework never asks
-        // it for a trigger set. Its events belong to the batch that builds the layout's scopes.
-        if (!block.IsComponent || block.DeclaresItsOwnEvents is false)
+        // What decides this is whether the class is the one that declares the block's set, not
+        // whether it is a component: a tab is selected and an accordion opens, and the Python
+        // version declares `EVENTS` for both. A class that inherits its set — a template, a block
+        // that re-uses another block's name — generates nothing, or the set would be declared twice.
+        if (block.DeclaresItsOwnEvents is false)
         {
             return;
         }
@@ -237,7 +240,7 @@ public sealed class ComponentEventsGenerator : IIncrementalGenerator
         source.AppendLine();
         source.Append("public partial class ").AppendLine(block.Name);
         source.AppendLine("{");
-        source.Append("    /// <summary>The signals this component raises.</summary>");
+        source.Append("    /// <summary>The signals this block raises.</summary>");
         source.AppendLine();
         source.Append("    public override ").Append(eventsType).AppendLine(" Events => new(this);");
 
@@ -245,8 +248,8 @@ public sealed class ComponentEventsGenerator : IIncrementalGenerator
         {
             source.AppendLine();
             source.Append("    /// <summary>Binds the <c>").Append(name)
-                .AppendLine("</c> event to a handler that receives the component's value.</summary>");
-            source.AppendLine("    /// <param name=\"fn\">The handler, whose first parameter is the component's value.</param>");
+                .AppendLine("</c> event to a handler that receives what the event carries.</summary>");
+            source.AppendLine("    /// <param name=\"fn\">The handler, whose first parameter is what the event carries.</param>");
             source.AppendLine("    /// <param name=\"inputs\">The components the handler reads.</param>");
             source.AppendLine("    /// <param name=\"outputs\">The components the handler's result updates.</param>");
             AppendBindingDocs(source);
@@ -317,7 +320,6 @@ public sealed class ComponentEventsGenerator : IIncrementalGenerator
         private readonly IReadOnlyList<(string Event, string ValueType)> _typedEvents;
         private readonly INamedTypeSymbol? _eventsBase;
         private readonly INamedTypeSymbol? _eventNames;
-        private readonly INamedTypeSymbol? _component;
 
         private Block(
             INamedTypeSymbol type,
@@ -325,22 +327,17 @@ public sealed class ComponentEventsGenerator : IIncrementalGenerator
             string @namespace,
             INamedTypeSymbol? eventsBase,
             INamedTypeSymbol? eventNames,
-            INamedTypeSymbol? component,
             Location location)
         {
             _type = type;
             _typedEvents = ReadTypedEvents(type);
             _eventsBase = eventsBase;
             _eventNames = eventNames;
-            _component = component;
             BlockName = block;
             Name = type.Name;
             Namespace = @namespace;
             Location = location;
         }
-
-        /// <summary>Whether the block is a component, which is the layer that raises events.</summary>
-        internal bool IsComponent => _component is not null && InheritsFrom(_type, _component);
 
         internal string BlockName { get; }
 
@@ -350,19 +347,62 @@ public sealed class ComponentEventsGenerator : IIncrementalGenerator
 
         internal Location Location { get; }
 
-        /// <summary>Whether this class is where the component's triggers are declared.</summary>
+        /// <summary>Whether this class is where the block's triggers are declared.</summary>
         /// <value>
         /// <see langword="false"/> for a class that inherits them. Two kinds of class do: a
         /// template — <c>TextArea</c> is <c>Textbox</c> with other defaults, and the Python version
         /// inherits <c>EVENTS</c> the same way — and a block that re-uses another block's name,
         /// like the audio gallery, which is an <c>Html</c> component and says so. Both are answered
-        /// by the class's own name and its base: the class that *is* the block, at the root of its
-        /// own hierarchy, is the one that declares the set.
+        /// by the class's own name and its base: the class that *is* the block — by being named
+        /// after it, or by saying so with <see cref="NamesItsBlock"/> — at the root of its own
+        /// hierarchy, is the one that declares the set.
         /// </value>
         internal bool DeclaresItsOwnEvents =>
-            string.Equals(Name.ToLowerInvariant(), BlockName, StringComparison.Ordinal)
+            (string.Equals(Name.ToLowerInvariant(), BlockName, StringComparison.Ordinal) || NamesItsBlock)
             && !HasAttributedBase
             && !HasInheritedEvents;
+
+        /// <summary>
+        /// Whether the class says which block it is with a literal, rather than being named after
+        /// it.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> for a block whose C# type is named after its layout rather than
+        /// after the block: a walkthrough's step is a <c>WalkthroughStep</c> and its block is the
+        /// Python version's <c>Step</c>, so <c>BlockClass</c> answers <c>"step"</c>.
+        /// </value>
+        /// <remarks>
+        /// Read from the syntax rather than from the compiled value, which a generator cannot ask
+        /// for: the override is a property returning a literal, and the literal is the block name.
+        /// A class that computes the name some other way is left out, which is the safe direction —
+        /// the block then declares its set by hand.
+        /// </remarks>
+        private bool NamesItsBlock
+        {
+            get
+            {
+                foreach (var property in _type.GetMembers("BlockClass").OfType<IPropertySymbol>())
+                {
+                    if (!property.IsOverride)
+                    {
+                        continue;
+                    }
+
+                    foreach (var reference in property.DeclaringSyntaxReferences)
+                    {
+                        if (reference.GetSyntax() is PropertyDeclarationSyntax declaration
+                            && declaration.ExpressionBody?.Expression is LiteralExpressionSyntax literal
+                            && literal.Token.ValueText is { } named
+                            && string.Equals(named, BlockName, StringComparison.Ordinal))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
 
         /// <summary>Whether a base type declares triggers of its own without being a block.</summary>
         /// <value>
@@ -370,11 +410,15 @@ public sealed class ComponentEventsGenerator : IIncrementalGenerator
         /// <c>ScatterPlot</c> are a shared <c>NativePlot</c> with a different value, and that base
         /// is not a block of its own, so it carries the trigger set its subclasses inherit.
         /// </value>
+        /// <remarks>
+        /// The walk stops at <c>Block</c>, which is where every block's set is declared: what is
+        /// looked for is a base between this class and that one.
+        /// </remarks>
         private bool HasInheritedEvents
         {
             get
             {
-                for (var current = _type.BaseType; current is not null && current.Name != "Component"; current = current.BaseType)
+                for (var current = _type.BaseType; current is not null && current.Name != "Block"; current = current.BaseType)
                 {
                     if (current.GetMembers("Events").OfType<IPropertySymbol>().Any())
                     {
@@ -493,19 +537,6 @@ public sealed class ComponentEventsGenerator : IIncrementalGenerator
         internal bool IsBaseTrigger(string name) =>
             _eventsBase?.GetMembers(name).OfType<IPropertySymbol>().Any() == true;
 
-        private static bool InheritsFrom(INamedTypeSymbol type, INamedTypeSymbol ancestor)
-        {
-            for (var current = type.BaseType; current is not null; current = current.BaseType)
-            {
-                if (SymbolEqualityComparer.Default.Equals(current, ancestor))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         internal static Block? From(GeneratorAttributeSyntaxContext attribute)
         {
             if (attribute.TargetSymbol is not INamedTypeSymbol type
@@ -528,7 +559,6 @@ public sealed class ComponentEventsGenerator : IIncrementalGenerator
                 @namespace,
                 attribute.SemanticModel.Compilation.GetTypeByMetadataName(EventsBaseType),
                 attribute.SemanticModel.Compilation.GetTypeByMetadataName(EventNamesType),
-                attribute.SemanticModel.Compilation.GetTypeByMetadataName(ComponentType),
                 type.Locations.Length > 0 ? type.Locations[0] : Location.None);
         }
     }

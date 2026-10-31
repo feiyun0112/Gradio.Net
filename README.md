@@ -132,9 +132,10 @@ more: `=` becomes `:`, `with` becomes `using`, and a decorator becomes a call. T
 examples above use, and the one a port starts with.
 
 **The types underneath — the spelling C# would give them.** `gr.Textbox(...)` returns a `Textbox`,
-`gr.Blocks()` returns a `Blocks`, and those are ordinary types: events are methods on the component
-(`button.Click(fn, inputs, outputs)`), the component lists are `Block[]`, and a handler is a
-delegate. Hold them, pass them, subclass a component — nothing is wrapped.
+`gr.Blocks()` returns a `Blocks`, and those are ordinary types: events are methods on the block
+(`button.Click(fn, inputs, outputs)`, and `tabs.Select(fn, inputs, outputs)` for a layout), the
+component lists are `Block[]`, and a handler is a delegate. Hold them, pass them, subclass a
+component — nothing is wrapped.
 
 What is deliberately *not* public is writing into a page by hand. `Blocks.BeginRender`, `Add`,
 `Reserve`, `Attach` and `Enter` are internal: a page is written by calling a factory, because
@@ -147,7 +148,7 @@ applies to new code as well — there is one way to put a block on a page.
 | Demo | What it shows | Change this |
 | --- | --- | --- |
 | [Quickstart](Demo/Quickstart/) | `gr.Interface`: a function, two inputs, one output, and no layout code. | `Greet` — the handler; the page is built from its signature. |
-| [Blocks](Demo/Blocks/) | A page written by hand: `Row` and `Column`, two textboxes, a button, two events, and a `Tabs`/`Tab` bar. | `Shout`, and the component lists that say what each event reads and writes. |
+| [Blocks](Demo/Blocks/) | A page written by hand: `Row` and `Column`, two textboxes, a button, two events, and a `Tabs`/`Tab` bar whose `select` is bound and switched from a handler (`gr.Update`). | `Shout`, and the component lists that say what each event reads and writes. |
 | [Chat](Demo/Chat/) | `gr.ChatInterface` with a handler that streams an answer from an endpoint. | `Answer` — the request it sends. `LocalModel.cs` is what answers it. |
 | [Streaming](Demo/Streaming/) | A generator handler: each `yield` replaces the output while `Progress` moves the bar. | `Type` — what each piece is, and how fast the pieces arrive. |
 | [Form](Demo/Form/) | Eight fields submitted together by one button, and one field deciding what another offers (`gr.Update`). | `Describe` — what the form answers with. |

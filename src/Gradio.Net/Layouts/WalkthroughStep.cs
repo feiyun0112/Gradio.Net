@@ -14,8 +14,13 @@ namespace Gradio.Net;
 /// A step written straight into an application is grouped into a walkthrough of its own, which is
 /// why it names the container it expects.
 /// </para>
+/// <para>
+/// The step raises one signal, <c>select</c>, and it binds the way every other signal does:
+/// <c>step.Select(fn, inputs, outputs)</c> binds it and <c>step.Events.Select</c> is the trigger.
+/// </para>
 /// </remarks>
 [GradioBlock("step")]
+[HandlerValue("SelectData", EventNames.Select)]
 public sealed partial class WalkthroughStep : BlockContext
 {
     internal WalkthroughStep()
@@ -43,9 +48,6 @@ public sealed partial class WalkthroughStep : BlockContext
 
     /// <inheritdoc />
     public override string BlockType => "walkthroughstep";
-
-    /// <summary>The signal raised when the user selects the step.</summary>
-    public EventTrigger Select => new(this, EventNames.Select);
 
     /// <inheritdoc />
     protected internal override string? GetExpectedParentKind() => "walkthrough";

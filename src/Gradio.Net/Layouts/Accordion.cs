@@ -10,8 +10,9 @@ namespace Gradio.Net;
 /// content is taller than <see cref="MaxHeight"/> scrolls.
 /// </para>
 /// <para>
-/// The two signals the frontend raises when the user opens or closes it are exposed as triggers;
-/// what a handler is told about the change arrives with the event-data batch.
+/// The two signals the frontend raises when the user opens or closes it are bindable like a
+/// button's click — <c>accordion.Expand(fn, inputs, outputs)</c> — and the trigger itself is
+/// <c>accordion.Events.Expand</c>.
 /// </para>
 /// </remarks>
 [GradioBlock("accordion")]
@@ -32,10 +33,4 @@ public sealed partial class Accordion : BlockContext
 
     /// <summary>The content's maximum height: a number of pixels, or a CSS length.</summary>
     public object? MaxHeight { get; set; }
-
-    /// <summary>The signal raised when the user opens the accordion.</summary>
-    public EventTrigger Expand => new(this, EventNames.Expand);
-
-    /// <summary>The signal raised when the user closes the accordion.</summary>
-    public EventTrigger Collapse => new(this, EventNames.Collapse);
 }

@@ -193,6 +193,39 @@ public sealed class GrEventTests
     }
 
     [Fact]
+    public void An_update_can_select_a_tab()
+    {
+        // The Python version's `gr.update(selected="Two")` on a `gr.Tabs` output is how a handler
+        // moves the page to another tab: the client binds the prop to the tab bar's own selection.
+        // The key is `selected`, which is what the config calls the parameter.
+        var update = gr.Update(new Update { Selected = "Two" });
+
+        Assert.Equal("""{"selected":"Two","__type__":"update"}""", update.ToJson().ToJsonString());
+    }
+
+    [Fact]
+    public void An_update_can_change_a_prop_the_record_does_not_name()
+    {
+        // The Python version's `gr.update` takes any keyword, and every keyword it accepts is a prop
+        // some block carries. C# has no keyword splat, so the props the record does not name are
+        // given by name — which is what makes the two sides accept the same set.
+        var update = gr.Update(new Update
+        {
+            Props = new Dictionary<string, object?>
+            {
+                ["show_download_button"] = false,
+                ["x_bin"] = null,
+            },
+        });
+
+        // A key that is present is written even when its value is null: "empty this prop" is an
+        // instruction, and a map that dropped nulls could not say it.
+        Assert.Equal(
+            """{"show_download_button":false,"x_bin":null,"__type__":"update"}""",
+            update.ToJson().ToJsonString());
+    }
+
+    [Fact]
     public void An_empty_update_is_a_skip()
     {
         // `gr.update()` and `gr.skip()` are one document in the Python version, because "change nothing" and

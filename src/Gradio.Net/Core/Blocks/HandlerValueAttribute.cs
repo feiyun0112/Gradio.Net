@@ -1,6 +1,6 @@
 namespace Gradio.Net;
 /// <summary>
-/// Declares the C# type a component's value arrives as, and the events whose handler receives it.
+/// Declares the C# type an event's payload arrives as, and the events that carry it.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -12,9 +12,15 @@ namespace Gradio.Net;
 /// its events and leave the rest to the raw binding.
 /// </para>
 /// <para>
-/// So the type and the events it applies to are declared here, on the component, where a reader
+/// So the type and the events it applies to are declared here, on the block, where a reader
 /// comparing the two sides finds them. The attribute may appear more than once: the three plot
 /// components share a base whose events do not all carry the same thing.
+/// </para>
+/// <para>
+/// A layout declares one too. It has no value, so there is nothing for its <c>change</c> to carry,
+/// but its <c>select</c> carries the Python version's <see cref="SelectData"/> — the tab that was
+/// picked, or the step — and typing it is what makes <c>tabs.Select(evt =&gt; …, …)</c> read like
+/// <c>button.Click(value =&gt; …, …)</c>.
 /// </para>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]

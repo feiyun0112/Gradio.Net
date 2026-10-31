@@ -138,7 +138,7 @@ public static partial class gr
     /// which is the core type rather than a wrapper around it.</returns>
     /// <remarks>
     /// Entered the way a row is. <c>open</c> decides what the first visitor sees; the two signals
-    /// the user's clicks raise are trigger points on the block (<see cref="Accordion.Expand"/>).
+    /// the user's clicks raise bind like any other event (<see cref="Accordion.Events"/>).
     /// </remarks>
     public static Accordion Accordion(
         string? label = null,

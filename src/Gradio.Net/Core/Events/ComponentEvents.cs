@@ -15,6 +15,11 @@ namespace Gradio.Net;
 /// The word did not change — it moved.
 /// </para>
 /// <para>
+/// A layout's set is this type too, because a layout raises events as well — a tab is selected, an
+/// accordion opens — and <c>tabs.Select(...)</c> should read like <c>btn.Click(...)</c>. The name is
+/// the component layer's, where the type was introduced; what it holds is a block's signals.
+/// </para>
+/// <para>
 /// This base holds the two signals the framework asks every component about rather than one
 /// component's set: <see cref="Submit"/> and <see cref="Stream"/>. A component that raises neither
 /// leaves them <see langword="null"/>, which is how an <c>Interface</c> assembling a set of

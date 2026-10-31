@@ -19,8 +19,15 @@ namespace Gradio.Net;
 /// behaviour as the Python version" is exactly "the prop reaches the frontend". The case records
 /// both a tab with it and a tab without, so the field is compared in both states.
 /// </para>
+/// <para>
+/// The tab raises one signal, <c>select</c>, and it binds the way every other signal does:
+/// <c>tab.Select(fn, inputs, outputs)</c> binds it and <c>tab.Events.Select</c> is the trigger. What
+/// the handler is told about the pick — the label, and whether the tab became selected — arrives as
+/// a <see cref="SelectData"/>, which is the Python version's payload for the event.
+/// </para>
 /// </remarks>
 [GradioBlock("tab")]
+[HandlerValue("SelectData", EventNames.Select)]
 public sealed partial class Tab : BlockContext
 {
     internal Tab()
@@ -78,9 +85,6 @@ public sealed partial class Tab : BlockContext
 
     /// <inheritdoc />
     public override string BlockType => "tabitem";
-
-    /// <summary>The signal raised when the user selects the tab.</summary>
-    public EventTrigger Select => new(this, EventNames.Select);
 
     /// <inheritdoc />
     protected internal override string? GetExpectedParentKind() => "tabs";

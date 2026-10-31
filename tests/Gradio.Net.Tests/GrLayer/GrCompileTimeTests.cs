@@ -170,11 +170,12 @@ public sealed class GrCompileTimeTests
     }
 
     [Fact]
-    public void A_layout_built_by_the_layer_has_no_binding_to_offer()
+    public void A_layout_built_by_the_layer_offers_only_the_signals_it_raises()
     {
-        // A layout factory returns the core layout, and a layout carries no value — so it has no
-        // binding members, and `gr.Row().Click(...)` is a compile error rather than a lookup that
-        // returns null at run time. That is what "the factory returns the core type" buys.
+        // A layout factory returns the core layout, and a layout binds the signals the Python
+        // version declares for it — no more. A row raises none, so `gr.Row().Click(...)` is a
+        // compile error rather than a lookup that returns null at run time. That is what "the
+        // factory returns the core type" buys, and the test below is the other half of it.
         var diagnostics = Compile(
             """
             using Gradio.Net;
@@ -192,27 +193,33 @@ public sealed class GrCompileTimeTests
     }
 
     [Fact]
-    public void A_layouts_signal_is_a_trigger_point_rather_than_a_binding()
+    public void A_layouts_signal_binds_the_way_a_components_does()
     {
-        // A layout's events are trigger points, not bindings: `tabs.Change` is a value a caller
-        // hands to `gr.On`, and calling it is the mistake the compiler catches.
+        // A layout raises events too, and they bind the way a button's click does: `tabs.Select(fn,
+        // inputs, outputs)` is a binding, and `tabs.Events.Select` is the trigger it binds. The
+        // Python version's `tabs.select(fn, inputs, outputs)` is the same call, and the handler is
+        // handed the payload the event carries — a selection, for a tab.
         Assert.Empty(Compile(
             """
             using Gradio.Net;
 
             internal static class Probe
             {
-                internal static EventTrigger Change(Tabs tabs) => tabs.Change;
+                internal static EventTrigger Trigger(Tabs tabs) => tabs.Events.Select;
+
+                internal static Dependency Bind(Tabs tabs, Block output) =>
+                    tabs.Select((SelectData evt) => evt.Value, [], [output]);
             }
             """).Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
 
+        // Calling the trigger is the mistake the compiler catches: it is a value, not a binding.
         var diagnostics = Compile(
             """
             using Gradio.Net;
 
             internal static class Probe
             {
-                internal static void Bind(Tabs tabs) => tabs.Change(() => "x");
+                internal static void Bind(Tabs tabs) => tabs.Events.Select(() => "x");
             }
             """);
 

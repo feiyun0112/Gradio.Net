@@ -132,6 +132,35 @@ public abstract class Block
     /// </value>
     public virtual bool SkipApi => true;
 
+    /// <summary>
+    /// The signals this block raises, as values.
+    /// </summary>
+    /// <value>
+    /// The block's own set, which is what <c>Events.Click</c> and its neighbours read, and which is
+    /// empty for a block that raises nothing.
+    /// </value>
+    /// <remarks>
+    /// <para>
+    /// The Python version asks the same questions as <c>component.has_event("submit")</c>, which
+    /// reads the event list off the class. Here the events are values, so a block that raises one
+    /// overrides this with a set that carries it, and a caller that has to assemble triggers — an
+    /// <c>Interface</c> submitting on Enter as well as on the button — asks the set rather than
+    /// knowing which blocks those are.
+    /// </para>
+    /// <para>
+    /// A layout raises events too — a tab is selected, an accordion opens — so the set lives on the
+    /// block rather than on the component: the two halves of the tree bind the same way, and
+    /// <c>tabs.Select(...)</c> is the same kind of call as <c>button.Click(...)</c>. The Python
+    /// version's layouts declare <c>EVENTS</c> for the same reason.
+    /// </para>
+    /// <para>
+    /// The set is created on each read rather than cached: it holds the block and nothing else, and
+    /// a block's triggers are read while an application is being written, not while it is being
+    /// served.
+    /// </para>
+    /// </remarks>
+    public virtual ComponentEvents Events => new(this);
+
     /// <summary>The block's type as the config spells it: the class name, lower case.</summary>
     /// <remarks>
     /// A template block — the Python version's <c>is_template</c> — reports the name of the class
@@ -322,6 +351,215 @@ public abstract class Block
     protected internal virtual void OnEventBound(string eventName)
     {
     }
+
+    /// <summary>Binds one of this block's events to a handler.</summary>
+    /// <param name="trigger">The event, as the block declares it.</param>
+    /// <param name="fn">The handler.</param>
+    /// <param name="inputs">The components the handler reads.</param>
+    /// <param name="outputs">The components the handler's result updates.</param>
+    /// <param name="parameterNames">The names the API document gives the handler's parameters.</param>
+    /// <param name="preprocess">Whether the handler's value is preprocessed.</param>
+    /// <param name="postprocess">Whether the handler's result is postprocessed.</param>
+    /// <param name="scrollToOutput">Whether the page scrolls to the output when the run ends.</param>
+    /// <param name="showProgress">How the progress animation is drawn.</param>
+    /// <param name="showProgressOn">The components the progress animation is drawn on.</param>
+    /// <param name="apiName">The name the endpoint is served under.</param>
+    /// <param name="apiDescription">The description the endpoint carries.</param>
+    /// <param name="endpointDescription">The description the OpenAPI operation carries.</param>
+    /// <param name="js">A frontend function to run as well.</param>
+    /// <param name="jsRunsInBrowser">Whether the function runs in the browser or on the server.</param>
+    /// <param name="jsImplementation">The source of a server-side function.</param>
+    /// <param name="queue">Whether the run goes through the queue.</param>
+    /// <param name="batch">Whether the handler is handed the whole batch.</param>
+    /// <param name="maxBatchSize">How many runs may be batched together.</param>
+    /// <param name="triggerMode">Whether the run happens once, always or never.</param>
+    /// <param name="concurrencyLimit">How many runs of the handler may be in flight.</param>
+    /// <param name="concurrencyId">The group the concurrency limit is counted per.</param>
+    /// <param name="apiVisibility">How far the endpoint is exposed.</param>
+    /// <param name="timeLimit">How long a run may take.</param>
+    /// <param name="streamEvery">How often a streaming run is sent.</param>
+    /// <param name="cancels">The bindings this one cancels.</param>
+    /// <param name="validator">A function that decides whether a run is admitted.</param>
+    /// <returns>The binding.</returns>
+    /// <remarks>
+    /// The one line every typed event method is made of. It is here rather than repeated as a
+    /// private helper in each block's event file because a block's event methods are its public
+    /// surface and this is not: the file says which events exist and what a handler is handed, and
+    /// the binding itself is the same for all of them.
+    /// </remarks>
+    internal Dependency BindEvent(
+        EventTrigger trigger,
+        Delegate? fn,
+        Block[] inputs,
+        Block[] outputs,
+                IReadOnlyList<string?>? parameterNames = null,
+        bool preprocess = true,
+        bool postprocess = true,
+        bool scrollToOutput = false,
+        ProgressDisplay? showProgress = null,
+        IReadOnlyList<Block>? showProgressOn = null,
+        string? apiName = null,
+        string? apiDescription = null,
+        string? endpointDescription = null,
+        string? js = null,
+        bool jsRunsInBrowser = false,
+        string? jsImplementation = null,
+        bool queue = true,
+        bool batch = false,
+        int maxBatchSize = 4,
+        TriggerMode? triggerMode = null,
+        ConcurrencyLimit concurrencyLimit = default,
+        string? concurrencyId = null,
+        ApiVisibility apiVisibility = ApiVisibility.Public,
+        double? timeLimit = null,
+        double streamEvery = 0.5,
+        IReadOnlyList<Dependency>? cancels = null,
+        Delegate? validator = null) =>
+        BindEvent(trigger, fn, inputs, outputs, new EventBindingOptions
+        {
+            ParameterNames = parameterNames,
+            Preprocess = preprocess,
+            Postprocess = postprocess,
+            ScrollToOutput = scrollToOutput,
+            ShowProgress = showProgress,
+            ShowProgressOn = showProgressOn,
+            ApiName = apiName,
+            ApiDescription = apiDescription,
+            EndpointDescription = endpointDescription,
+            Js = js,
+            JsRunsInBrowser = jsRunsInBrowser,
+            JsImplementation = jsImplementation,
+            Queue = queue,
+            Batch = batch,
+            MaxBatchSize = maxBatchSize,
+            TriggerMode = triggerMode,
+            ConcurrencyLimit = concurrencyLimit,
+            ConcurrencyId = concurrencyId,
+            ApiVisibility = apiVisibility,
+            TimeLimit = timeLimit,
+            StreamEvery = streamEvery,
+            Cancels = cancels,
+            Validator = validator,
+        });
+
+    internal Dependency BindEvent(
+        EventTrigger trigger,
+        Delegate? fn,
+        Block[] inputs,
+        Block[] outputs,
+        EventBindingOptions? options) =>
+        EventBinding.Bind([trigger], fn, inputs, outputs, OptionsFor(trigger, options));
+
+    /// <summary>Binds one of this block's events to a handler of any shape.</summary>
+    /// <param name="trigger">The event, as the block declares it.</param>
+    /// <param name="fn">The handler, or <see langword="null"/> for a frontend-only binding.</param>
+    /// <param name="inputs">The components the handler reads.</param>
+    /// <param name="outputs">The components the handler's result updates.</param>
+    /// <param name="parameterNames">The names the API document gives the handler's parameters.</param>
+    /// <param name="preprocess">Whether the handler's value is preprocessed.</param>
+    /// <param name="postprocess">Whether the handler's result is postprocessed.</param>
+    /// <param name="scrollToOutput">Whether the page scrolls to the output when the run ends.</param>
+    /// <param name="showProgress">How the progress animation is drawn.</param>
+    /// <param name="showProgressOn">The components the progress animation is drawn on.</param>
+    /// <param name="apiName">The name the endpoint is served under.</param>
+    /// <param name="apiDescription">The description the endpoint carries.</param>
+    /// <param name="endpointDescription">The description the OpenAPI operation carries.</param>
+    /// <param name="js">A frontend function to run as well.</param>
+    /// <param name="jsRunsInBrowser">Whether the function runs in the browser or on the server.</param>
+    /// <param name="jsImplementation">The source of a server-side function.</param>
+    /// <param name="queue">Whether the run goes through the queue.</param>
+    /// <param name="batch">Whether the handler is handed the whole batch.</param>
+    /// <param name="maxBatchSize">How many runs may be batched together.</param>
+    /// <param name="triggerMode">Whether the run happens once, always or never.</param>
+    /// <param name="concurrencyLimit">How many runs of the handler may be in flight.</param>
+    /// <param name="concurrencyId">The group the concurrency limit is counted per.</param>
+    /// <param name="apiVisibility">How far the endpoint is exposed.</param>
+    /// <param name="timeLimit">How long a run may take.</param>
+    /// <param name="streamEvery">How often a streaming run is sent.</param>
+    /// <param name="cancels">The bindings this one cancels.</param>
+    /// <param name="validator">A function that decides whether a run is admitted.</param>
+    /// <returns>The binding.</returns>
+    /// <remarks>The <c>object[]</c> fallback, for a handler whose signature is not known at compile time.</remarks>
+    internal Dependency BindEventRaw(
+        EventTrigger trigger,
+        Delegate? fn,
+        object[]? inputs,
+        object[]? outputs,
+                IReadOnlyList<string?>? parameterNames = null,
+        bool preprocess = true,
+        bool postprocess = true,
+        bool scrollToOutput = false,
+        ProgressDisplay? showProgress = null,
+        IReadOnlyList<Block>? showProgressOn = null,
+        string? apiName = null,
+        string? apiDescription = null,
+        string? endpointDescription = null,
+        string? js = null,
+        bool jsRunsInBrowser = false,
+        string? jsImplementation = null,
+        bool queue = true,
+        bool batch = false,
+        int maxBatchSize = 4,
+        TriggerMode? triggerMode = null,
+        ConcurrencyLimit concurrencyLimit = default,
+        string? concurrencyId = null,
+        ApiVisibility apiVisibility = ApiVisibility.Public,
+        double? timeLimit = null,
+        double streamEvery = 0.5,
+        IReadOnlyList<Dependency>? cancels = null,
+        Delegate? validator = null) =>
+        BindEventRaw(trigger, fn, inputs, outputs, new EventBindingOptions
+        {
+            ParameterNames = parameterNames,
+            Preprocess = preprocess,
+            Postprocess = postprocess,
+            ScrollToOutput = scrollToOutput,
+            ShowProgress = showProgress,
+            ShowProgressOn = showProgressOn,
+            ApiName = apiName,
+            ApiDescription = apiDescription,
+            EndpointDescription = endpointDescription,
+            Js = js,
+            JsRunsInBrowser = jsRunsInBrowser,
+            JsImplementation = jsImplementation,
+            Queue = queue,
+            Batch = batch,
+            MaxBatchSize = maxBatchSize,
+            TriggerMode = triggerMode,
+            ConcurrencyLimit = concurrencyLimit,
+            ConcurrencyId = concurrencyId,
+            ApiVisibility = apiVisibility,
+            TimeLimit = timeLimit,
+            StreamEvery = streamEvery,
+            Cancels = cancels,
+            Validator = validator,
+        });
+
+    internal Dependency BindEventRaw(
+        EventTrigger trigger,
+        Delegate? fn,
+        object[]? inputs,
+        object[]? outputs,
+        EventBindingOptions? options) =>
+        EventBinding.Bind(
+            [trigger],
+            fn,
+            EventBinding.BlocksOf(inputs ?? [], nameof(inputs)),
+            EventBinding.BlocksOf(outputs ?? [], nameof(outputs)),
+            OptionsFor(trigger, options));
+
+    /// <summary>The binding parameters an event starts with, when its own default is not the generic one.</summary>
+    /// <param name="trigger">The event being bound.</param>
+    /// <param name="options">What the caller passed, or <see langword="null"/> for the defaults.</param>
+    /// <returns>The options the binding is made with.</returns>
+    /// <remarks>
+    /// One component answers differently: a timer's <c>tick</c> shows no progress animation, which
+    /// is the Python version's default for that event rather than for that binding — a timer firing
+    /// every second would otherwise repaint a spinner every second. The generated bindings pass
+    /// their options through here, so the exception lives on the component that has it rather than
+    /// in the generator.
+    /// </remarks>
+    private protected virtual EventBindingOptions? OptionsFor(EventTrigger trigger, EventBindingOptions? options) => options;
 
     /// <summary>
     /// The files this block wants kept out of reclamation, because it is part of what the block is.

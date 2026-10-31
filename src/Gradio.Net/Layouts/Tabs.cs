@@ -13,8 +13,15 @@ namespace Gradio.Net;
 /// layout is a grouping target: the grouping rule asks a container to be the kind its child
 /// expects, and the kind a tab expects is this one.
 /// </para>
+/// <para>
+/// The two signals the frontend raises are bindable like a button's click, which is the Python
+/// version's <c>tabs.select(fn, ...)</c>: <c>tabs.Select(...)</c> binds the user's pick and
+/// <c>tabs.Change(...)</c> binds the selection changing at all. The triggers themselves are
+/// <c>tabs.Events.Select</c> and <c>tabs.Events.Change</c>.
+/// </para>
 /// </remarks>
 [GradioBlock("tabs")]
+[HandlerValue("SelectData", EventNames.Select)]
 public sealed partial class Tabs : BlockContext
 {
     internal Tabs()
@@ -49,10 +56,4 @@ public sealed partial class Tabs : BlockContext
             _overflowBehavior = value;
         }
     }
-
-    /// <summary>The signal raised when the selected tab changes.</summary>
-    public EventTrigger Change => new(this, EventNames.Change);
-
-    /// <summary>The signal raised when the user selects a tab.</summary>
-    public EventTrigger Select => new(this, EventNames.Select);
 }

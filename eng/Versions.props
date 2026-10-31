@@ -7,11 +7,16 @@
 
     Nothing else in the tree may declare a version literal. The NuGet package
     version, the assembly version, the informational version and the public
-    Gradio.Net.Abstractions.GradioVersion constants are all derived from
-    GradioUpstreamVersion below.
+    Gradio.Net.Abstractions.GradioVersion constants are all derived from the two
+    properties below.
 
-    Mapping: the Python version X.Y.Z  ->  Gradio.Net 0.X.Y
-    The Python patch component is carried in the informational version only.
+    Mapping: the Python version X.Y.Z  ->  Gradio.Net 0.X.Y[.N]
+    The Python patch component is carried in the informational version only, and
+    GradioNetPatchVersion is this port's own patch number: it counts the releases
+    of fixes made on top of the port of that Python release, so 6.30.0 with a
+    patch of 1 is the package 0.6.30.1. It stays 0 for a release that is the
+    first port of a new Python release, which keeps 0.6.30 the version a plain
+    port of gradio 6.30.0 ships as.
 
     The assignment is unconditional on purpose: an environment variable must not
     be able to override the version, or the declared version could disagree with
@@ -23,6 +28,9 @@
   <PropertyGroup>
     <!-- Python Gradio release this build targets. -->
     <GradioUpstreamVersion>6.30.0</GradioUpstreamVersion>
+
+    <!-- Fixes on top of that port, counted from zero. -->
+    <GradioNetPatchVersion>1</GradioNetPatchVersion>
   </PropertyGroup>
 
 </Project>

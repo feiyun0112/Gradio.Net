@@ -15,11 +15,13 @@
 //                 greeting = gr.Textbox(label="Greeting")
 //         name.change(hello, name, greeting)
 //         gr.Button("Shout", variant="primary").click(shout, name, greeting)
-//         with gr.Tabs():
-//             with gr.Tab("Lion"):
+//         with gr.Tabs() as tabs:
+//             with gr.Tab("Lion", id="lion"):
 //                 …
-//             with gr.Tab("Tiger"):
+//             with gr.Tab("Tiger", id="tiger"):
 //                 …
+//         tabs.select(show_pick, None, picked)
+//         gr.Button("Switch to the tiger").click(switch_tab, None, tabs)
 //
 //     demo.launch()
 
@@ -76,11 +78,14 @@ using (demo)
 
         A tab bar is a layout like any other: the blocks written inside `gr.Tab("…")` belong to that
         tab, and each tab keeps its own fields — pressing a button in one does not touch the other.
+        A layout raises events too, and they bind like a button's click.
         """);
 
-    using (gr.Tabs())
+    Tabs tabs;
+
+    using (tabs = gr.Tabs())
     {
-        using (gr.Tab("Lion"))
+        using (gr.Tab("Lion", id: "lion"))
         {
             var lion = gr.Textbox(label: "Lion", value: "lion");
 
@@ -88,7 +93,7 @@ using (demo)
                 .Click(Shout, [lion], [lion], apiName: "lion");
         }
 
-        using (gr.Tab("Tiger"))
+        using (gr.Tab("Tiger", id: "tiger"))
         {
             var tiger = gr.Textbox(label: "Tiger", value: "tiger");
 
@@ -96,6 +101,21 @@ using (demo)
                 .Click(Shout, [tiger], [tiger], apiName: "tiger");
         }
     }
+
+    var picked = gr.Textbox(label: "Picked", interactive: false);
+
+    // `tabs.select(fn, inputs, outputs)` in the Python version: the handler is handed the payload
+    // the event carries — which tab was picked — and answers a component of its own.
+    tabs.Select(
+        (SelectData evt) => $"You picked the {evt.Value} tab.",
+        [],
+        [picked],
+        apiName: "picked");
+
+    // A handler that answers `gr.update(selected="tiger")`: the tab bar switches to that tab
+    // without the page reloading. The value is the tab's id, or its label for a tab given none.
+    gr.Button("Switch to the tiger")
+        .Click(() => new Update { Selected = "tiger" }, [tabs], apiName: "switch");
 }
 
 // Blocks until Ctrl-C. The page is at http://127.0.0.1:7860.

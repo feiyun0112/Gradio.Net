@@ -518,6 +518,33 @@ public sealed class EventBindingTests
         Assert.True(props["_selectable"]!.GetValue<bool>());
     }
 
+    [Fact]
+    public void A_layout_binds_its_selection_the_way_a_component_binds_a_click()
+    {
+        using var page = Page();
+        var tabs = page.Add(new Tabs { Selected = "One" });
+
+        // The Python version's `tabs.select(fn, inputs, outputs)`: the handler is bound to the
+        // layout's own signal, and the layout is its own output — a handler that answers with an
+        // update selecting another tab is how the page moves.
+        var binding = tabs.Select(
+            (Func<SelectData, object?>)(evt => new Update { Selected = evt.Value }),
+            [],
+            [tabs]);
+
+        var entry = Entry(page.Blocks, binding);
+
+        Assert.Equal(tabs.Id, entry["targets"]![0]![0]!.GetValue<int>());
+        Assert.Equal("select", entry["targets"]![0]![1]!.GetValue<string>());
+        Assert.Empty(Ids(entry["inputs"]!));
+        Assert.Equal([tabs.Id], Ids(entry["outputs"]!));
+
+        // Bound through the block's own signal rather than through a merged set, which is what a
+        // component's `Click` reports: no event-specific argument list, and no step to follow.
+        Assert.Null(entry["event_specific_args"]);
+        Assert.Null(entry["trigger_after"]);
+    }
+
     /// <summary>The served entry of one binding, read out of the application's config.</summary>
     private static JsonObject Entry(Blocks blocks, Dependency dependency) =>
         blocks.GetConfig()["dependencies"]!.AsArray()

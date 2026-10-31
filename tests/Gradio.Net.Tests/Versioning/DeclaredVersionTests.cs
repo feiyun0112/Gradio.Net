@@ -26,9 +26,21 @@ public sealed class DeclaredVersionTests
         var upstreamVersion = VersionSource.ReadUpstreamVersion();
         var packageVersion = VersionSource.DerivePackageVersion(upstreamVersion);
 
-        Assert.Equal($"{packageVersion}.0", _package.GetName().Version?.ToString());
+        // An assembly version has four parts whether or not the package version does: a package of
+        // 0.6.30 is the assembly 0.6.30.0, and one of 0.6.30.1 is the assembly 0.6.30.1.
+        Assert.Equal(FourParts(packageVersion), _package.GetName().Version?.ToString());
 
         var informationalVersion = _package.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
         Assert.Equal($"{packageVersion}+gradio.{upstreamVersion}", informationalVersion);
+    }
+
+    /// <summary>A version padded with zeros to the four parts an assembly version has.</summary>
+    /// <param name="version">The version, as the package spells it.</param>
+    /// <returns>The same version with four parts.</returns>
+    private static string FourParts(string version)
+    {
+        var parts = version.Split('.');
+
+        return string.Join('.', [.. parts, .. Enumerable.Repeat("0", 4 - parts.Length)]);
     }
 }

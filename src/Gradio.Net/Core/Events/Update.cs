@@ -8,9 +8,10 @@ namespace Gradio.Net;
 /// <remarks>
 /// <para>
 /// The Python version's <c>gr.update</c> takes keyword arguments, and every keyword it accepts is a
-/// prop some component carries. C# has no keyword splat, so the props are properties of this record
-/// — spelled the C# way, checked by the compiler, and written to the config by the same rule the
-/// rest of the props are written by.
+/// prop some block carries. C# has no keyword splat, so the props a handler changes often are
+/// properties of this record — spelled the C# way, checked by the compiler, and written to the
+/// config by the same rule the rest of the props are written by — and <see cref="Props"/> carries
+/// the rest by the name the config gives them, which is the splat in the form C# has for one.
 /// </para>
 /// <para>
 /// A property left <see langword="null"/> is not part of the update: the client merges what it is
@@ -90,6 +91,18 @@ public sealed record Update
     /// <summary>Whether a disclosure is open.</summary>
     public bool? Open { get; init; }
 
+    /// <summary>
+    /// The tab or step a layout selects, by the label it was given or by its id.
+    /// </summary>
+    /// <remarks>
+    /// The Python version's <c>selected</c>, which is the parameter <c>gr.Tabs</c> and
+    /// <c>gr.Walkthrough</c> take and the prop a handler changes to switch the page to another tab:
+    /// <c>gr.update(selected="Tab 2")</c> there, <c>new Update { Selected = "Tab 2" }</c> here. The
+    /// frontend binds the prop to the tab bar's own selection, so the tab that becomes selected is
+    /// the one whose <c>id</c> — or, for a tab that was given none, whose label — matches.
+    /// </remarks>
+    public object? Selected { get; init; }
+
     /// <summary>The height the component is drawn at.</summary>
     public double? Height { get; init; }
 
@@ -150,6 +163,30 @@ public sealed record Update
     /// <summary>The classes the component is drawn with.</summary>
     public object? ElemClasses { get; init; }
 
+    /// <summary>
+    /// Props this record does not name, keyed by the name the config gives them.
+    /// </summary>
+    /// <value>
+    /// <see langword="null"/> for an update that changes only the props named above.
+    /// </value>
+    /// <remarks>
+    /// <para>
+    /// The Python version's <c>gr.update</c> takes keyword arguments, and every keyword it accepts
+    /// is a prop some block carries — a hundred and sixty of them across this release. C# has no
+    /// keyword splat, so the record names the props a handler changes often and this carries the
+    /// rest, keyed the way the config spells them. <c>gr.update(show_download_button=False)</c>
+    /// there is <c>new Update { Props = { ["show_download_button"] = false } }</c> here.
+    /// </para>
+    /// <para>
+    /// A key that is present is written even when its value is <see langword="null"/>, which is the
+    /// difference between this map and the properties above: a property left null is a prop the
+    /// update does not mention, and a key present with a null value says "empty this prop", which is
+    /// what <c>gr.update(value=None)</c> means in the Python version. <see cref="Clear"/> writes the
+    /// same thing and reads better.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyDictionary<string, object?>? Props { get; init; }
+
     /// <summary>The update as the protocol carries it: the props, and the marker that says so.</summary>
     /// <returns>The document a handler's answer becomes.</returns>
     /// <remarks>
@@ -186,6 +223,7 @@ public sealed record Update
         Add("scale", Scale);
         Add("min_width", MinWidth);
         Add("open", Open);
+        Add("selected", Selected);
         Add("height", Height);
         Add("width", Width);
         Add("line_count", LineCount);
@@ -206,6 +244,18 @@ public sealed record Update
         Add("link", Link);
         Add("elem_id", ElemId);
         Add("elem_classes", ElemClasses);
+
+        // The props the record does not name, in the order the caller gave them. A key that is
+        // present is written, null included: for a map, being present is the instruction.
+        if (Props is { Count: > 0 } named)
+        {
+            foreach (var (prop, value) in named)
+            {
+                props.Add((
+                    prop,
+                    value is null || ReferenceEquals(value, Clear) ? null : PropWriter.Serialize(value)));
+            }
+        }
 
         return PropertyUpdate.Partial([.. props]);
     }

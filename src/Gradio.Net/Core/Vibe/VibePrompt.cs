@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Text;
+
 namespace Gradio.Net;
 /// <summary>
 /// The text the Vibe editor puts in front of a model: the rules, the two prompts, and the trimming
@@ -23,17 +26,40 @@ namespace Gradio.Net;
 /// whitespace their triple quotes leave behind. Indentation and trailing whitespace are the one
 /// thing not reproduced, because a model reads the words.
 /// </para>
+/// <para>
+/// The line endings are LF on every operating system, which is what <see cref="Lf"/> is for. A raw
+/// string literal spells the endings of the file it was written in, and the repository stores LF
+/// while a Windows working copy checks the file out as CRLF — so without the normalization the text
+/// a model is asked with would depend on which machine built it, and a checkout on Windows would
+/// answer with a prompt no other machine ever sends. The Python version gets LF for free: its
+/// tokenizer rewrites a literal's endings, which is the behaviour being reproduced here.
+/// </para>
 /// </remarks>
 internal static class VibePrompt
 {
+    /// <summary>The line ending every prompt uses.</summary>
+    private const string LineBreak = "\n";
+
+    /// <summary>Reads a raw string literal as the text it spells, with LF line endings.</summary>
+    /// <param name="literal">The literal's text.</param>
+    /// <returns>The same text with every CRLF written as LF.</returns>
+    /// <remarks>
+    /// Applied to the literals and not to the finished prompt, which is the distinction the Python
+    /// version draws: its tokenizer rewrites the endings inside a literal and leaves the values
+    /// interpolated into one alone. That matters for the code an edit is asked about — it is a file,
+    /// and rewriting its endings on the way to the model would make the answer disagree with the file
+    /// line for line, which the diff counts as a rewrite of the whole file.
+    /// </remarks>
+    private static string Lf(string literal) => literal.Replace("\r\n", LineBreak, StringComparison.Ordinal);
+
     /// <summary>The rules an answer is written under.</summary>
     /// <remarks>
     /// The Python version's <c>prompt_rules</c>, verbatim down to the two spaces after the first
     /// sentence's full stop, because a model reads this text and any change to it is a change to
     /// the answers.
     /// </remarks>
-    internal const string RewriteRules =
-        """
+    internal static readonly string RewriteRules =
+        Lf("""
         Generate code for using the Gradio python library.
 
         The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
@@ -64,7 +90,7 @@ internal static class VibePrompt
         demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
 
         demo.launch()
-        """;
+        """);
 
     /// <summary>The rules a list of starter questions is written under.</summary>
     /// <remarks>
@@ -72,8 +98,8 @@ internal static class VibePrompt
     /// answers at the end are the shape the editor's chips are drawn from, so the count — at most
     /// three, one per line — is part of the instruction rather than a detail of it.
     /// </remarks>
-    internal const string StarterQueryRules =
-        """
+    internal static readonly string StarterQueryRules =
+        Lf("""
         You are a prompt generator for a gradio vibe editor.
 
         Given python code of a gradio app, return a list of starter queries that can be used to generate new code.
@@ -107,7 +133,7 @@ internal static class VibePrompt
         Add another textbox for name
         Change the theme
         Greet the user in many languages
-        """;
+        """);
 
     /// <summary>The most exchanges the prompt carries.</summary>
     /// <remarks>
@@ -117,49 +143,62 @@ internal static class VibePrompt
     /// </remarks>
     private const int HistoryPairs = 5;
 
+    /// <summary>The prompt a rewrite is asked with, with its three parts left to be filled in.</summary>
+    /// <remarks>
+    /// The Python version's f-string, including the blank first and last lines it opens and closes
+    /// with: the text is a model's input rather than a document, but it is still the same text. It is
+    /// a template rather than an interpolated string because the literal is normalized and the three
+    /// parts are put in as they came — <see cref="Lf"/> says why — and an interpolation hole has no
+    /// way to say that. The parts are <c>code</c>, <c>prompt</c> and the conversation.
+    /// </remarks>
+    private static readonly CompositeFormat RewriteTemplate =
+        CompositeFormat.Parse(Lf("""
+
+            You are a code generator for Gradio apps. Given the following existing code and prompt, return the full new code.
+            Existing code:
+            ```python
+            {0}
+            ```
+
+            Prompt:
+            {1}
+
+            History:
+            {2}
+
+            """));
+
+    /// <summary>The prompt a list of starter questions is asked with, with its code left to be filled
+    /// in.</summary>
+    private static readonly CompositeFormat StarterQueriesTemplate =
+        CompositeFormat.Parse(Lf("""
+
+            You are a prompt generator for a gradio vibe editor. Given the following existing code, return a list of starter queries that can be used to generate a new code.
+            Existing code:
+            ```python
+            {0}
+            ```
+
+            """));
+
     /// <summary>Builds the prompt a rewrite is asked with.</summary>
     /// <param name="code">The code as it stands.</param>
     /// <param name="prompt">What the user asked for.</param>
     /// <param name="history">The conversation so far.</param>
     /// <returns>The prompt.</returns>
-    /// <remarks>
-    /// The Python version's f-string, including the blank first and last lines it opens and closes
-    /// with: the text is a model's input rather than a document, but it is still the same text.
-    /// </remarks>
-    internal static string RewritePrompt(string code, string prompt, string history)
-    {
-        var conversation = history.Length == 0 ? "No chat history." : history;
-
-        return $"""
-
-            You are a code generator for Gradio apps. Given the following existing code and prompt, return the full new code.
-            Existing code:
-            ```python
-            {code}
-            ```
-
-            Prompt:
-            {prompt}
-
-            History:
-            {conversation}
-
-            """;
-    }
+    internal static string RewritePrompt(string code, string prompt, string history) =>
+        string.Format(
+            CultureInfo.InvariantCulture,
+            RewriteTemplate,
+            code,
+            prompt,
+            history.Length == 0 ? "No chat history." : history);
 
     /// <summary>Builds the prompt a list of starter questions is asked with.</summary>
     /// <param name="code">The code as it stands.</param>
     /// <returns>The prompt.</returns>
     internal static string StarterQueriesPrompt(string code) =>
-        $"""
-
-            You are a prompt generator for a gradio vibe editor. Given the following existing code, return a list of starter queries that can be used to generate a new code.
-            Existing code:
-            ```python
-            {code}
-            ```
-
-            """;
+        string.Format(CultureInfo.InvariantCulture, StarterQueriesTemplate, code);
 
     /// <summary>Trims a conversation to its last few exchanges.</summary>
     /// <param name="history">The conversation so far.</param>

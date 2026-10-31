@@ -17,9 +17,9 @@
   </PropertyGroup>
 
   <!--
-    Version derivation. The only version literal in the tree is
-    GradioUpstreamVersion (eng/Versions.props); everything below is computed, and this is
-    the only place that parses it. eng/Versioning.targets only validates the result.
+    Version derivation. The only version literals in the tree are GradioUpstreamVersion
+    and GradioNetPatchVersion (eng/Versions.props); everything below is computed, and this
+    is the only place that parses them. eng/Versioning.targets only validates the result.
   -->
   <PropertyGroup>
     <GradioUpstreamVersionMajor>$([System.Version]::new('$(GradioUpstreamVersion)').Major)</GradioUpstreamVersionMajor>
@@ -27,7 +27,13 @@
     <GradioUpstreamVersionBuild>$([System.Version]::new('$(GradioUpstreamVersion)').Build)</GradioUpstreamVersionBuild>
     <GradioUpstreamVersionRevision>$([System.Version]::new('$(GradioUpstreamVersion)').Revision)</GradioUpstreamVersionRevision>
 
-    <GradioNetVersion>0.$(GradioUpstreamVersionMajor).$(GradioUpstreamVersionMinor)</GradioNetVersion>
+    <!--
+      A patch of zero is not spelled: the first port of a Python release ships as 0.X.Y, and
+      only a release of fixes on top of it carries the fourth part.
+    -->
+    <GradioNetPatchSuffix Condition="'$(GradioNetPatchVersion)' != '' and '$(GradioNetPatchVersion)' != '0'">.$(GradioNetPatchVersion)</GradioNetPatchSuffix>
+
+    <GradioNetVersion>0.$(GradioUpstreamVersionMajor).$(GradioUpstreamVersionMinor)$(GradioNetPatchSuffix)</GradioNetVersion>
     <Version>$(GradioNetVersion)</Version>
     <PackageVersion>$(GradioNetVersion)</PackageVersion>
     <InformationalVersion>$(GradioNetVersion)+gradio.$(GradioUpstreamVersion)</InformationalVersion>

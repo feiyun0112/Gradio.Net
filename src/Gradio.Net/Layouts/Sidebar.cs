@@ -9,8 +9,9 @@ namespace Gradio.Net;
 /// Python version does not draw it.
 /// </para>
 /// <para>
-/// The two signals the frontend raises when the user opens or closes it are exposed as triggers;
-/// what a handler is told about the change arrives with the event-data batch.
+/// The two signals the frontend raises when the user opens or closes it are bindable like a
+/// button's click — <c>sidebar.Expand(fn, inputs, outputs)</c> — and the trigger itself is
+/// <c>sidebar.Events.Expand</c>.
 /// </para>
 /// </remarks>
 [GradioBlock("sidebar")]
@@ -31,10 +32,4 @@ public sealed partial class Sidebar : BlockContext
 
     /// <summary>Which side of the page the panel is drawn on: <c>left</c> or <c>right</c>.</summary>
     public string Position { get; set; } = "left";
-
-    /// <summary>The signal raised when the user opens the panel.</summary>
-    public EventTrigger Expand => new(this, EventNames.Expand);
-
-    /// <summary>The signal raised when the user closes the panel.</summary>
-    public EventTrigger Collapse => new(this, EventNames.Collapse);
 }

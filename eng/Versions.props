@@ -30,7 +30,7 @@
     <GradioUpstreamVersion>6.30.0</GradioUpstreamVersion>
 
     <!-- Fixes on top of that port, counted from zero. -->
-    <GradioNetPatchVersion>1</GradioNetPatchVersion>
+    <GradioNetPatchVersion>2</GradioNetPatchVersion>
   </PropertyGroup>
 
 </Project>

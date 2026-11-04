@@ -524,6 +524,11 @@ public sealed class Dependency
         Delegate? validator = null) =>
         BindChained(trigger, fn, inputs, outputs, new EventBindingOptions
         {
+            // The three the step is: without them the config carried an empty binding — no handler,
+            // no inputs, no outputs — and the run it described could never have been executed.
+            Fn = fn,
+            Inputs = [.. inputs ?? []],
+            Outputs = [.. outputs ?? []],
             Preprocess = preprocess,
             Postprocess = postprocess,
             ScrollToOutput = scrollToOutput,

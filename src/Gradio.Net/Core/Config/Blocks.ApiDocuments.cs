@@ -148,6 +148,15 @@ public sealed partial class Blocks
 
             // The example calls are the API info's alone: the OpenAPI document describes what an
             // endpoint takes and returns rather than how to call it from one client or another.
+            // Both spellings of the submission route are described, because both answer: v1 is
+            // the one the queue's own body shape was written for, and v2 is the one the Python
+            // version documents.
+            paths[$"/gradio_api/call/{name}"] = CallPath(
+                name,
+                endpoint["description"]!.GetValue<string>(),
+                endpoint["parameters"]!.AsArray(),
+                endpoint["returns"]!.AsArray());
+
             paths[$"/gradio_api/call/v2/{name}"] = CallPath(
                 name,
                 endpoint["description"]!.GetValue<string>(),
@@ -635,13 +644,16 @@ public sealed partial class Blocks
                 ",\n\t\t",
                 pairs.Select(pair => $"{pair.Name}: {JavaScriptValue(pair)}")) + ",\n";
 
-        var body = "{"
+        // `/run` reads the arguments by position, not by name: its body is `{"data": [...]}` in the
+        // order the binding declared its inputs. The named form belongs to `/call`, which this port
+        // does not implement, so the shell snippet sends the array.
+        var body = "{\"data\": ["
             + string.Join(
                 ", ",
                 pairs.Select(pair => fileNames.Contains(pair.Name)
-                    ? $"\"{pair.Name}\": {FilePlaceholder}"
-                    : $"\"{pair.Name}\": {Represent(pair, SnippetLanguage.Bash)}"))
-            + "}";
+                    ? FilePlaceholder
+                    : Represent(pair, SnippetLanguage.Bash)))
+            + "]}";
 
         // Every parameter that carries a file sends the same object, so one substitution fills them
         // all: the shell snippet uploads once and the address is what the body names.
@@ -688,12 +700,16 @@ public sealed partial class Blocks
                 + "const client = await Client.connect(\"" + root + "\");\n"
                 + "const result = await client.predict(\"" + name + "\", {" + javascriptArguments + "});\n\n"
                 + "console.log(result.data);",
+            // The shell snippet calls `/run`, which answers in one request. The Python version's own
+            // snippet goes through `/call` and then reads the result from a stream, but those two
+            // routes are in this port's table without an implementation behind them — a snippet that
+            // names them fails with `route_status: not_implemented`, and a reader has no way to tell
+            // that the fault is the snippet's rather than their own. `/run` is implemented and is
+            // what this port documents everywhere else, so the shell snippet names it.
             ["bash"] =
                 upload
-                + "curl -X POST " + root + "/gradio_api/call/v2/" + name.TrimStart('/') + " -s -H \"Content-Type: application/json\" \\\n"
-                + "  -d '" + body + "' \\\n"
-                + "  | awk -F'\"' '{ print $4}' \\\n"
-                + "  | read EVENT_ID; curl -N " + root + "/gradio_api/call/" + name.TrimStart('/') + "/$EVENT_ID",
+                + "curl -X POST " + root + "/gradio_api/run/" + name.TrimStart('/') + " -s -H \"Content-Type: application/json\" \\\n"
+                + "  -d '" + body + "'",
             ["cli"] = "{command} predict " + root + " " + name + " '" + cliBody + "'\n",
         };
     }

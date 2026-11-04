@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 namespace Gradio.Net;
 public static partial class gr
 {
@@ -154,6 +155,97 @@ public static partial class gr
     /// <param name="filename">The file's name within the samples, or <see langword="null"/> for the first.</param>
     /// <returns>The path the sample was written to.</returns>
     public static string GetModel3d(string? filename = null) => Media.GetModel3d(filename);
+
+    /// <summary>Says something to the person using the page.</summary>
+    /// <param name="message">The text.</param>
+    /// <param name="duration">How long it stays on screen, in seconds, or <see langword="null"/> for
+    /// the page's own default.</param>
+    /// <remarks>
+    /// The Python version's <c>gr.Info(message, duration)</c>: a line the page shows without the run
+    /// having to give up an output for it. Called from a handler it reaches that handler's run;
+    /// called anywhere else it does nothing, which is what the Python version does too.
+    /// </remarks>
+    public static void Info(string message, double? duration = null) =>
+        Callouts.Post("info", message, duration);
+
+    /// <summary>Says something the person using the page should be careful about.</summary>
+    /// <param name="message">The text.</param>
+    /// <param name="duration">How long it stays on screen, in seconds, or <see langword="null"/> for
+    /// the page's own default.</param>
+    /// <remarks>The Python version's <c>gr.Warning(message, duration)</c>.</remarks>
+    public static void Warning(string message, double? duration = null) =>
+        Callouts.Post("warning", message, duration);
+
+    /// <summary>Says that something went wrong.</summary>
+    /// <param name="message">The text.</param>
+    /// <param name="duration">How long it stays on screen, in seconds, or <see langword="null"/> for
+    /// the page's own default.</param>
+    /// <remarks>
+    /// The Python version's <c>gr.Error(message, duration)</c>. It reports rather than throws: the
+    /// run carries on, which is the difference between this and a handler that raises.
+    /// </remarks>
+    public static void Error(string message, double? duration = null) =>
+        Callouts.Post("error", message, duration);
+
+    /// <summary>Says that something worked.</summary>
+    /// <param name="message">The text.</param>
+    /// <param name="duration">How long it stays on screen, in seconds, or <see langword="null"/> for
+    /// the page's own default.</param>
+    /// <remarks>The Python version's <c>gr.Success(message, duration)</c>.</remarks>
+    public static void Success(string message, double? duration = null) =>
+        Callouts.Post("success", message, duration);
+
+    /// <summary>Makes the application a workflow: a canvas over the graph beside this code.</summary>
+    /// <param name="graph">The workflow file, or <see langword="null"/> for the default beside the
+    /// calling file.</param> <param name="bind">The functions a node may call, keyed by the name the
+    /// graph uses, or <see langword="null"/> for none.</param> <param name="edges">The wires between
+    /// them, or <see langword="null"/> for none.</param> <param name="operators">What runs a node of
+    /// a kind this build does not run itself, or <see langword="null"/> for none.</param>
+    /// <param name="callerFilePath">The calling file, filled in by the compiler — the directory a
+    /// relative <paramref name="graph"/> is resolved against.</param>
+    /// <returns>The workflow, which is the application's own rather than a second one.</returns>
+    /// <exception cref="InvalidOperationException">No application is being written in this
+    /// flow.</exception>
+    /// <remarks>
+    /// The Python version's <c>gr.Workflow(...)</c>. The constructor was already here; this is the
+    /// name the layer was missing, and it is a factory rather than a class because that is what the
+    /// Python version exports it as. The application is the one being written, for the reason
+    /// <c>gr.Examples</c> takes it that way: a workflow is a page, not a block inside one.
+    /// </remarks>
+    public static Workflow Workflow(
+        string? graph = null,
+        IReadOnlyDictionary<string, Delegate>? bind = null,
+        IReadOnlyList<WorkflowEdgeSpec>? edges = null,
+        IReadOnlyDictionary<string, WorkflowOperator>? operators = null,
+        [CallerFilePath] string? callerFilePath = null) =>
+        new(Application("Workflow"), graph, bind, edges, operators, callerFilePath);
+
+    /// <summary>Declares directories whose files the page may serve.</summary>
+    /// <param name="paths">The directories, absolute or relative to the process's working
+    /// directory.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="paths"/> is
+    /// <see langword="null"/>.</exception>
+    /// <exception cref="InvalidOperationException">No application is being written in this
+    /// flow.</exception>
+    /// <remarks>
+    /// <para>
+    /// The Python version's <c>gr.set_static_paths(paths)</c>. It is the top-level spelling of
+    /// <see cref="Blocks.AllowedPaths"/>, which is the list the file endpoint consults: a handler
+    /// that answers with a path under one of these directories gets a working URL, and a path
+    /// outside all of them is refused however the handler came by it.
+    /// </para>
+    /// <para>
+    /// Called inside the page, like the other members that draw into the application being written
+    /// rather than being handed one. It adds nothing to the page — it is a permission, and the
+    /// Python version's name for it is a verb for that reason.
+    /// </para>
+    /// </remarks>
+    public static void SetStaticPaths(IReadOnlyList<string> paths)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+
+        Application("SetStaticPaths").AllowedPaths = paths;
+    }
 
     /// <summary>The application this flow is writing into.</summary>
     /// <param name="member">The member asking, for the message when there is none.</param>

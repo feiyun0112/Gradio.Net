@@ -71,17 +71,21 @@ internal static class GrSurfaceOwed
     /// <c>I18n</c>, <c>Api</c>, <c>GetPackageVersion</c>, the five media helpers, <c>NoReload</c> and
     /// <c>Theme</c>. The two loaders (<c>LoadChat</c>, <c>LoadOpenapi</c>) are the wrappers around
     /// <see cref="External"/>, and <c>Load</c> has moved to <see cref="Never"/>. What is left needs
-    /// something the kernel does not have: the callouts (<c>Info</c>, <c>Warning</c>, <c>Error</c>,
-    /// <c>Success</c>) need a channel from a running handler to the client, <c>Render</c> needs
-    /// dynamic rendering, <c>Mcp</c> needs a way to register a tool without an attribute,
-    /// <c>SetStaticPaths</c> needs the server to serve directories an application names, and
-    /// <c>Workflow</c> needs the graph-file loader's caller-file resolution.
+    /// something the kernel does not have: <c>Render</c> needs dynamic rendering, and <c>Mcp</c>
+    /// needs a way to register a tool without an attribute.
+    /// <c>Workflow</c> left this list when the factory was written: the class, its graph-file
+    /// resolution and its canvas were already here, and what was missing was the name.
+    /// The four callouts (<c>Info</c>, <c>Warning</c>, <c>Error</c>, <c>Success</c>) left this list
+    /// with the channel they needed: an ambient scope set by the run, through which the static
+    /// methods reach the session that is watching it.
+    /// <c>SetStaticPaths</c> left this list when the name was given its implementation: it is the
+    /// top-level spelling of <see cref="Blocks.AllowedPaths"/>, which the file endpoint already
+    /// consults.
     /// </para>
     /// </remarks>
     internal static IReadOnlyList<string> TopLevel { get; } =
     [
-        "Error", "Info", "Mcp", "Render",
-        "SetStaticPaths", "Success", "Warning", "Workflow",
+        "Mcp", "Render",
     ];
 
     /// <summary>

@@ -164,10 +164,20 @@ internal sealed class GradioQueueEndpoints : IGradioEndpoint
     /// client and the server, and the other one is how the server finds out the client is gone.
     /// </para>
     /// </remarks>
-    private async Task DataAsync(HttpContext context)
-    {
-        var sessionHash = context.Request.Query["session_hash"].ToString();
+    private Task DataAsync(HttpContext context) =>
+        StreamSessionAsync(context, context.Request.Query["session_hash"].ToString());
 
+    /// <summary>Streams the messages that describe one session's runs.</summary>
+    /// <param name="context">The request, whose response is written as a stream.</param>
+    /// <param name="sessionHash">The session to describe.</param>
+    /// <returns>A task that completes when the stream ends.</returns>
+    /// <remarks>
+    /// Shared with the job-style route: <c>GET /call/{api_name}/{event_id}</c> describes one
+    /// session too, and the session it describes is the one its <c>POST</c> opened. The two routes
+    /// differ in how they name the session, not in what a client reads from it.
+    /// </remarks>
+    internal async Task StreamSessionAsync(HttpContext context, string sessionHash)
+    {
         context.Response.StatusCode = StatusCodes.Status200OK;
         context.Response.ContentType = "text/event-stream";
         context.Response.Headers.CacheControl = "no-cache";

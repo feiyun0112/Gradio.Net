@@ -3,7 +3,10 @@ public static partial class gr
 {
     /// <summary>Creates an application, and opens the scope its blocks are written into.</summary>
     /// <param name="title">The title the page carries, or <see langword="null"/> for the Python
-    /// version's.</param> <returns>The application itself, not a wrapper around it.</returns>
+    /// version's.</param> <param name="head">Markup the page adds to its head, or
+    /// <see langword="null"/> for none.</param> <param name="js">JavaScript the page runs once it is
+    /// ready, or <see langword="null"/> for none.</param>
+    /// <returns>The application itself, not a wrapper around it.</returns>
     /// <remarks>
     /// <para>
     /// The return value is a <see cref="Blocks"/>, which is what lets the Python version's
@@ -38,7 +41,7 @@ public static partial class gr
     /// hard to tell from another.
     /// </para>
     /// </remarks>
-    public static Blocks Blocks(string? title = null)
+    public static Blocks Blocks(string? title = null, string? head = null, string? js = null)
     {
         // The container factory is what `AddGradio` registers for a host, and an application built
         // outside a host has to supply it itself: without it a form component has no form to be
@@ -48,6 +51,16 @@ public static partial class gr
         if (title is not null)
         {
             application.Title = title;
+        }
+
+        if (head is not null)
+        {
+            application.Head = head;
+        }
+
+        if (js is not null)
+        {
+            application.Js = js;
         }
 
         // The Python version's `with`, whose opening brace is this line. The handle is the application's to

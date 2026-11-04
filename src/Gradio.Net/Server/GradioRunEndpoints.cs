@@ -119,6 +119,20 @@ internal sealed class GradioRunEndpoints : IGradioEndpoint
             return;
         }
 
+        // A binding the application marked private is not callable by clients, which is what
+        // `ApiVisibility.Private` says and what this route now enforces. The page is not a client:
+        // it reaches its bindings through the queue, so hiding one from here hides it from other
+        // programs without taking its button away.
+        if (dependency.ApiVisibility == ApiVisibility.Private)
+        {
+            await WriteJsonAsync(
+                context,
+                new JsonObject { ["detail"] = $"Could not infer function index for API name: {apiName}" },
+                StatusCodes.Status404NotFound).ConfigureAwait(false);
+
+            return;
+        }
+
         // The Python version closes the direct routes with one switch, so an application that closed them
         // answers 404 rather than running the binding anyway: a queued binding is exactly the one
         // the switch is about.

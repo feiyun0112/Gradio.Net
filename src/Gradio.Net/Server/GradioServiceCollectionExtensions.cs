@@ -164,8 +164,16 @@ public static partial class GradioServiceCollectionExtensions
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IGradioEndpoint, GradioAuthEndpoints>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IGradioEndpoint, GradioOAuthEndpoints>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IGradioEndpoint, GradioDescriptionEndpoints>());
+        // Registered by its own type as well as by the interface: the job-style routes read their
+        // results through the queue's stream, which lives on this type. The two registrations build
+        // two instances, and that is harmless because the type holds no state of its own — every
+        // field is a reference to a singleton. A factory-based registration would share one
+        // instance, but `TryAddEnumerable` refuses one, and it is the de-duplication that matters
+        // more here than the instance count.
+        services.TryAddSingleton<GradioQueueEndpoints>();
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IGradioEndpoint, GradioQueueEndpoints>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IGradioEndpoint, GradioRunEndpoints>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IGradioEndpoint, GradioCallEndpoints>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IGradioEndpoint, GradioFrontendEndpoints>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IGradioEndpoint, GradioFileEndpoints>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IGradioEndpoint, GradioDeepLinkEndpoint>());

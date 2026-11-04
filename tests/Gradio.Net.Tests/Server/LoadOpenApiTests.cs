@@ -412,8 +412,10 @@ public sealed class LoadOpenApiTests
             "/gradio_api/upload -F 'files=@/path/to/your/file' | tr -d '[]\" ')\n\ncurl -X POST ",
             snippets["bash"]!.GetValue<string>(),
             StringComparison.Ordinal);
+        // The shell snippet posts to `/run`, whose body is positional: the uploaded file is the
+        // first element of `data` rather than a named argument.
         Assert.Contains(
-            "\"request_body\": {\"path\": \"'$FILE_PATH'\", \"meta\": {\"_type\": \"gradio.FileData\"}}",
+            "\"data\": [{\"path\": \"'$FILE_PATH'\", \"meta\": {\"_type\": \"gradio.FileData\"}}]",
             snippets["bash"]!.GetValue<string>(),
             StringComparison.Ordinal);
 

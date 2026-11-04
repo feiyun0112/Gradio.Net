@@ -232,6 +232,33 @@ public sealed partial class Blocks : BlockContext, IDisposable
     public string? Css { get; set; }
 
     /// <summary>
+    /// Markup the application adds to the page's <c>&lt;head&gt;</c>.
+    /// </summary>
+    /// <value>
+    /// The markup, or <see langword="null"/> for an application that adds none.
+    /// </value>
+    /// <remarks>
+    /// This is the Python version's <c>head</c> launch parameter. It is carried in the config rather
+    /// than rendered into the page here, because that is where the Python version carries it too:
+    /// the frontend reads it from <c>window.gradio_config</c> and mounts it, so a page served by
+    /// either implementation is assembled the same way.
+    /// </remarks>
+    public string? Head { get; set; }
+
+    /// <summary>
+    /// JavaScript the application runs once the page is ready.
+    /// </summary>
+    /// <value>
+    /// The script, or <see langword="null"/> for an application that runs none.
+    /// </value>
+    /// <remarks>
+    /// This is the Python version's <c>js</c> launch parameter, and it is the page-level counterpart
+    /// of the per-binding <c>js</c> a binding carries: this one runs once, that one runs on the
+    /// event. Both are strings of source, so neither is parsed here.
+    /// </remarks>
+    public string? Js { get; set; }
+
+    /// <summary>
     /// CSS files whose text the page carries after <see cref="Css"/>.
     /// </summary>
     /// <value>

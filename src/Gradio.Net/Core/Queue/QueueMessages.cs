@@ -35,6 +35,9 @@ internal static class QueueMessageKinds
 
     /// <summary>Something went wrong outside a run — a session that is gone, a stopped server.</summary>
     internal const string UnexpectedError = "unexpected_error";
+
+    /// <summary>A line a handler asked the page to show, with the level it asked for.</summary>
+    internal const string Log = "log";
 }
 
 /// <summary>
@@ -165,6 +168,28 @@ internal static class QueueMessages
         ["msg"] = QueueMessageKinds.Progress,
         ["event_id"] = eventId,
         ["progress_data"] = units,
+    };
+
+    /// <summary>One line a handler asked the page to show.</summary>
+    /// <param name="eventId">The event the line came from.</param>
+    /// <param name="level">What kind of line it is: <c>info</c>, <c>warning</c>, <c>error</c> or
+    /// <c>success</c>.</param>
+    /// <param name="message">The text.</param>
+    /// <param name="duration">How long the page shows it, in seconds, or <see langword="null"/> for
+    /// the page's own default.</param>
+    /// <returns>The message.</returns>
+    /// <remarks>
+    /// This is the Python version's <c>LogMessage</c>, and the shape is the frontend's rather than
+    /// this framework's: the page reads the whole message as the data of a <c>log</c> entry, so the
+    /// three fields it draws from are the three named here.
+    /// </remarks>
+    internal static JsonObject Log(string eventId, string level, string message, double? duration) => new()
+    {
+        ["msg"] = QueueMessageKinds.Log,
+        ["event_id"] = eventId,
+        ["log"] = level,
+        ["message"] = message,
+        ["duration"] = duration,
     };
 
     /// <summary>A message with no event behind it, sent so a silent connection stays alive.</summary>

@@ -69,7 +69,6 @@ internal sealed class GradioQueue : IAsyncDisposable
     private readonly GradioMetrics? _metrics;
     private readonly ILogger<GradioQueue> _logger;
     private readonly Action<ILogger, string, Exception?> _logValidatorFailed;
-    private readonly Action<ILogger, string, string, string, Exception?> _logChainRefused;
     private readonly Action<ILogger, string, Exception?> _logRunFailed;
     private readonly Action<ILogger, string, Exception?> _logUnloadFailed;
 
@@ -177,11 +176,6 @@ internal sealed class GradioQueue : IAsyncDisposable
             LogLevel.Warning,
             new EventId(1, "GradioQueueValidatorFailed"),
             "A validator for '{ApiName}' threw; the input is refused.");
-
-        _logChainRefused = LoggerMessage.Define<string, string, string>(
-            LogLevel.Warning,
-            new EventId(4, "GradioChainRefused"),
-            "A step chained after '{ApiName}' was not admitted ({State}): {Detail}.");
 
         _logRunFailed = LoggerMessage.Define<string>(
             LogLevel.Error,
@@ -1191,7 +1185,6 @@ internal sealed class GradioQueue : IAsyncDisposable
         var awake = new List<QueueEvent>();
         RequestTrace? trace = null;
         RunOutput? response = null;
-        var chained = false;
 
         // A handler's `gr.Info(...)` reaches the page through the run's own session, so the
         // destination is set here — before anything the run awaits — rather than inside the call
@@ -1287,12 +1280,6 @@ internal sealed class GradioQueue : IAsyncDisposable
                 failed = failure;
                 response = null;
 
-                if (!chained)
-                {
-                    chained = true;
-                    Chain(dependency, scheduled, null);
-                }
-
                 foreach (var queued in awake)
                 {
                     Send(queued, Completed(queued, ErrorPayload(failure), success: false, title: "Error"));
@@ -1338,12 +1325,6 @@ internal sealed class GradioQueue : IAsyncDisposable
                         Failed(dependency, failure);
                         failed = failure;
                         response = null;
-
-                        if (!chained)
-                        {
-                            chained = true;
-                            Chain(dependency, scheduled, null);
-                        }
                     }
                 }
 
@@ -1367,15 +1348,6 @@ internal sealed class GradioQueue : IAsyncDisposable
             }
             else if (response is not null)
             {
-                // Before the completion goes out, because the completion is what lets the client's
-                // stream close: a step admitted after it would be admitted to a session nobody is
-                // reading any more.
-                if (!chained)
-                {
-                    chained = true;
-                    Chain(dependency, scheduled, response);
-                }
-
                 for (var index = 0; index < awake.Count; index++)
                 {
                     Send(awake[index], Completed(
@@ -1421,137 +1393,6 @@ internal sealed class GradioQueue : IAsyncDisposable
 
             Release(scheduled, dependency, beginTime);
         }
-    }
-
-    /// <summary>Admits the steps that follow a run, whether it produced anything or not.</summary>
-    /// <param name="dependency">The binding that just ran.</param>
-    /// <param name="scheduled">The events the run belonged to, whose session the steps join.</param>
-    /// <param name="response">What the run produced, or <see langword="null"/> when it failed.</param>
-    /// <remarks>
-    /// <para>
-    /// This is what makes <c>dep.Then(...)</c> a chain rather than a description of one: every step
-    /// whose <c>trigger_after</c> is this binding's id is admitted to the same session once this
-    /// binding is done.
-    /// </para>
-    /// <para>
-    /// What a step is handed is its own declared inputs, read from the session — which is what the
-    /// Python version does, and what lets a step read a component the step before it never wrote.
-    /// The one case read from the run instead is the common one: a step whose inputs are exactly
-    /// this binding's outputs takes the values the run just produced, because the session may not
-    /// have been told about them yet at this point.
-    /// </para>
-    /// <para>
-    /// A failed run chains too, and only to the steps that asked for failures. Those read their
-    /// inputs from the session, because there is no output to hand on.
-    /// </para>
-    /// </remarks>
-    private void Chain(Dependency dependency, List<QueueEvent> scheduled, RunOutput? response)
-    {
-        if (scheduled.Count == 0 || response is { IsGenerating: true })
-        {
-            return;
-        }
-
-        var origin = scheduled[0];
-        var succeeded = response is not null;
-        var dependencies = _blocks.Dependencies;
-        var state = SessionStateFor(origin.SessionHash);
-
-        for (var index = 0; index < dependencies.Count; index++)
-        {
-            var step = dependencies[index];
-
-            if (step.TriggerAfter != dependency.Id
-                || !step.BackendFunction
-                || (step.TriggerOnlyOnSuccess && !succeeded)
-                || (step.TriggerOnlyOnFailure && succeeded))
-            {
-                continue;
-            }
-
-            if (DataFor(step, dependency, response, state, origin.Body.Data) is not { } data)
-            {
-                continue;
-            }
-
-            var body = new PredictBody
-            {
-                SessionHash = origin.SessionHash,
-                FnIndex = index,
-                Data = data,
-            };
-
-            var username = origin.Username;
-
-            // Fire and forget: this call is inside the loop that reads the queue, and awaiting a
-            // push would be waiting for the reader to come back round to us. Nothing awaits the
-            // task, so a step the queue refused would otherwise leave no trace — the chain would
-            // simply stop, and the page would wait for a run nobody admitted.
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    var pushed = await PushAsync(body, username).ConfigureAwait(false);
-
-                    if (!pushed.Success)
-                    {
-                        _logChainRefused(_logger, step.ApiName, pushed.State, pushed.Detail, null);
-                    }
-                }
-                catch (Exception error)
-                {
-                    _logChainRefused(_logger, step.ApiName, "threw", error.Message, error);
-                }
-            });
-        }
-    }
-
-    /// <summary>The values a step is handed.</summary>
-    /// <param name="step">The step about to be admitted.</param>
-    /// <param name="dependency">The binding that just ran.</param>
-    /// <param name="response">What it produced, or <see langword="null"/> when it failed.</param>
-    /// <param name="state">The session's values.</param>
-    /// <param name="submitted">The values the run was given.</param>
-    /// <returns>The values, or <see langword="null"/> when they cannot be assembled — a step that
-    /// reads a component this session has never held is skipped rather than run against
-    /// nothing.</returns>
-    private static JsonArray? DataFor(
-        Dependency step,
-        Dependency dependency,
-        RunOutput? response,
-        SessionState? state,
-        JsonArray submitted)
-    {
-        if (step.Inputs.Count == 0)
-        {
-            return response is null ? [] : (JsonArray)response.Data.DeepClone();
-        }
-
-        if (response is not null && step.Inputs.SequenceEqual(dependency.Outputs))
-        {
-            return (JsonArray)response.Data.DeepClone();
-        }
-
-        // A step that reads what the run was given reads it from the request: the session is not
-        // where a run's own inputs are kept, and after a failure there is nothing else to go on.
-        if (step.Inputs.SequenceEqual(dependency.Inputs) && step.Inputs.Count == submitted.Count)
-        {
-            return (JsonArray)submitted.DeepClone();
-        }
-
-        var data = new JsonArray();
-
-        foreach (var input in step.Inputs)
-        {
-            if (state is null || !state.TryGet(input.Id, out var value))
-            {
-                return null;
-            }
-
-            data.Add(value?.DeepClone());
-        }
-
-        return data;
     }
 
     /// <summary>

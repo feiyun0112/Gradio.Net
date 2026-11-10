@@ -342,6 +342,72 @@ public sealed class BrowserEndToEndTests
     }
 
     /// <summary>
+    /// A step chained onto a click runs by itself, once, and reads the components it named rather
+    /// than the ones the step before it wrote.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This is the claim <c>then</c> makes: the second step needs no signal of its own, and the
+    /// values it is handed are its own <c>inputs</c>. Both are the frontend's doing — the client
+    /// dispatches a step whose <c>trigger_after</c> names the step that just finished, and the
+    /// client reads that step's inputs out of the page. A server that ran the same chain as well
+    /// would make the step run twice, which is what the handler's count makes observable.
+    /// </para>
+    /// <para>
+    /// The first step reads the field a person types into and writes the second; the chained step
+    /// reads a third field nobody typed into and writes a fourth. A chain that handed the first
+    /// step's output on would answer <c>HELLO:1</c> rather than <c>seed:1</c>.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public async Task A_step_chained_after_a_click_runs_once_and_reads_its_own_inputs()
+    {
+        var example = new ChainExample();
+
+        await using var host = await GradioTestHost.StartStandaloneAsync(
+            logs: null,
+            TestContext.Current.CancellationToken,
+            example.Build);
+
+        var playwright = await CreateAsync();
+        Assert.SkipUnless(
+            playwright is not null,
+            "no browser driver could be started here, so the page cannot be loaded.");
+
+        using var driver = playwright!;
+
+        var browser = await LaunchAsync(driver);
+        Assert.SkipUnless(
+            browser is not null,
+            $"no browser to drive: neither '{string.Join("' nor '", _channels)}' is installed, so the "
+            + "page cannot be loaded here.");
+
+        await using var running = browser!;
+        var page = await running.NewPageAsync();
+        page.SetDefaultTimeout(20_000);
+
+        var failures = PageFailures.Watch(page);
+
+        await page.GotoAsync(host.BaseAddress.ToString());
+
+        var fields = page.Locator("textarea, input");
+        await fields.First.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        Assert.Equal(4, await fields.CountAsync());
+
+        await fields.First.FillAsync(ChainExample.Typed);
+        await page.Locator("button.submit-button").First.ClickAsync();
+
+        await page.WaitForFunctionAsync(
+            $"() => [...document.querySelectorAll('textarea, input')][3]?.value === '{ChainExample.Chained}'");
+
+        Assert.Equal(ChainExample.Answered, await fields.Nth(1).InputValueAsync());
+        Assert.Equal(ChainExample.Seed, await fields.Nth(2).InputValueAsync());
+        Assert.Equal(ChainExample.Chained, await fields.Nth(3).InputValueAsync());
+
+        Assert.Empty(failures.Entries);
+    }
+
+    /// <summary>
     /// A streamed answer is visible while it is being written: the chat shows the first piece
     /// before the server has produced the second.
     /// </summary>

@@ -1,5 +1,18 @@
 # Gradio.Net
 
+## 0.6.30.3
+
+### Bug Fixes
+
+* A step chained with `Then`, `Success` or `Failure` runs once. The queue admitted the steps that
+  follow a binding as well as the frontend did, so a step whose inputs were the binding's outputs
+  ran twice: the second run overwrote the first, and a handler that counts its calls saw two. The
+  chain belongs to the frontend, as it does in the Python version — the client dispatches a step
+  whose `trigger_after` names the binding that just finished, and reads that step's own `inputs`
+  from the page, which is also what lets a step read a component the step before it never wrote.
+  A step that read such a component was skipped by the queue and never reached the server at all,
+  so the two halves disagreed about which steps existed as well as about how often they ran.
+
 ## 0.6.30.2
 
 ### Features

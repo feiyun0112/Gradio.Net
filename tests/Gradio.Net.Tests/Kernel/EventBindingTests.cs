@@ -255,6 +255,102 @@ public sealed class EventBindingTests
     }
 
     [Fact]
+    public void A_chained_step_reads_and_writes_the_components_it_names()
+    {
+        using var page = Page();
+        var seed = page.Add(new Textbox { Label = "Seed" });
+        var other = page.Add(new Textbox { Label = "Other" });
+
+        var first = page.Input.Submit(Handler, [page.Input], [page.Output]);
+        var step = first.Then((Delegate)Handler, [seed, page.Output], [other]);
+
+        // A step is handed its own declared inputs, not the outputs of the step before it: that is
+        // what lets it read a component the first step never wrote, and what the frontend does when
+        // it gathers the values out of the page before dispatching the step.
+        var chained = Entry(page.Blocks, step);
+
+        Assert.Equal([seed.Id, page.Output.Id], Ids(chained["inputs"]!));
+        Assert.Equal([other.Id], Ids(chained["outputs"]!));
+        Assert.Equal(first.Id, chained["trigger_after"]!.GetValue<int>());
+    }
+
+    [Fact]
+    public void A_chained_step_is_served_the_way_the_frontend_dispatches_it()
+    {
+        using var page = Page();
+
+        var first = page.Input.Submit(Handler, [page.Input], [page.Output]);
+        var step = first.Then((Delegate)Handler, [page.Input], [page.Output]);
+
+        var chained = Entry(page.Blocks, step);
+
+        // The client finds the step by the pair [null, "then"] and by the id it follows; without
+        // both it is a binding nothing raises, which is what "described but never run" looked like.
+        Assert.Null(chained["targets"]![0]![0]);
+        Assert.Equal("then", chained["targets"]![0]![1]!.GetValue<string>());
+        Assert.Equal(first.Id, chained["trigger_after"]!.GetValue<int>());
+
+        // The rest are the defaults the Python version gives a step it chains: a backend binding
+        // that queues, runs once, and speaks SSE — none of them inherited from the step before it.
+        Assert.True(chained["backend_fn"]!.GetValue<bool>());
+        Assert.True(chained["queue"]!.GetValue<bool>());
+        Assert.Equal("once", chained["trigger_mode"]!.GetValue<string>());
+        Assert.Equal("sse", chained["connection"]!.GetValue<string>());
+        Assert.Equal("full", chained["show_progress"]!.GetValue<string>());
+        Assert.Null(chained["show_progress_on"]);
+        Assert.Equal("public", chained["api_visibility"]!.GetValue<string>());
+        Assert.Equal(0.5, chained["stream_every"]!.GetValue<double>());
+        Assert.False(chained["batch"]!.GetValue<bool>());
+        Assert.Equal(4, chained["max_batch_size"]!.GetValue<int>());
+        Assert.False(chained["scroll_to_output"]!.GetValue<bool>());
+        Assert.False(chained["collects_event_data"]!.GetValue<bool>());
+        Assert.Null(chained["js"]);
+        Assert.Null(chained["time_limit"]);
+        Assert.Empty(chained["cancels"]!.AsArray());
+        Assert.Empty(chained["component_prop_inputs"]!.AsArray());
+        Assert.False(chained["types"]!["generator"]!.GetValue<bool>());
+        Assert.False(chained["types"]!["cancel"]!.GetValue<bool>());
+
+        // A chained step reports no event-specific argument list: the Python version passes None
+        // when it binds one, and only a merged set of signals reports a list.
+        Assert.Null(chained["event_specific_args"]);
+    }
+
+    [Fact]
+    public void A_step_chained_onto_a_step_follows_that_step()
+    {
+        using var page = Page();
+
+        var first = page.Input.Submit(Handler, [page.Input], [page.Output]);
+        var second = first.Then((Delegate)Handler, [page.Input], [page.Output]);
+        var third = second.Then((Delegate)Handler, [page.Input], [page.Output]);
+
+        // Each step follows the one it was chained onto, so a chain is a walk of trigger_after
+        // rather than a fan-out from the signal that started it.
+        Assert.Equal(first.Id, Entry(page.Blocks, second)["trigger_after"]!.GetValue<int>());
+        Assert.Equal(second.Id, Entry(page.Blocks, third)["trigger_after"]!.GetValue<int>());
+    }
+
+    [Fact]
+    public void A_step_with_no_handler_is_private_and_queues_nothing()
+    {
+        using var page = Page();
+
+        var first = page.Input.Submit(Handler, [page.Input], [page.Output]);
+        var step = first.Then(fn: null, inputs: [], outputs: []);
+
+        var chained = Entry(page.Blocks, step);
+
+        // A step that only passes values on is a step the frontend runs; the Python version names
+        // it "unnamed" and keeps it out of the API for the same reason.
+        Assert.False(chained["backend_fn"]!.GetValue<bool>());
+        Assert.False(chained["queue"]!.GetValue<bool>());
+        Assert.Equal("unnamed", chained["api_name"]!.GetValue<string>());
+        Assert.Equal("private", chained["api_visibility"]!.GetValue<string>());
+        Assert.Equal(first.Id, chained["trigger_after"]!.GetValue<int>());
+    }
+
+    [Fact]
     public void Cancelling_another_binding_registers_a_private_binding_for_it()
     {
         using var page = Page();

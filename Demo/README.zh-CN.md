@@ -51,5 +51,6 @@ demo.Launch(serverPort: 7861);
 
 ## .NET 版本
 
-示例面向 `net10.0`，也就是本仓库构建用的 SDK。包本身面向 `net8.0`、`net9.0` 和 `net10.0`，
-所以要在更老的 SDK 上跑示例，把它 `.csproj` 里的 `TargetFramework` 改成那个版本即可。
+示例面向 `net10.0`，也就是测试运行时用的版本。包本身面向 `net8.0`、`net9.0`、`net10.0` 和 `net11.0`，
+编译全部目标框架需要 .NET 11 SDK，CI 会把它和 10 SDK 一起装上；要在更老的 SDK 上跑示例，
+把它 `.csproj` 里的 `TargetFramework` 改成那个版本即可。

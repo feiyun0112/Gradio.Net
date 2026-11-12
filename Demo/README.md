@@ -55,6 +55,7 @@ demo.Launch(serverPort: 7861);
 
 ## The .NET version
 
-The demos target `net10.0`, the SDK this repository builds with. The package itself targets `net8.0`,
-`net9.0` and `net10.0`, so running a demo on an older SDK is the `TargetFramework` line in its
-`.csproj` changed to that version.
+The demos target `net10.0`, the runtime the test suite runs on. The package itself targets `net8.0`,
+`net9.0`, `net10.0` and `net11.0`; building all of them needs the .NET 11 SDK, which CI installs
+beside the 10 SDK. To run a demo on an older SDK, change the `TargetFramework` line in its `.csproj`
+to that version.

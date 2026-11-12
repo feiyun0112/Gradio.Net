@@ -1,5 +1,32 @@
 # Gradio.Net
 
+## 0.6.30.4
+
+### Features
+
+* The package also targets `net11.0`, alongside `net8.0`, `net9.0` and `net10.0`. The framework
+  list lives in `src/Gradio.Net/Gradio.Net.csproj`; the demos and the test suite keep targeting
+  `net10.0`, which is the runtime the test host runs on. CI installs the 11 SDK beside the 10 one,
+  because a `net11.0` target cannot be built by an older SDK. The new target also needed one
+  documentation fix: .NET 11 adds an overload of `CryptographicOperations.FixedTimeEquals`, so the
+  `cref` in `GradioAuth`'s remarks became ambiguous — and warnings are errors in this repository.
+
+### Bug Fixes
+
+* Clicking a row of an example gallery fills every input with its own value. The gallery itself
+  was right — the config carried both columns and both rows — but the click answered with the whole
+  row of updates as a single value, so the first field showed `[object Object],[object Object]`,
+  every other field was cleared and the result was left alone. In the Python version
+  `Examples.create()` returns the list of `gr.update` payloads and `Blocks.postprocess_data` reads
+  `predictions[i]` as the value for `outputs[i]`; in this port a plain `JsonArray` is a value, not a
+  result shape, and `EventValues` is the type the queue spreads across outputs. The gallery's
+  handlers now answer with that type, and their outputs are the inputs that have examples, which
+  is the Python version's `inputs_with_examples` rather than the narrower set of columns the table
+  draws. `_UNCHANGED` also survives postprocessing now, so a column the gallery did not draw keeps
+  what the user typed instead of being cleared. Two regressions hold it: the click's endpoint answers
+  one update per input, and a real browser click on the second row fills both fields — the single
+  input case is kept beside it so the two shapes cannot trade places.
+
 ## 0.6.30.3
 
 ### Bug Fixes

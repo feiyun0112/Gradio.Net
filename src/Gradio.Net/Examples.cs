@@ -39,6 +39,7 @@ public sealed class Examples
 
     private readonly Blocks _blocks;
     private readonly IReadOnlyList<Component> _inputs;
+    private readonly IReadOnlyList<Component> _inputsWithExamples;
     private readonly IReadOnlyList<Component> _outputs;
     private readonly Delegate? _fn;
     private readonly List<object?[]> _examples;
@@ -157,6 +158,11 @@ public sealed class Examples
                 }
             }
         }
+
+        // The Python version's `inputs_with_examples`: the click's outputs and the values its handler
+        // builds are both this list, so a column with no sample value is not an output the click has
+        // to fill. The gallery's visible columns are a separate, narrower list — what the table draws.
+        _inputsWithExamples = [.. _inputs.Where((_, index) => _hasExamples[index])];
 
         _nonNoneExamples = [.. _examples.Select(row => Keep(row, _hasExamples))];
 
@@ -337,7 +343,7 @@ public sealed class Examples
         var click = Dataset.Click(
             (Func<object?, object?>)LoadExample,
             [_datasetInput()],
-            [.. _visibleInputs],
+            [.. _inputsWithExamples],
             queue: false, postprocess: false, showProgress: ProgressDisplay.Hidden, apiName: ApiName, apiDescription: ApiDescription, apiVisibility: ApiVisibility);
 
         LoadInputEvent = click;
@@ -353,7 +359,7 @@ public sealed class Examples
     /// <summary>Fills the fields from a sample, when the answer is cached.</summary>
     /// <param name="value">The gallery's value: the sample's position and its values.</param>
     /// <returns>One update per input, in the order the inputs are in.</returns>
-    private JsonNode? LoadExampleInput(object? value)
+    private object? LoadExampleInput(object? value)
     {
         var sample = SampleOf(value);
         var processed = ProcessedExample(sample);
@@ -361,10 +367,10 @@ public sealed class Examples
 
         foreach (var entry in processed)
         {
-            updates.Add(ReferenceEquals(entry, _unchanged) ? Update() : entry?.DeepClone());
+            updates.Add(ReferenceEquals(entry, _unchanged) ? Update() : (entry as JsonNode)?.DeepClone());
         }
 
-        return Single(updates);
+        return Values(updates);
     }
 
     /// <summary>Shows the answer to a sample, working it out first when it is not cached yet.</summary>
@@ -374,13 +380,13 @@ public sealed class Examples
     {
         var sample = ExampleValueOf(value);
 
-        return Single(await LoadFromCacheAsync(sample).ConfigureAwait(false) as JsonArray ?? []);
+        return Values(await LoadFromCacheAsync(sample).ConfigureAwait(false) as JsonArray ?? []);
     }
 
     /// <summary>Fills the fields from a sample, when nothing is cached.</summary>
     /// <param name="value">The gallery's value.</param>
-    /// <returns>One update per visible input.</returns>
-    private JsonNode? LoadExample(object? value)
+    /// <returns>One update per input that has examples, in the inputs' order.</returns>
+    private object? LoadExample(object? value)
     {
         var sample = SampleOf(value);
         var processed = ProcessedExample(sample);
@@ -388,20 +394,20 @@ public sealed class Examples
 
         foreach (var (entry, position) in processed.Select((entry, position) => (entry, position)))
         {
-            var component = _visibleInputs[position];
+            var component = _inputsWithExamples[position];
             var props = component.AllProps();
             props.Remove("value");
 
             if (!ReferenceEquals(entry, _unchanged))
             {
-                props["value"] = entry?.DeepClone();
+                props["value"] = (entry as JsonNode)?.DeepClone();
             }
 
             props["__type__"] = "update";
             updates.Add(props);
         }
 
-        return Single(updates);
+        return Values(updates);
     }
 
     /// <summary>Binds the load that fills the fields with one sample when the page opens.</summary>
@@ -591,16 +597,19 @@ public sealed class Examples
     /// <summary>A sample's values, postprocessed by the components that draw them.</summary>
     /// <param name="sample">The sample's values, in the order the inputs with examples are in.</param>
     /// <returns>One value per input with examples, with <see cref="_unchanged"/> kept as it is.</returns>
-    private JsonNode?[] ProcessedExample(object?[] sample)
+    private object?[] ProcessedExample(object?[] sample)
     {
-        var inputs = _inputs.Where((_, index) => _hasExamples[index]).ToArray();
-        var processed = new JsonNode?[inputs.Length];
+        var inputs = _inputsWithExamples;
+        var processed = new object?[inputs.Count];
 
-        for (var index = 0; index < inputs.Length; index++)
+        for (var index = 0; index < inputs.Count; index++)
         {
+            // The Python version's `_get_processed_example` keeps `_UNCHANGED` in the list: a column
+            // the gallery did not draw is one the click leaves alone, not one it empties. Postprocessing
+            // it would turn the marker into a value, and losing the difference clears the field.
             if (index >= sample.Length || ReferenceEquals(sample[index], _unchanged))
             {
-                processed[index] = null;
+                processed[index] = _unchanged;
                 continue;
             }
 
@@ -619,17 +628,29 @@ public sealed class Examples
     /// </remarks>
     private object?[] SampleOf(object? value) => ExampleValueOfSample(ExampleValueOf(value));
 
-    /// <summary>One value for a binding that has one output, and the list for one that has several.</summary>
-    /// <param name="values">The values.</param>
-    /// <returns>The value itself, or the list.</returns>
+    /// <summary>One value for a binding that has one output, and one per output for one that has several.</summary>
+    /// <param name="values">The values, in the outputs' order.</param>
+    /// <returns>The single value, or a result the queue spreads across the outputs.</returns>
     /// <remarks>
-    /// The Python version's <c>resolve_singleton</c>: a single output is handed one value, not a
-    /// list of one. The value is copied out rather than handed over in place, because a JSON node
-    /// belongs to one parent and this one is about to be given to a run that will put it somewhere
-    /// else.
+    /// <para>
+    /// The Python version's <c>resolve_singleton</c> decides the single-output case: one value is
+    /// handed over as the value, not as a list of one. The multi-output case is decided elsewhere —
+    /// <c>Blocks.postprocess_data</c> leaves a returned list unwrapped and reads <c>predictions[i]</c>
+    /// as the value for <c>outputs[i]</c>, which is how a row of samples becomes one field per column.
+    /// </para>
+    /// <para>
+    /// A plain <see cref="JsonArray"/> is a value in this port: a handler may answer with one. The
+    /// spelling for "these are the values" is <see cref="EventValues"/>, the type the queue spreads.
+    /// Returning the array itself made the whole row the first output's value — the browser showed it
+    /// as <c>[object Object],[object Object]</c> — and left every other output cleared. The nodes are
+    /// copied out because a JSON node belongs to one parent and each of these is about to be given
+    /// to a run that puts it in a different place.
+    /// </para>
     /// </remarks>
-    private static JsonNode Single(JsonArray values) =>
-        values.Count == 1 ? values[0]!.DeepClone() : values;
+    private static object? Values(JsonArray values) =>
+        values.Count == 1
+            ? values[0]?.DeepClone()
+            : EventValues.Of([.. values.Select(value => (object?)value?.DeepClone())]);
 
     /// <summary>An update that changes nothing, which is what a hidden column sends.</summary>
     /// <returns>The update.</returns>

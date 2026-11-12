@@ -13,7 +13,7 @@ namespace Gradio.Net;
 /// or not, not protected three different ways.
 /// </para>
 /// <para>
-/// A password is compared in constant time (<see cref="CryptographicOperations.FixedTimeEquals"/>),
+/// A password is compared in constant time (<c>CryptographicOperations.FixedTimeEquals</c>),
 /// which is what the Python version's <c>compare_passwords_securely</c> does: a comparison that
 /// returns early on the first differing byte tells an attacker how much of a guess was right.
 /// </para>

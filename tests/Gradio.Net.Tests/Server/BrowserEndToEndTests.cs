@@ -63,6 +63,71 @@ public sealed class BrowserEndToEndTests
     }
 
     /// <summary>
+    /// Clicking a row of the example gallery fills every input with that row's own cell.
+    /// </summary>
+    /// <remarks>
+    /// The table renders correctly from the config even when the click is broken, so the only place
+    /// the two halves of the feature meet is a real browser: the row is clicked, the click's answer
+    /// is written into the fields, and neither field may hold the other field's value.
+    /// </remarks>
+    [Fact]
+    public async Task Clicking_an_example_row_fills_every_input_in_the_browser()
+    {
+        await using var host = await GradioTestHost.StartStandaloneAsync(
+            logs: null,
+            TestContext.Current.CancellationToken,
+            blocks => _ = new Interface(
+                blocks,
+                (Func<string, string, string>)((text, separator) => text.Replace(
+                    separator, "\n", StringComparison.Ordinal)),
+                [new Textbox { Label = "Text" }, new Textbox { Label = "Separator" }],
+                [new Textbox { Label = "Result" }],
+                examples: new object?[]
+                {
+                    new object?[] { "a,b,c", "," },
+                    new object?[] { "a;b;c", ";" },
+                },
+                preloadExample: null));
+
+        var playwright = await CreateAsync();
+        Assert.SkipUnless(
+            playwright is not null,
+            "no browser driver could be started here, so the page cannot be loaded.");
+
+        using var driver = playwright!;
+
+        var browser = await LaunchAsync(driver);
+        Assert.SkipUnless(
+            browser is not null,
+            $"no browser to drive: neither '{string.Join("' nor '", _channels)}' is installed, so the "
+            + "page cannot be loaded here.");
+
+        await using var running = browser!;
+        var page = await running.NewPageAsync();
+        page.SetDefaultTimeout(20_000);
+
+        var failures = PageFailures.Watch(page);
+
+        await page.GotoAsync(host.BaseAddress.ToString());
+
+        var text = page.Locator("textarea, input").Nth(0);
+        var separator = page.Locator("textarea, input").Nth(1);
+        await text.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+
+        // The second row of the gallery is the semicolon sample. Any cell of a row picks that row.
+        var rows = page.Locator("table tbody tr");
+        await rows.Last.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        await rows.Last.Locator("td").First.ClickAsync();
+
+        await page.WaitForFunctionAsync(
+            "() => document.querySelectorAll('textarea, input')[1]?.value === ';'");
+
+        Assert.Equal("a;b;c", await text.InputValueAsync());
+        Assert.Equal(";", await separator.InputValueAsync());
+        Assert.Empty(failures.Entries);
+    }
+
+    /// <summary>
     /// The smallest application there is — one field, nothing bound to it — loads and takes typing.
     /// </summary>
     /// <remarks>

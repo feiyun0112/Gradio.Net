@@ -110,6 +110,35 @@ public sealed class InputFamilyTests
     }
 
     [Fact]
+    public void Both_multi_select_components_hand_a_handler_the_same_container()
+    {
+        var dropdown = new Dropdown
+        {
+            Choices = [new Choice("a"), new Choice("b")],
+            Multiselect = true,
+        };
+        var group = new CheckboxGroup
+        {
+            Choices = [new Choice("a"), new Choice("b")],
+        };
+        var sent = new JsonArray("a", "b");
+
+        var fromDropdown = dropdown.Preprocess(sent);
+        var fromGroup = group.Preprocess(sent);
+
+        // Both answer with an array, so a handler that reads the value through `object` can use the
+        // same cast for either component. The declared container is converted at the call instead.
+        Assert.IsType<object[]>(fromDropdown);
+        Assert.IsType<object[]>(fromGroup);
+        Assert.Equal(["a", "b"], Assert.IsAssignableFrom<IReadOnlyList<object?>>(fromDropdown));
+        Assert.Equal(["a", "b"], Assert.IsAssignableFrom<IReadOnlyList<object?>>(fromGroup));
+
+        // `index` changes what the entries say, not the container they arrive in.
+        group.Type = "index";
+        Assert.IsType<object[]>(group.Preprocess(sent));
+    }
+
+    [Fact]
     public void A_checkbox_group_reports_positions_when_it_says_index()
     {
         var group = new CheckboxGroup

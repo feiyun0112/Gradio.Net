@@ -124,7 +124,8 @@ public static partial class gr
     /// submit button, or <see langword="null"/> for the Python version's.</param>
     /// <param name="stopBtn">The stop button, or <see langword="null"/> for the Python
     /// version's.</param> <param name="clearBtn">The clear button, or <see langword="null"/> for
-    /// the Python version's.</param> <param name="deleteCache">How often the application's
+    /// the Python version's. <see cref="ButtonSpec.None"/> draws it hidden, the way the Python
+    /// version's <c>clear_btn=None</c> does.</param> <param name="deleteCache">How often the application's
     /// temporary files are cleaned, or <see langword="null"/> for never.</param>
     /// <param name="showProgress">How much of the progress animation a run shows.</param>
     /// <param name="fillWidth">Whether the page fills the width of the window.</param>

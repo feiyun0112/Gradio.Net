@@ -15,6 +15,12 @@ namespace Gradio.Net;
 /// the Python version's, and it changes what <see cref="Preprocess"/> answers rather than what the
 /// config says: the frontend always sends values, and the conversion happens on the way in.
 /// </para>
+/// <para>
+/// What a handler receives is a list of <see cref="object"/> entries, in an array as it is for a
+/// multiple dropdown: two components that both answer with a selection should not ask an application
+/// for two different container types. A handler may still declare that list as a
+/// <see cref="List{T}"/>; the run converts to the declared container before the call.
+/// </para>
 /// </remarks>
 [GradioBlock("checkboxgroup")]
 [HandlerValue("IReadOnlyList<object?>", "change", "input")]
@@ -122,7 +128,7 @@ public sealed partial class CheckboxGroup : FormComponent
         }
 
         return Type == "value"
-            ? ticked
+            ? ticked.ToArray()
             : ticked.Select(entry => (object?)Choice.IndexOf(Choices, entry)).ToArray();
     }
 

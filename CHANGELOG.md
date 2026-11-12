@@ -1,5 +1,34 @@
 # Gradio.Net
 
+## 0.6.30.5
+
+### Bug Fixes
+
+* A handler may declare a multi-select value as `object[]` or `List<object>`, on either component
+  that produces one. `Dropdown.Preprocess` reads a `JsonArray` through `JsonValues.ToObject`, which
+  answers `object[]`; `CheckboxGroup.Preprocess` built a `List<object?>` while it checked the
+  choices and answered that list for `Type = "value"`, while its `Type = "index"` branch already
+  answered an array. `Delegate.DynamicInvoke` accepts an argument only when it is an instance of the
+  declared parameter type, so a `List<object>` handler on a multiple dropdown and an `object[]`
+  handler on a checkbox group were never called — the run answered "Error" instead. The checkbox
+  group now answers an array in both branches, and the run builds the concrete container a handler
+  declared from the list the component produced before the call. The list interfaces need no
+  conversion, because both containers implement `IReadOnlyList<object?>`, which is what the typed
+  `CheckboxGroup.Change` handler takes. Numbers are converted as before; the entries of a list are
+  not, so a handler declaring `List<string>` still reports the mismatch rather than silently
+  receiving objects. A handler that declares `object` and casts a checkbox group's value to
+  `List<object>` now reads an array; declaring the container is what the conversion supports.
+  Four end-to-end runs hold the two components against the two declarations, one holds the typed
+  checkbox group path, and a kernel test holds both components to the same container.
+
+### Documentation
+
+* The `clearBtn` remarks on `Interface`, `gr.Interface` and `ButtonSpec.None` said `null` hides the
+  clear button. `null` is the omitted argument and draws the default "Clear" button;
+  `ButtonSpec.None` spells the Python version's `clear_btn=None`, which draws the same button hidden
+  with its two bindings still attached. `InterfaceTests` now compares the hidden button's props and
+  bindings with the drawn one.
+
 ## 0.6.30.4
 
 ### Features

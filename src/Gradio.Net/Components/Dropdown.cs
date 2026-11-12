@@ -18,6 +18,11 @@ namespace Gradio.Net;
 /// application sets is read as a list of one. <see cref="AllowCustomValue"/> changes what is
 /// accepted: with it, a value that is not on the list is the user's answer rather than an error.
 /// </para>
+/// <para>
+/// A multiple dropdown's <see cref="Preprocess"/> answers with an array of objects, the same
+/// container a checkbox group uses. A handler may declare that list as an array or as a
+/// <see cref="List{T}"/>; the run converts to the declared container before the call.
+/// </para>
 /// </remarks>
 [GradioBlock("dropdown")]
 [HandlerValue("object?", "change", "input", "focus", "blur")]

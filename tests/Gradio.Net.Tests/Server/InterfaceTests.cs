@@ -618,6 +618,61 @@ public sealed class InterfaceTests : IDisposable
     }
 
     /// <summary>
+    /// A clear button given none is drawn hidden, which is what the Python version's
+    /// <c>clear_btn=None</c> does.
+    /// </summary>
+    /// <remarks>
+    /// The Python version does not leave the button out of the tree: it builds one from
+    /// <c>{"visible": False, "variant": "secondary"}</c>, because the bindings that empty the
+    /// fields and reset the input column hang off it either way. The C# signature cannot spell
+    /// that with <see langword="null"/> — an omitted argument is <see langword="null"/> as well,
+    /// and that is the drawn default — so it is <see cref="ButtonSpec.None"/>, and what it draws
+    /// is the same button with the same two bindings, hidden.
+    /// </remarks>
+    [Fact]
+    public async Task A_clear_button_given_none_is_drawn_hidden()
+    {
+        await using var drawn = await GradioTestHost.StartStandaloneAsync(
+            logs: null,
+            TestContext.Current.CancellationToken,
+            blocks => Build(blocks, blocks => new Interface(
+                blocks,
+                (Func<string, string>)(value => value),
+                [new Textbox()],
+                [new Textbox()],
+                flaggingMode: "never")));
+
+        await using var hidden = await GradioTestHost.StartStandaloneAsync(
+            logs: null,
+            TestContext.Current.CancellationToken,
+            blocks => Build(blocks, blocks => new Interface(
+                blocks,
+                (Func<string, string>)(value => value),
+                [new Textbox()],
+                [new Textbox()],
+                flaggingMode: "never",
+                clearBtn: ButtonSpec.None)));
+
+        var shownConfig = await ConfigAsync(drawn);
+        var hiddenConfig = await ConfigAsync(hidden);
+
+        var shown = ClearButtonIn(shownConfig);
+        var hiddenButton = ClearButtonIn(hiddenConfig);
+
+        Assert.True(shown["props"]!["visible"]!.GetValue<bool>());
+
+        // Everything but the visibility is what the drawn one carries: the default label, and the
+        // secondary variant the Python version gives a clear button.
+        Assert.False(hiddenButton["props"]!["visible"]!.GetValue<bool>());
+        Assert.Equal("Clear", hiddenButton["props"]!["value"]!.GetValue<string>());
+        Assert.Equal("secondary", hiddenButton["props"]!["variant"]!.GetValue<string>());
+
+        // And so are its two bindings: the fields it empties, and the input column it resets.
+        Assert.Equal(2, BindingsOf(shownConfig, shown));
+        Assert.Equal(2, BindingsOf(hiddenConfig, hiddenButton));
+    }
+
+    /// <summary>
     /// A side of the interface can be given by name, the way the Python version's shortcuts are
     /// written.
     /// </summary>
@@ -783,6 +838,26 @@ public sealed class InterfaceTests : IDisposable
 
         return JsonNode.Parse(
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken))!.AsObject();
+    }
+
+    /// <summary>The clear button in a served config.</summary>
+    /// <param name="config">The config.</param>
+    /// <returns>The entry for the one button labelled "Clear".</returns>
+    private static JsonNode ClearButtonIn(JsonObject config) =>
+        config["components"]!.AsArray()
+            .Single(component => component!["props"]!["value"]?.GetValue<string>() == "Clear")!;
+
+    /// <summary>How many bindings hang off a component.</summary>
+    /// <param name="config">The config.</param>
+    /// <param name="component">The component, as its entry in that config.</param>
+    /// <returns>The number of dependencies that name it as a target.</returns>
+    private static int BindingsOf(JsonObject config, JsonNode component)
+    {
+        var id = component["id"]!.GetValue<int>();
+
+        return config["dependencies"]!.AsArray()
+            .Count(dependency => dependency!["targets"]!.AsArray()
+                .Any(target => target![0]!.GetValue<int>() == id));
     }
 
     /// <summary>Posts a body to an endpoint.</summary>

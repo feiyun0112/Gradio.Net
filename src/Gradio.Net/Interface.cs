@@ -193,7 +193,9 @@ public sealed class Interface
     /// </param>
     /// <param name="stopBtn">The stop button, as a string or a <see cref="Button"/>.</param>
     /// <param name="clearBtn">
-    /// The clear button, as a string or a <see cref="Button"/>, or <see langword="null"/> to hide it.
+    /// The clear button, as a string or a <see cref="Button"/>. <see langword="null"/> for the
+    /// default, which says "Clear"; <see cref="ButtonSpec.None"/> for the Python version's
+    /// <c>clear_btn=None</c>, which draws it hidden.
     /// </param>
     /// <param name="deleteCache">
     /// How often to reclaim the application's temporary files, and how old a file has to be, or

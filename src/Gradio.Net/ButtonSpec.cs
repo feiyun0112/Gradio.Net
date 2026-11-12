@@ -30,7 +30,8 @@ public readonly struct ButtonSpec
     /// <summary>The interface draws no such button.</summary>
     /// <remarks>
     /// The Python version's <c>None</c>, which only the clear button accepts: an interface always
-    /// has something to submit with, and one that hides its clear button is drawn without it.
+    /// has something to submit with, and one that hides its clear button draws that button hidden
+    /// rather than leaving it out.
     /// </remarks>
     public static ButtonSpec None => new(null, null, none: true);
 

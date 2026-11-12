@@ -53,7 +53,7 @@ internal static class DelegateInvocation
         object? result;
         try
         {
-            result = callable.DynamicInvoke(NumbersAsDeclared(callable, arguments));
+            result = callable.DynamicInvoke(ValuesAsDeclared(callable, arguments));
         }
         catch (TargetInvocationException error) when (error.InnerException is not null)
         {
@@ -76,10 +76,10 @@ internal static class DelegateInvocation
             : null;
     }
 
-    /// <summary>Each argument as the number type the delegate's parameter declares.</summary>
+    /// <summary>Each argument as the type the delegate's parameter declares.</summary>
     /// <param name="callable">The delegate.</param>
     /// <param name="arguments">Its arguments, in the order it declares them.</param>
-    /// <returns>The arguments, with the numbers converted where they have to be.</returns>
+    /// <returns>The arguments, converted where the declaration and the value differ in shape.</returns>
     /// <remarks>
     /// <para>
     /// A component hands over the number its own rule produced — a <c>double</c> from a number
@@ -90,12 +90,22 @@ internal static class DelegateInvocation
     /// first.
     /// </para>
     /// <para>
-    /// Only numbers are converted. A handler that declared a string where a number arrived is a
-    /// mistake worth hearing about, and the call reports it.
+    /// A list of selected values has the same problem in a different shape: the components answer
+    /// with an <c>object[]</c>, and a handler may declare <c>object[]</c>, <c>List&lt;object&gt;</c>
+    /// or one of the list interfaces. <see cref="Delegate.DynamicInvoke"/> accepts an argument only
+    /// when it is an instance of the declared type, so a handler that spells the other concrete
+    /// container would not be called at all. An array and a <see cref="List{T}"/> are the same
+    /// values in a different container, so either is built from what the component produced before
+    /// the call; the interfaces need no conversion because both containers implement them.
+    /// </para>
+    /// <para>
+    /// Only numbers and the container of a list of objects are converted. A handler that declared a
+    /// string where a number arrived, or a list of strings where objects arrived, is a mistake
+    /// worth hearing about, and the call reports it.
     /// </para>
     /// </remarks>
     /// <exception cref="OverflowException">A number does not fit the declared type.</exception>
-    private static object?[] NumbersAsDeclared(Delegate callable, object?[] arguments)
+    private static object?[] ValuesAsDeclared(Delegate callable, object?[] arguments)
     {
         var parameters = ParametersOf(callable);
 
@@ -110,16 +120,41 @@ internal static class DelegateInvocation
             var argument = arguments[index];
             var declared = parameters[index].ParameterType;
 
-            if (argument is null || declared.IsInstanceOfType(argument) || !IsNumber(argument) || !IsNumericType(declared))
+            if (argument is null || declared.IsInstanceOfType(argument))
             {
                 continue;
             }
 
-            arguments[index] = Convert.ChangeType(argument, declared, CultureInfo.InvariantCulture);
+            if (argument is IReadOnlyList<object?> values && IsObjectArray(declared))
+            {
+                arguments[index] = values.ToArray();
+            }
+            else if (argument is IReadOnlyList<object?> listed && IsObjectList(declared))
+            {
+                arguments[index] = new List<object?>(listed);
+            }
+            else if (IsNumber(argument) && IsNumericType(declared))
+            {
+                arguments[index] = Convert.ChangeType(argument, declared, CultureInfo.InvariantCulture);
+            }
         }
 
         return arguments;
     }
+
+    /// <summary>Whether a parameter declares a one-dimensional array of objects.</summary>
+    /// <param name="type">The parameter type.</param>
+    /// <returns>Whether an array of objects has to be built for it.</returns>
+    private static bool IsObjectArray(Type type) =>
+        type.IsArray && type.GetArrayRank() == 1 && type.GetElementType() == typeof(object);
+
+    /// <summary>Whether a parameter declares a list of objects.</summary>
+    /// <param name="type">The parameter type.</param>
+    /// <returns>Whether a list of objects has to be built for it.</returns>
+    private static bool IsObjectList(Type type) =>
+        type.IsGenericType
+        && type.GetGenericTypeDefinition() == typeof(List<>)
+        && type.GetGenericArguments()[0] == typeof(object);
 
     /// <summary>
     /// Whether a parameter is one the framework fills rather than one of a binding's inputs.

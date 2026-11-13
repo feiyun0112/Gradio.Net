@@ -466,15 +466,67 @@ public sealed partial class Blocks
     /// The name of the method behind a delegate.
     /// </summary>
     /// <remarks>
-    /// A compiler-generated method — a lambda, an anonymous method — has a name that is not a legal
-    /// C# identifier, so it is spelled <c>lambda</c>, which is what the Python version spells an
-    /// anonymous handler.
+    /// <para>
+    /// A local function keeps the name it was written under. The compiler turns one into a method
+    /// whose name is not a legal C# identifier — <c>&lt;Main&gt;$g__Summary|0_0</c> for a
+    /// <c>Summary</c> declared in the top-level statements — but the name is still in there, between
+    /// the <c>g__</c> and the <c>|</c>, and that is the name the Python version reads off
+    /// <c>__name__</c> for a function declared inside another one.
+    /// </para>
+    /// <para>
+    /// A lambda or an anonymous method has no such name, so it is spelled <c>lambda</c>, which is
+    /// what the Python version spells an anonymous handler.
+    /// </para>
     /// </remarks>
     private static string FunctionNameOf(Delegate fn)
     {
         var name = fn.Method.Name;
 
-        return name.Length == 0 || name.Contains('<') ? "lambda" : name;
+        if (name.Length == 0)
+        {
+            return "lambda";
+        }
+
+        return LocalFunctionName(name) ?? (name.Contains('<') ? "lambda" : name);
+    }
+
+    /// <summary>
+    /// The name a local function was declared under, read out of the name the compiler gave it.
+    /// </summary>
+    /// <param name="compiled">The name of the method behind the delegate.</param>
+    /// <returns>
+    /// The declared name, or <see langword="null"/> when the method is not a local function.
+    /// </returns>
+    /// <remarks>
+    /// The compiler spells a local function <c>&lt;ContainingMethod&gt;g__Name|N_M</c>, where
+    /// <c>N_M</c> is its ordinal within the containing method. Only that shape is read: a lambda
+    /// (<c>&lt;Main&gt;$b__0_0</c>) has no <c>g__</c>, and a hand-written method never starts with
+    /// <c>&lt;</c>, so both fall through to the caller's own rule.
+    /// </remarks>
+    private static string? LocalFunctionName(string compiled)
+    {
+        if (compiled[0] != '<')
+        {
+            return null;
+        }
+
+        var marker = compiled.IndexOf("g__", StringComparison.Ordinal);
+        if (marker < 0)
+        {
+            return null;
+        }
+
+        var start = marker + 3;
+        var end = compiled.IndexOf('|', start);
+
+        // The declared name is between the marker and the ordinal, and the ordinal is what follows
+        // the bar: digits, then the containing method's own ordinal after an underscore.
+        if (end <= start || end + 1 >= compiled.Length || !char.IsDigit(compiled[end + 1]))
+        {
+            return null;
+        }
+
+        return compiled[start..end];
     }
 
     /// <summary>

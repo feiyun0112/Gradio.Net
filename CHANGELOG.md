@@ -1,5 +1,22 @@
 # Gradio.Net
 
+## 0.6.30.8
+
+### Bug Fixes
+
+* A handler declared as a local function is served under the name it was written under, instead of
+  `lambda`. The compiler renames one — `string Summary(string text) => …` in the top-level
+  statements becomes a method called `<<Main>$>g__Summary|0_0` — and the port read "not a legal
+  identifier" as "no name at all", so every local function became `lambda` and then took a number
+  among the lambdas. The Python version reads `fn.__name__`, which a function declared inside
+  another one keeps, so `gr.Button().click(Summary)` is served as `Summary` there. `Blocks.Events`
+  now reads the declared name out of the compiler's spelling — between the `g__` marker and the
+  `|` that precedes the ordinal — and falls back to `lambda` only for a method the compiler
+  generated with no such marker, which is a lambda or an anonymous method. `ChatInterface` names
+  its own handlers by that same rule instead of by a second copy of it, so a chat handler and a
+  button handler over one method are served under one name. A test holds both halves: the local
+  function keeps its name, the lambda stays `lambda`.
+
 ## 0.6.30.7
 
 ### Bug Fixes

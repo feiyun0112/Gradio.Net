@@ -399,6 +399,27 @@ public sealed class EventBindingTests
     }
 
     [Fact]
+    public void A_local_function_is_named_after_itself()
+    {
+        using var page = Page();
+
+        string Count(string value) => value;
+
+        var bound = page.Input.Change((Delegate)Count, [page.Input], [page.Output]);
+
+        // The compiler renames a local function to something no client could call, but the name it
+        // was written under is still in there, and the Python version serves a function declared
+        // inside another one under that name — `__name__` is the same either way.
+        Assert.Equal("Count", bound.ApiName);
+
+        // A lambda is the case that has no name of its own, and it keeps the spelling the Python
+        // version gives one.
+        var anonymous = page.Input.Change((Delegate)((string value) => value), [page.Input], [page.Output]);
+
+        Assert.Equal("lambda", anonymous.ApiName);
+    }
+
+    [Fact]
     public void A_binding_with_no_handler_and_no_name_is_private()
     {
         using var page = Page();

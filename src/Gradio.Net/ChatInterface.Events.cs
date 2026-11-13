@@ -923,13 +923,12 @@ public sealed partial class ChatInterface
     ];
 
     /// <summary>The name the handler is served under when the application names none.</summary>
-    /// <returns>The handler's method name, or <c>lambda</c> for one the compiler generated.</returns>
-    private string FunctionName()
-    {
-        var name = _fn.Method.Name;
-
-        return name.Length == 0 || name.Contains('<') ? "lambda" : name;
-    }
+    /// <returns>
+    /// The handler's method name, or <c>lambda</c> for one the compiler generated — the same rule
+    /// every other binding derives its name by, so a chat handler and a button handler that share a
+    /// method are served under one name.
+    /// </returns>
+    private string FunctionName() => Blocks.NameOf(_fn);
 
     /// <summary>Calls the application's handler with the values a step produced.</summary>
     /// <param name="values">The message, the conversation, then one value per additional input.</param>

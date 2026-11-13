@@ -37,8 +37,8 @@ internal static class Callouts
     /// <summary>Says something to whoever is listening.</summary>
     /// <param name="level">What kind of line it is.</param>
     /// <param name="message">The text.</param>
-    /// <param name="duration">How long the page shows it, or <see langword="null"/> for its own
-    /// default.</param>
+    /// <param name="duration">How long the page shows it, or <see langword="null"/> for the Python
+    /// version's ten-second default.</param>
     internal static void Post(string level, string message, double? duration) =>
         _sink.Value?.Invoke(level, message, duration);
 

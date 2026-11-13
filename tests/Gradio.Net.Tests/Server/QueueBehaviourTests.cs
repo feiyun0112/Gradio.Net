@@ -71,6 +71,55 @@ public sealed class QueueBehaviourTests
         Assert.Equal(1, probe.Peak);
     }
 
+    /// <summary>
+    /// A callout a handler writes reaches the client in the shape the frontend's handle_log reads.
+    /// </summary>
+    /// <remarks>
+    /// The stream is read the way a browser reads it. A field-by-field comparison of the message
+    /// builder would pass even if the queue stopped sending the message at all, so the sentence and
+    /// the level are asserted here on what a client actually received.
+    /// </remarks>
+    [Fact]
+    public async Task A_callout_written_by_a_handler_reaches_the_client_as_a_log_message()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var host = await GradioTestHost.StartStandaloneAsync(null, cancellationToken, blocks =>
+        {
+            var (input, output) = Textboxes(blocks);
+
+            input.Change(
+                (Func<string, string>)(value =>
+                {
+                    gr.Info("这是一条信息", 8);
+
+                    return value;
+                }),
+                [input],
+                [output],
+                apiName: "callout");
+        });
+
+        using var queue = new QueueClient(host.BaseAddress);
+        var fnIndex = await queue.EndpointAsync("callout", cancellationToken);
+        var eventId = await queue.JoinAsync(fnIndex, ["x"], "callouts", cancellationToken);
+        await using var stream = await queue.OpenAsync("callouts", cancellationToken);
+
+        var callout = await stream.UntilAsync(
+            message => QueueSession.Kind(message) == "log"
+                && message["event_id"]?.GetValue<string>() == eventId,
+            TimeSpan.FromSeconds(15),
+            cancellationToken);
+
+        Assert.NotNull(callout);
+        Assert.Equal("这是一条信息", callout["log"]!.GetValue<string>());
+        Assert.Equal("info", callout["level"]!.GetValue<string>());
+        Assert.Equal("Info", callout["title"]!.GetValue<string>());
+        Assert.True(callout["visible"]!.GetValue<bool>());
+        Assert.Equal(8, callout["duration"]!.GetValue<double>());
+        Assert.False(callout.ContainsKey("message"));
+    }
+
     [Fact]
     public async Task Two_bindings_that_run_the_same_handler_are_limited_together()
     {

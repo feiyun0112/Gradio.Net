@@ -1222,6 +1222,12 @@ internal sealed class GradioQueue : IAsyncDisposable
             // reported where the run's messages are written, which are two places, so it travels.
             Exception? failed = null;
 
+            // The Python version's Event.run_time and first_iteration. A browser-fed run spends its
+            // time limit on the first call and on every wait-and-call after it; first_iteration is
+            // what both the generating message and the wait subtract from that limit.
+            var firstIteration = 0.0;
+            var runTime = 0.0;
+
             // Taken before the run rather than after it: a record says when the run started, and the
             // time a write happened to reach the recorder is a different fact.
             var beganAt = RunHistoryKeys.Now();
@@ -1240,6 +1246,10 @@ internal sealed class GradioQueue : IAsyncDisposable
                 // ordinary path below, which computes the answer and keeps it.
                 if (await ProbeAsync(events[0], cached, inputs, batch, progress).ConfigureAwait(false) is { } hit)
                 {
+                    // A replayed chunk cost what the call that produced it cost, which is the same
+                    // first_iteration the browser's remaining time is measured from.
+                    firstIteration = hit.Count > 0 ? hit[0].Duration : 0;
+
                     // A cached stream is replayed as the sequence it was: the chunks before the last
                     // one are sent as generating messages and the last one as the completion, which
                     // is the same shape a computed stream has.
@@ -1250,7 +1260,9 @@ internal sealed class GradioQueue : IAsyncDisposable
                             Send(awake[index], QueueMessages.ProcessGenerating(
                                 awake[index].Id,
                                 Payload(hit[chunk], index, batch, dependency),
-                                success: true));
+                                success: true,
+                                timeLimit: RemainingTimeLimit(dependency, awake[index].Streaming, firstIteration),
+                                streaming: awake[index].Streaming));
                         }
                     }
 
@@ -1272,7 +1284,16 @@ internal sealed class GradioQueue : IAsyncDisposable
 
                 response = await RunAsync(events[0], inputs, batch, progress).ConfigureAwait(false);
                 response = await _streaming.ApplyAsync(response, dependency, events[0]).ConfigureAwait(false);
+                firstIteration = response.Duration;
+                runTime += firstIteration;
                 Measure(dependency, response);
+
+                // The Python version's Event.is_finished: a browser-fed run that spent its whole
+                // budget on the first call stops here, and that first chunk is its last one.
+                if (awake[0].Streaming && TimeLimitReached(dependency, runTime))
+                {
+                    response = response with { IsGenerating = false };
+                }
             }
             catch (Exception failure)
             {
@@ -1295,7 +1316,9 @@ internal sealed class GradioQueue : IAsyncDisposable
                         Send(awake[index], QueueMessages.ProcessGenerating(
                             awake[index].Id,
                             Payload(response, index, batch, dependency),
-                            success: true));
+                            success: true,
+                            timeLimit: RemainingTimeLimit(dependency, awake[index].Streaming, firstIteration),
+                            streaming: awake[index].Streaming));
                     }
 
                     awake.RemoveAll(queued => !queued.Alive);
@@ -1304,7 +1327,12 @@ internal sealed class GradioQueue : IAsyncDisposable
                         return;
                     }
 
-                    if (awake[0].Streaming && !await WaitForChunkAsync(awake[0], dependency).ConfigureAwait(false))
+                    // Python measures the wait for the browser's chunk and the call it feeds as one
+                    // span, and adds it to Event.run_time rather than starting a fresh clock.
+                    var iterationStartedAt = _clock.GetTimestamp();
+
+                    if (awake[0].Streaming
+                        && !await WaitForChunkAsync(awake[0], dependency, firstIteration).ConfigureAwait(false))
                     {
                         Send(awake[0], Completed(
                             awake[0],
@@ -1319,6 +1347,14 @@ internal sealed class GradioQueue : IAsyncDisposable
                         response = await RunAsync(awake[0], inputs, batch, progress).ConfigureAwait(false);
                         response = await _streaming.ApplyAsync(response, dependency, awake[0]).ConfigureAwait(false);
                         Measure(dependency, response);
+                        runTime += _clock.GetElapsedTime(iterationStartedAt).TotalSeconds;
+
+                        // Event.is_finished, applied to the chunk that just arrived: the run has
+                        // spent its budget, so this chunk is the last one and the loop ends.
+                        if (awake[0].Streaming && TimeLimitReached(dependency, runTime))
+                        {
+                            response = response with { IsGenerating = false };
+                        }
                     }
                     catch (Exception failure)
                     {
@@ -1508,6 +1544,7 @@ internal sealed class GradioQueue : IAsyncDisposable
     /// <summary>Waits for the browser to send the next chunk of a streamed run.</summary>
     /// <param name="queued">The event the run belongs to.</param>
     /// <param name="dependency">The binding being run.</param>
+    /// <param name="firstIteration">How long the run's first call took, in seconds.</param>
     /// <returns>
     /// <see langword="false"/> when the browser closed the stream or the wait ran out, which is when
     /// the run is over; <see langword="true"/> when there is another chunk to take.
@@ -1515,16 +1552,50 @@ internal sealed class GradioQueue : IAsyncDisposable
     /// <remarks>
     /// A run that waits out its time limit without a chunk ends, which is the Python version's rule
     /// for the browser that went away without closing: the alternative is a handler that is
-    /// advanced forever on input that will never arrive.
+    /// advanced forever on input that will never arrive. The wait spends what the first call left
+    /// of the limit, which is the same subtraction the generating message reports.
     /// </remarks>
-    private static async Task<bool> WaitForChunkAsync(QueueEvent queued, Dependency dependency)
+    private static async Task<bool> WaitForChunkAsync(
+        QueueEvent queued,
+        Dependency dependency,
+        double firstIteration)
     {
         var signalled = await queued
-            .WaitForSignalAsync(StreamingOutputs.WaitOf(dependency), CancellationToken.None)
+            .WaitForSignalAsync(StreamingOutputs.WaitOf(dependency, firstIteration), CancellationToken.None)
             .ConfigureAwait(false);
 
         return signalled && !queued.Closed;
     }
+
+    /// <summary>Whether a browser-fed run has spent its whole time limit.</summary>
+    /// <param name="dependency">The binding being run.</param>
+    /// <param name="runTime">What the run has spent so far, in seconds.</param>
+    /// <returns><see langword="true"/> when no chunk after this one should be taken.</returns>
+    /// <remarks>
+    /// The Python version's <c>Event.is_finished</c>, without its <c>closed</c> branch — a closed
+    /// stream ends the run in <see cref="WaitForChunkAsync"/> instead. A binding with no limit
+    /// never finishes on time, and one that is not fed by the browser has no budget to spend.
+    /// </remarks>
+    private static bool TimeLimitReached(Dependency dependency, double runTime) =>
+        dependency.TimeLimit is { } limit && runTime >= limit;
+
+    /// <summary>The seconds the generating message says the browser has left.</summary>
+    /// <param name="dependency">The binding being run.</param>
+    /// <param name="streaming">Whether the run is fed by the browser.</param>
+    /// <param name="firstIteration">How long the run's first call took, in seconds.</param>
+    /// <returns>The remaining limit, or <see langword="null"/> when the client has no clock to watch.</returns>
+    /// <remarks>
+    /// The Python version's <c>time_limit=None if not fn.time_limit else fn.time_limit -
+    /// first_iteration if event.streaming else None</c>: the first call's duration is subtracted
+    /// once, not the whole run's, and a run the queue advances on its own reports nothing.
+    /// </remarks>
+    private static double? RemainingTimeLimit(
+        Dependency dependency,
+        bool streaming,
+        double firstIteration) =>
+        streaming && dependency.TimeLimit is { } limit && limit != 0
+            ? limit - firstIteration
+            : null;
 
     /// <summary>Releases the slot a run held and forgets the events it was holding.</summary>
     private void Release(List<QueueEvent> events, Dependency dependency, double beginTime)

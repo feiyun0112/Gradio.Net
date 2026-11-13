@@ -122,12 +122,25 @@ internal sealed class StreamingOutputs
 
     /// <summary>How long a streamed run waits for its next chunk.</summary>
     /// <param name="dependency">The binding being run.</param>
-    /// <returns>The binding's time limit, or the Python version's default.</returns>
-    internal static TimeSpan WaitOf(Dependency dependency)
+    /// <param name="firstIteration">How long the run's first call took, in seconds.</param>
+    /// <returns>The binding's time limit less that call, or the Python version's default less it.</returns>
+    /// <remarks>
+    /// The Python version's <c>fn.time_limit or 30</c> minus <c>first_iteration</c>: the first
+    /// call has already spent part of the budget, so the browser has what is left of it to answer
+    /// with the next chunk. A limit smaller than the first call leaves no wait at all.
+    /// </remarks>
+    internal static TimeSpan WaitOf(Dependency dependency, double firstIteration)
     {
         ArgumentNullException.ThrowIfNull(dependency);
 
-        return dependency.TimeLimit is { } limit ? TimeSpan.FromSeconds(limit) : DefaultWait;
+        // `fn.time_limit or 30`: a stated limit of zero is falsy in Python and falls back to the
+        // default too, which is not the same as "no limit was stated".
+        var budget = dependency.TimeLimit is { } limit && limit != 0
+            ? limit
+            : DefaultWait.TotalSeconds;
+        var seconds = budget - firstIteration;
+
+        return TimeSpan.FromSeconds(Math.Max(seconds, 0));
     }
 
     /// <summary>The last segment of a stream, and the end of it.</summary>

@@ -159,7 +159,7 @@ public static partial class gr
     /// <summary>Says something to the person using the page.</summary>
     /// <param name="message">The text.</param>
     /// <param name="duration">How long it stays on screen, in seconds, or <see langword="null"/> for
-    /// the page's own default.</param>
+    /// the Python version's ten-second default.</param>
     /// <remarks>
     /// The Python version's <c>gr.Info(message, duration)</c>: a line the page shows without the run
     /// having to give up an output for it. Called from a handler it reaches that handler's run;
@@ -171,7 +171,7 @@ public static partial class gr
     /// <summary>Says something the person using the page should be careful about.</summary>
     /// <param name="message">The text.</param>
     /// <param name="duration">How long it stays on screen, in seconds, or <see langword="null"/> for
-    /// the page's own default.</param>
+    /// the Python version's ten-second default.</param>
     /// <remarks>The Python version's <c>gr.Warning(message, duration)</c>.</remarks>
     public static void Warning(string message, double? duration = null) =>
         Callouts.Post("warning", message, duration);
@@ -179,7 +179,7 @@ public static partial class gr
     /// <summary>Says that something went wrong.</summary>
     /// <param name="message">The text.</param>
     /// <param name="duration">How long it stays on screen, in seconds, or <see langword="null"/> for
-    /// the page's own default.</param>
+    /// the Python version's ten-second default.</param>
     /// <remarks>
     /// The Python version's <c>gr.Error(message, duration)</c>. It reports rather than throws: the
     /// run carries on, which is the difference between this and a handler that raises.
@@ -190,7 +190,7 @@ public static partial class gr
     /// <summary>Says that something worked.</summary>
     /// <param name="message">The text.</param>
     /// <param name="duration">How long it stays on screen, in seconds, or <see langword="null"/> for
-    /// the page's own default.</param>
+    /// the Python version's ten-second default.</param>
     /// <remarks>The Python version's <c>gr.Success(message, duration)</c>.</remarks>
     public static void Success(string message, double? duration = null) =>
         Callouts.Post("success", message, duration);

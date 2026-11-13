@@ -1,5 +1,47 @@
 # Gradio.Net
 
+## 0.6.30.6
+
+### Bug Fixes
+
+* `gr.Info`, `gr.Warning`, `gr.Error` and `gr.Success` are drawn on the page. The queue did send a
+  `log` message for each of them, but it wrote the callout's level into `log` and its sentence into
+  `message`, and omitted `level`, `title` and `visible` altogether. The vendored frontend's
+  `handle_log` reads `log` for the text, `level` for the kind, and `title`, `visible` and `duration`
+  beside them; the Python version's `LogMessage` declares exactly those fields, in that order, with
+  `duration = 10` and `visible = True` as defaults. A notification built the old way arrived with no
+  text and no kind, so the page drew nothing. `QueueMessages.Log` now writes the Python model field
+  for field, including the default title each level gets (`Info`, `Warning`, `Error`, `Success`) and
+  the ten-second default duration, and no longer writes `message`. A field-by-field kernel test, a
+  theory over the four levels and an end-to-end test that reads the actual SSE stream hold the shape
+  and the delivery in place.
+
+* `timeLimit` now has the meaning the Python version gives it. It is not a deadline for an ordinary
+  handler and not a deadline for a run waiting in the queue — Python lets both finish — it is the
+  budget of a run the browser feeds chunk by chunk over `/stream/{event_id}`. The queue now keeps
+  `Event.run_time` and the first call's `first_iteration`: the first call spends part of the budget,
+  each wait for a chunk and the call it feeds add to `run_time`, and a run that has spent its limit
+  stops generating after the chunk it just produced. A `stream`-connected run's chunks are sent as
+  `process_streaming` rather than `process_generating`, with `time_limit` set to
+  `fn.time_limit - first_iteration`; a run the queue advances on its own keeps `process_generating`
+  with no limit, because the client has nothing to send. `StreamingOutputs.WaitOf` waits
+  `(fn.time_limit or 30) - first_iteration`, so a limit of zero falls back to the Python default
+  and a first call that spent the whole budget leaves no wait. Kernel tests hold the arithmetic and
+  the two message shapes; the rest of the suite holds the ordinary handler and queue paths against
+  a hard timeout that was never part of the contract.
+
+### Documentation
+
+* `Draggable` keeps no public entry point, and now says why. The Python wheel ships the class in
+  `gradio.layouts.draggable` but does not list `Draggable` among `gradio`'s top-level exports, so
+  there is no `gr.Draggable()` for this port to mirror. The type stays public so the frontend's
+  component description can be produced from it; its constructor stays `internal`, because a layout
+  is built by a factory that also enters its render scope and this layout has no such factory.
+  Adding one would put a name on `gr` that Python does not have. `DraggableSurfaceTests` holds all
+  four of those facts — the export list, the layer's members, the constructor's visibility and the
+  wheel's declaration of the class — so a future release cannot quietly add the factory or remove
+  the type.
+
 ## 0.6.30.5
 
 ### Bug Fixes

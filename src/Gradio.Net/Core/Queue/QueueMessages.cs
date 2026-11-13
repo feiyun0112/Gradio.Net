@@ -18,8 +18,16 @@ internal static class QueueMessageKinds
     /// <summary>The handler is about to run.</summary>
     internal const string ProcessStarts = "process_starts";
 
-    /// <summary>A generator produced another chunk.</summary>
+    /// <summary>A generator produced another chunk of a run the queue advances.</summary>
     internal const string ProcessGenerating = "process_generating";
+
+    /// <summary>A chunk of a run the browser feeds over <c>/stream/{event_id}</c>.</summary>
+    /// <remarks>
+    /// The Python version names the two on the same message model: <c>process_generating</c> for a
+    /// run the queue advances on its own, <c>process_streaming</c> for one the client advances by
+    /// sending the next chunk. Only the second makes the frontend read <c>time_limit</c>.
+    /// </remarks>
+    internal const string ProcessStreaming = "process_streaming";
 
     /// <summary>The run is over, successfully or not.</summary>
     internal const string ProcessCompleted = "process_completed";
@@ -111,19 +119,31 @@ internal static class QueueMessages
     /// <param name="eventId">The event the message is about.</param>
     /// <param name="output">What the run produced so far, with the run's own fields in it.</param>
     /// <param name="success">Whether the chunk was produced without an error.</param>
+    /// <param name="timeLimit">
+    /// The seconds the browser has left to send the next chunk, or <see langword="null"/> when the
+    /// run has no time limit or is not fed by the browser.
+    /// </param>
+    /// <param name="streaming">Whether the run is fed by the browser rather than by the queue.</param>
     /// <returns>The message.</returns>
     /// <remarks>
-    /// The time limit is carried on the message and is always null here: the Python version fills
-    /// it in for a streamed component, whose run is kept alive by the client rather than by the
-    /// queue, and that is a different connection (ticket 16).
+    /// The Python version's <c>ProcessGeneratingMessage</c> serves both connections: a browser-fed
+    /// run is described as <c>process_streaming</c> and carries <c>time_limit</c>, which is the
+    /// binding's limit minus the first call's duration — the same <c>first_iteration</c> the wait
+    /// subtracts. A run the queue advances on its own is <c>process_generating</c> with no limit,
+    /// because the client has nothing to send and no clock to watch.
     /// </remarks>
-    internal static JsonObject ProcessGenerating(string eventId, JsonObject output, bool success) => new()
+    internal static JsonObject ProcessGenerating(
+        string eventId,
+        JsonObject output,
+        bool success,
+        double? timeLimit = null,
+        bool streaming = false) => new()
     {
-        ["msg"] = QueueMessageKinds.ProcessGenerating,
+        ["msg"] = streaming ? QueueMessageKinds.ProcessStreaming : QueueMessageKinds.ProcessGenerating,
         ["event_id"] = eventId,
         ["output"] = output,
         ["success"] = success,
-        ["time_limit"] = null,
+        ["time_limit"] = timeLimit,
     };
 
     /// <summary>The run is over.</summary>
@@ -176,20 +196,46 @@ internal static class QueueMessages
     /// <c>success</c>.</param>
     /// <param name="message">The text.</param>
     /// <param name="duration">How long the page shows it, in seconds, or <see langword="null"/> for
-    /// the page's own default.</param>
+    /// the Python version's ten-second default.</param>
     /// <returns>The message.</returns>
     /// <remarks>
-    /// This is the Python version's <c>LogMessage</c>, and the shape is the frontend's rather than
-    /// this framework's: the page reads the whole message as the data of a <c>log</c> entry, so the
-    /// three fields it draws from are the three named here.
+    /// <para>
+    /// This is the Python version's <c>LogMessage</c>, field for field: <c>log</c> carries the
+    /// sentence, <c>level</c> the kind, and <c>title</c>, <c>visible</c> and <c>duration</c> are
+    /// written beside them even when they hold the defaults, because pydantic's
+    /// <c>model_dump()</c> writes every field. The frontend's <c>handle_log</c> reads exactly
+    /// those names. A message that puts the level in <c>log</c> and the sentence in a
+    /// <c>message</c> field the page never reads arrives as a notification with no text and no
+    /// kind, which is why the four callouts were sent but never drawn.
+    /// </para>
+    /// <para>
+    /// The title is the one Python's <c>gr.Info</c>, <c>gr.Warning</c>, <c>gr.Success</c> and
+    /// <c>gr.Error</c> give a callout that names no title of its own.
+    /// </para>
     /// </remarks>
     internal static JsonObject Log(string eventId, string level, string message, double? duration) => new()
     {
         ["msg"] = QueueMessageKinds.Log,
         ["event_id"] = eventId,
-        ["log"] = level,
-        ["message"] = message,
-        ["duration"] = duration,
+        ["log"] = message,
+        ["level"] = level,
+        ["duration"] = duration ?? 10,
+        ["visible"] = true,
+        ["title"] = TitleOf(level),
+    };
+
+    /// <summary>The title Python gives a callout that names none of its own.</summary>
+    /// <param name="level">What kind of line it is.</param>
+    /// <returns>The title the page draws above the sentence.</returns>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="level"/> is not one of the
+    /// four levels a callout has.</exception>
+    private static string TitleOf(string level) => level switch
+    {
+        "info" => "Info",
+        "warning" => "Warning",
+        "error" => "Error",
+        "success" => "Success",
+        _ => throw new ArgumentOutOfRangeException(nameof(level), level, "A callout has one of the four levels."),
     };
 
     /// <summary>A message with no event behind it, sent so a silent connection stays alive.</summary>

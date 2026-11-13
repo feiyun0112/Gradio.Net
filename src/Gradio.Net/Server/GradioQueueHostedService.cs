@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Gradio.Net;
 /// <summary>
@@ -18,32 +19,32 @@ namespace Gradio.Net;
 /// </remarks>
 internal sealed class GradioQueueHostedService : IHostedService
 {
-    /// <summary>
-    /// How many runs may be in flight at once across every group.
-    /// </summary>
-    /// <remarks>
-    /// The Python version's default worker count. It is a ceiling on the whole queue rather than a
-    /// thread count: the runs are asynchronous, and what this bounds is how much work an
-    /// application admits at once.
-    /// </remarks>
-    private const int WorkerCount = 40;
-
     private readonly GradioQueue _queue;
+    private readonly IOptions<GradioCoreOptions> _options;
 
     /// <summary>Creates the service.</summary>
     /// <param name="queue">The queue to start and stop.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="queue"/> is <see langword="null"/>.</exception>
-    public GradioQueueHostedService(GradioQueue queue)
+    /// <param name="options">The kernel options, whose <c>MaxThreads</c> names the ceiling.</param>
+    /// <exception cref="ArgumentNullException">An argument is <see langword="null"/>.</exception>
+    public GradioQueueHostedService(GradioQueue queue, IOptions<GradioCoreOptions> options)
     {
         ArgumentNullException.ThrowIfNull(queue);
+        ArgumentNullException.ThrowIfNull(options);
 
         _queue = queue;
+        _options = options;
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// The ceiling is read when the host starts rather than when the container is built: an
+    /// application that configures <c>AddGradio</c> or calls <c>Launch(maxThreads: ...)</c> does so
+    /// before the host starts, which is also when Python's <c>launch</c> sets its own
+    /// <c>max_threads</c>. A value below one is clamped to one, the way the queue's slots are.
+    /// </remarks>
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _queue.Start(WorkerCount);
+        _queue.Start(Math.Max(1, _options.Value.MaxThreads));
 
         return Task.CompletedTask;
     }

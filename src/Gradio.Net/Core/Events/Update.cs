@@ -92,14 +92,17 @@ public sealed record Update
     public bool? Open { get; init; }
 
     /// <summary>
-    /// The tab or step a layout selects, by the label it was given or by its id.
+    /// The id of the tab or the number of the step a layout selects.
     /// </summary>
     /// <remarks>
     /// The Python version's <c>selected</c>, which is the parameter <c>gr.Tabs</c> and
     /// <c>gr.Walkthrough</c> take and the prop a handler changes to switch the page to another tab:
-    /// <c>gr.update(selected="Tab 2")</c> there, <c>new Update { Selected = "Tab 2" }</c> here. The
-    /// frontend binds the prop to the tab bar's own selection, so the tab that becomes selected is
-    /// the one whose <c>id</c> — or, for a tab that was given none, whose label — matches.
+    /// <c>gr.update(selected="details")</c> there, <c>new Update { Selected = "details" }</c> here,
+    /// where <c>"details"</c> is the tab's <c>id</c>. The frontend matches the prop against the
+    /// tab's id, not its label — a tab with no id cannot be selected from a handler, which is why
+    /// the Python version's <c>Tab(id=...)</c> calls the id "required if you wish to control the
+    /// selected tab from a predict function". A walkthrough instead numbers its steps, so its
+    /// <c>selected</c> is the step's number.
     /// </remarks>
     public object? Selected { get; init; }
 

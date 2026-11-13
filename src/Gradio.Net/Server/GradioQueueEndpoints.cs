@@ -15,10 +15,12 @@ namespace Gradio.Net;
 /// that the server can tell when it has gone away.
 /// </para>
 /// <para>
-/// The stream's framing is the Python version's to the character — <c>data: {json}\n\n</c> per
-/// message, with no event name — because the vendored frontend parses it as it is. That is also why
-/// the JSON is written with relaxed escaping: the Python version's serializer leaves non-ASCII text
-/// as text, and a client that reads the bytes rather than parsing them would see a difference.
+/// <c>/queue/data</c>'s framing is the Python version's to the character — <c>data: {json}\n\n</c>
+/// per message, with no event name — because the vendored frontend parses it as it is. That is also
+/// why the JSON is written with relaxed escaping: the Python version's serializer leaves non-ASCII
+/// text as text, and a client that reads the bytes rather than parsing them would see a difference.
+/// The job-style result route reads the same channel through <see cref="JobStream"/>, whose named
+/// events are the other half of the Python version's protocol.
 /// </para>
 /// </remarks>
 internal sealed class GradioQueueEndpoints : IGradioEndpoint
@@ -170,22 +172,25 @@ internal sealed class GradioQueueEndpoints : IGradioEndpoint
     /// <summary>Streams the messages that describe one session's runs.</summary>
     /// <param name="context">The request, whose response is written as a stream.</param>
     /// <param name="sessionHash">The session to describe.</param>
+    /// <param name="format">
+    /// How one message is written, or <see langword="null"/> for the browser stream's
+    /// <c>data: {json}</c> framing. The job-style route passes <see cref="JobStream.Format"/>,
+    /// which writes named events and answers <see langword="null"/> for the messages it skips.
+    /// </param>
     /// <returns>A task that completes when the stream ends.</returns>
     /// <remarks>
     /// Shared with the job-style route: <c>GET /call/{api_name}/{event_id}</c> describes one
     /// session too, and the session it describes is the one its <c>POST</c> opened. The two routes
-    /// differ in how they name the session, not in what a client reads from it.
+    /// name the session differently and frame its messages differently, but they read the same
+    /// channel and end on the same completion — which is the Python version's
+    /// <c>queue_data_helper</c> with a different <c>process_msg</c>.
     /// </remarks>
-    internal async Task StreamSessionAsync(HttpContext context, string sessionHash)
+    internal async Task StreamSessionAsync(
+        HttpContext context,
+        string sessionHash,
+        Func<JsonObject, string?>? format = null)
     {
-        context.Response.StatusCode = StatusCodes.Status200OK;
-        context.Response.ContentType = "text/event-stream";
-        context.Response.Headers.CacheControl = "no-cache";
-
-        // The headers go out now rather than with the first message: a stream that has nothing to
-        // say yet is still a stream, and a client waiting for the response to begin would
-        // otherwise wait for the first heartbeat.
-        await context.Response.StartAsync(context.RequestAborted).ConfigureAwait(false);
+        await BeginStreamAsync(context).ConfigureAwait(false);
 
         // A stream for a session nothing joined has nobody to describe. The Python version answers that with
         // the same unexpected_error a client arriving too late gets, and answering it here rather
@@ -193,9 +198,9 @@ internal sealed class GradioQueueEndpoints : IGradioEndpoint
         // request would push a live one out of the cache.
         if (!_queue.HasSession(sessionHash))
         {
-            await WriteEventAsync(context, QueueMessages.UnexpectedError(
+            await WriteMessageAsync(context, QueueMessages.UnexpectedError(
                 "404: Not Found",
-                sessionNotFound: true)).ConfigureAwait(false);
+                sessionNotFound: true), format).ConfigureAwait(false);
 
             return;
         }
@@ -210,9 +215,9 @@ internal sealed class GradioQueueEndpoints : IGradioEndpoint
             {
                 if (!_queue.HasSession(sessionHash))
                 {
-                    await WriteEventAsync(context, QueueMessages.UnexpectedError(
+                    await WriteMessageAsync(context, QueueMessages.UnexpectedError(
                         "404: Not Found",
-                        sessionNotFound: true)).ConfigureAwait(false);
+                        sessionNotFound: true), format).ConfigureAwait(false);
 
                     return;
                 }
@@ -254,9 +259,10 @@ internal sealed class GradioQueueEndpoints : IGradioEndpoint
                 {
                     if (_queue.Stopped)
                     {
-                        await WriteEventAsync(
+                        await WriteMessageAsync(
                             context,
-                            QueueMessages.UnexpectedError("Server stopped unexpectedly.")).ConfigureAwait(false);
+                            QueueMessages.UnexpectedError("Server stopped unexpectedly."),
+                            format).ConfigureAwait(false);
                     }
 
                     return;
@@ -274,7 +280,7 @@ internal sealed class GradioQueueEndpoints : IGradioEndpoint
                     continue;
                 }
 
-                await WriteEventAsync(context, message).ConfigureAwait(false);
+                await WriteMessageAsync(context, message, format).ConfigureAwait(false);
 
                 if (!IsCompletion(message, out var eventId))
                 {
@@ -289,7 +295,9 @@ internal sealed class GradioQueueEndpoints : IGradioEndpoint
                     continue;
                 }
 
-                await WriteEventAsync(context, QueueMessages.CloseStream()).ConfigureAwait(false);
+                // The job-style formatter has no event for close_stream, just as Python's
+                // process_msg answers None for it: the connection ending is the signal.
+                await WriteMessageAsync(context, QueueMessages.CloseStream(), format).ConfigureAwait(false);
 
                 return;
             }
@@ -443,11 +451,67 @@ internal sealed class GradioQueueEndpoints : IGradioEndpoint
             && eventId.Length > 0;
     }
 
-    /// <summary>Writes one server-sent event.</summary>
-    private static async Task WriteEventAsync(HttpContext context, JsonObject message)
+    /// <summary>Opens a server-sent event response, before the first message is available.</summary>
+    /// <param name="context">The request whose response is opened.</param>
+    /// <returns>A task that completes once the response has begun.</returns>
+    internal static async Task BeginStreamAsync(HttpContext context)
     {
-        await context.Response.WriteAsync($"data: {JsonText.Serialize(message)}\n\n", context.RequestAborted)
-            .ConfigureAwait(false);
+        ArgumentNullException.ThrowIfNull(context);
+
+        context.Response.StatusCode = StatusCodes.Status200OK;
+        context.Response.ContentType = "text/event-stream";
+        context.Response.Headers.CacheControl = "no-cache";
+
+        // The headers go out now rather than with the first message: a stream that has nothing to
+        // say yet is still a stream, and a client waiting for the response to begin would
+        // otherwise wait for the first heartbeat.
+        await context.Response.StartAsync(context.RequestAborted).ConfigureAwait(false);
+    }
+
+    /// <summary>Writes the one message a session that does not exist gets.</summary>
+    /// <param name="context">The request, whose response is written as a stream.</param>
+    /// <param name="format">The framing, or <see langword="null"/> for the browser's.</param>
+    /// <returns>A task that completes when the message has been written.</returns>
+    /// <remarks>
+    /// The job-style route has no session to describe when it is handed an identifier it never
+    /// issued, but it still owes the caller the same refusal the queue gives a vanished session —
+    /// framed as the route frames everything else, so a client that reads named events sees an
+    /// <c>event: error</c> rather than a bare queue message.
+    /// </remarks>
+    internal static async Task StreamMissingAsync(HttpContext context, Func<JsonObject, string?>? format = null)
+    {
+        await BeginStreamAsync(context).ConfigureAwait(false);
+
+        await WriteMessageAsync(
+            context,
+            QueueMessages.UnexpectedError("404: Not Found", sessionNotFound: true),
+            format).ConfigureAwait(false);
+    }
+
+    /// <summary>Writes one server-sent event in the framing the caller asked for.</summary>
+    /// <param name="context">The request, whose response is written as a stream.</param>
+    /// <param name="message">The queue message.</param>
+    /// <param name="format">
+    /// A formatter, or <see langword="null"/> for <c>data: {json}</c>. A formatter that answers
+    /// <see langword="null"/> skips the message, which is how the job-style stream drops the
+    /// estimates, starts, progress reports and log lines it has no event for.
+    /// </param>
+    /// <returns>A task that completes when the frame has been written.</returns>
+    private static async Task WriteMessageAsync(
+        HttpContext context,
+        JsonObject message,
+        Func<JsonObject, string?>? format)
+    {
+        var frame = format is null
+            ? $"data: {JsonText.Serialize(message)}\n\n"
+            : format(message);
+
+        if (frame is null)
+        {
+            return;
+        }
+
+        await context.Response.WriteAsync(frame, context.RequestAborted).ConfigureAwait(false);
         await context.Response.Body.FlushAsync(context.RequestAborted).ConfigureAwait(false);
     }
 

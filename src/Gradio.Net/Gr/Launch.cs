@@ -11,6 +11,8 @@ public static partial class gr
     /// <param name="preventThreadLock">Whether to return at once instead of waiting, or
     /// <see langword="null"/> to wait.</param> <param name="quiet">Whether to say nothing about the
     /// address, or <see langword="null"/> to say it.</param>
+    /// <param name="maxThreads">How many runs the queue may have in flight at once, or
+    /// <see langword="null"/> for the Python version's 40.</param>
     /// <returns>
     /// The server that was started. A blocking call returns once it has stopped, so the handle is
     /// only worth taking from a caller that asked not to block.
@@ -41,7 +43,8 @@ public static partial class gr
         string? serverName = null,
         int? serverPort = null,
         bool? preventThreadLock = null,
-        bool? quiet = null)
+        bool? quiet = null,
+        int? maxThreads = null)
     {
         ArgumentNullException.ThrowIfNull(app);
 
@@ -51,6 +54,7 @@ public static partial class gr
         {
             ServerName = serverName ?? "127.0.0.1",
             ServerPort = serverPort ?? 7860,
+            MaxThreads = maxThreads,
             ConfigureServices = services =>
             {
                 // Before the framework's own registrations, which are "try add": the application and

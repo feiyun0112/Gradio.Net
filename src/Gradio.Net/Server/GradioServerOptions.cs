@@ -26,6 +26,21 @@ public sealed class GradioServerOptions
     public int ServerPort { get; set; } = 7860;
 
     /// <summary>
+    /// How many runs the queue may have in flight at once, across every binding.
+    /// </summary>
+    /// <value>
+    /// <see langword="null"/>, which leaves the kernel's default — 40, the Python version's
+    /// <c>launch(max_threads=40)</c> — in force. A value below one is clamped to one.
+    /// </value>
+    /// <remarks>
+    /// The Python version lets an application set this when it launches. It is a ceiling on the
+    /// whole queue rather than a thread count, and it does not relax a binding's own
+    /// <c>concurrencyLimit</c>. A host that integrates Gradio through <c>AddGradio</c> names the
+    /// same number in its kernel options instead.
+    /// </remarks>
+    public int? MaxThreads { get; set; }
+
+    /// <summary>
     /// Whether to render the page with the SSR runtime. Off by default.
     /// </summary>
     /// <value>

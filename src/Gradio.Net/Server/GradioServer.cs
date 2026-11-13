@@ -42,7 +42,17 @@ public sealed class GradioServer : IAsyncDisposable
         // Before Gradio's own, so that a service the caller registers is the one that is kept.
         effective.ConfigureServices?.Invoke(builder.Services);
 
-        builder.Services.AddGradio();
+        // The queue's ceiling is a launch-time setting in the Python version. It is carried into
+        // the kernel options only when this host was asked for one, so an application that
+        // configured AddGradio's options through ConfigureServices keeps the number it chose.
+        if (effective.MaxThreads is { } maxThreads)
+        {
+            builder.Services.AddGradio(options => options.MaxThreads = maxThreads);
+        }
+        else
+        {
+            builder.Services.AddGradio();
+        }
 
         // The health endpoint is not part of the route table — the Python version has no such route — so it is
         // registered here, where the host that wants one says so, and only when it said so.

@@ -24,6 +24,12 @@ namespace Gradio.Net;
 /// difference between them is the version of the request body, which
 /// <see cref="PredictBody.Parse"/> already accepts either way.
 /// </para>
+/// <para>
+/// The result is not the queue's own stream. The Python version's <c>simple_predict_get</c>
+/// maps each queue message to a named event through <c>process_msg</c>, and <see cref="JobStream"/>
+/// holds that mapping here: the page still reads <c>data: {json}</c> with a kind inside it, while a
+/// caller of this route reads <c>event: complete</c> with the outputs in <c>data</c>.
+/// </para>
 /// </remarks>
 internal sealed class GradioCallEndpoints : IGradioEndpoint
 {
@@ -213,9 +219,17 @@ internal sealed class GradioCallEndpoints : IGradioEndpoint
     /// <param name="context">The request, whose route carries the run identifier.</param>
     /// <returns>A task that completes when the stream ends.</returns>
     /// <remarks>
-    /// A run this route did not submit has no session to describe, and the answer says so the way the
-    /// queue's own stream says it: an <c>unexpected_error</c> carrying <c>session_not_found</c>, rather
-    /// than an empty stream a client would wait on.
+    /// <para>
+    /// The result is framed as the Python version's <c>simple_predict_get</c> frames it: named
+    /// server-sent events whose <c>data</c> is the run's outputs, not the queue messages the page
+    /// reads. A client generated from <c>openapi.json</c> waits for <c>event: complete</c>, which
+    /// is exactly what a successful run writes here.
+    /// </para>
+    /// <para>
+    /// A run this route did not submit has no session to describe, and the answer is the same
+    /// refusal a vanished session gets — an <c>event: error</c> — rather than an empty stream a
+    /// client would wait on.
+    /// </para>
     /// </remarks>
     private async Task ReadAsync(HttpContext context)
     {
@@ -223,20 +237,12 @@ internal sealed class GradioCallEndpoints : IGradioEndpoint
 
         if (!_sessions.TryRemove(eventId, out var sessionHash))
         {
-            context.Response.StatusCode = StatusCodes.Status200OK;
-            context.Response.ContentType = "text/event-stream";
-            context.Response.Headers.CacheControl = "no-cache";
-
-            await context.Response.StartAsync(context.RequestAborted).ConfigureAwait(false);
-            await context.Response
-                .WriteAsync($"data: {QueueMessages.UnexpectedError("404: Not Found", sessionNotFound: true).ToJsonString()}\n\n",
-                    context.RequestAborted)
-                .ConfigureAwait(false);
+            await GradioQueueEndpoints.StreamMissingAsync(context, JobStream.Format).ConfigureAwait(false);
 
             return;
         }
 
-        await _stream.StreamSessionAsync(context, sessionHash).ConfigureAwait(false);
+        await _stream.StreamSessionAsync(context, sessionHash, JobStream.Format).ConfigureAwait(false);
     }
 
     /// <summary>The values a body named, in the order the binding reads them.</summary>

@@ -200,6 +200,13 @@ internal sealed class GradioQueue : IAsyncDisposable
     /// <summary>The most events the queue holds, or <see langword="null"/> for no limit.</summary>
     internal int? MaxSize => _settings.MaxSize;
 
+    /// <summary>How many runs the host let the queue have in flight at once.</summary>
+    /// <remarks>
+    /// The default of 40 is the Python version's <c>launch(max_threads=40)</c>. It is read from the
+    /// host's options when the queue starts, so a host that asked for fewer slots has fewer here.
+    /// </remarks>
+    internal int WorkerCount => _activeJobs.Count;
+
     /// <summary>How many events are waiting for a slot.</summary>
     internal int Count
     {
@@ -1004,7 +1011,19 @@ internal sealed class GradioQueue : IAsyncDisposable
         {
             var result = await ChunkAsync(run, inputs, new Progress()).ConfigureAwait(false);
             var value = result.Data.Count > 0 ? result.Data[0] : null;
-            var rejection = value?.ToJsonString();
+
+            // A validator that answers with a string is naming the reason, not a JSON value to be
+            // shown. The Python version's gr.validate() carries that reason in its `message`
+            // field, and the endpoint answers with it as text. Writing the string through
+            // ToJsonString() instead adds a second layer of quotes and turns Chinese into \u
+            // escapes, which is what a person on the page would read as the refusal. Other answers
+            // (an object, a number) have no text of their own and keep their JSON spelling.
+            var rejection = value switch
+            {
+                null => null,
+                JsonValue text when text.TryGetValue<string>(out var sentence) => sentence,
+                _ => value.ToJsonString(),
+            };
 
             return rejection is null
                 ? null

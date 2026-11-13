@@ -1,5 +1,51 @@
 # Gradio.Net
 
+## 0.6.30.7
+
+### Bug Fixes
+
+* The job-style result route writes the named server-sent events the Python version writes, and the
+  OpenAPI document describes. `GET /call/{api_name}/{event_id}` — and its `/call/v2/` spelling —
+  used to forward the queue's own stream: every frame was `data: {"msg": ...}` with the kind inside
+  the JSON, so a caller that waited for `event: complete` waited until the connection closed. The
+  Python version serves both GET routes from `simple_predict_get`, whose `process_msg` maps a
+  `ProcessCompletedMessage` to `event: complete` (or `event: error`), a `ProcessGeneratingMessage`
+  to `event: generating`, a heartbeat to `event: heartbeat` with `data: null`, and an unexpected
+  error to `event: error`; `queue_data_helper` skips every message whose answer is `None`. `JobStream`
+  holds that mapping, and the shared session stream now takes a formatter: `/queue/data` keeps the
+  browser's `data: {json}` framing untouched, while the two result routes write the named events
+  and drop estimates, starts, progress reports, log lines and `close_stream`. On success `data` is
+  the run's `output.data`; on failure it is the whole `output`, which is what says what went wrong.
+  Kernel tests hold every frame and every skipped kind, and four end-to-end runs hold the plain,
+  v2 and streaming paths plus the named error an unknown event id gets.
+
+* The queue's whole-application ceiling is no longer a constant the application cannot change.
+  Python's `launch(max_threads=40)` sets `Blocks.max_threads` and the queue's own
+  `max_thread_count`; this port started its queue with a hard-coded 40 worker slots. The standalone
+  entry point now takes `Launch(maxThreads: ...)` through `GradioServerOptions.MaxThreads`, and an
+  integrated host names the same number in `AddGradio`'s `GradioCoreOptions.MaxThreads`; the hosted
+  service reads it when the host starts, as Python's `launch` does, and clamps a value below one to
+  one slot. A binding's own `concurrencyLimit` still applies inside the ceiling. Four tests read the
+  queue the host actually started and hold the default, both entry points and the clamp.
+
+* A validator that answers with a string now refuses with that sentence. The returned string was
+  written through `ToJsonString()` on its way into the endpoint's `detail`, which added a second pair
+  of quotes and turned Chinese into `\u` escapes — the person on the page read a JSON literal rather
+  than the reason. The Python version's `gr.validate(is_valid, message)` carries the same text in its
+  `message` field, so a string is now passed through as text; an object or a number, which has no
+  text of its own, keeps its JSON spelling. An end-to-end test holds the readable Chinese refusal
+  and the accepting path beside it.
+
+### Documentation
+
+* `Tabs.Selected`, `Update.Selected` and `Tab.TabId` said a tab could be selected by its label or
+  its id. The Python version's `Tabs(selected=...)` says the value "must correspond to an id passed
+  to one of the child TabItems", and `Tab(id=...)` calls the id "required if you wish to control the
+  selected tab from a predict function"; the frontend matches the id and never the label, so a label
+  selects no tab at all and the page draws an empty body without an error. The remarks now say so,
+  and `Update.Selected` names the walkthrough's numbered steps as the one case where a number is
+  the value.
+
 ## 0.6.30.6
 
 ### Bug Fixes

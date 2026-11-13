@@ -48,7 +48,9 @@ public sealed partial class Tab : BlockContext
     /// <remarks>
     /// Named apart from <see cref="Block.Id"/>, which is the id the render gives the block: a tab
     /// that is selected from a handler needs an id its author chose, and the two are different
-    /// numbers in the same config entry.
+    /// numbers in the same config entry. The Python version calls the id "required if you wish to
+    /// control the selected tab from a predict function"; its frontend matches <c>Tabs.selected</c>
+    /// and <c>gr.update(selected=...)</c> against this value, never against the label.
     /// </remarks>
     [UpstreamParameter("id")]
     public object? TabId { get; set; }

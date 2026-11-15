@@ -2,7 +2,13 @@
 
 **English** | **[简体中文](README.zh-CN.md)**
 
-Gradio for .NET — a port of [Gradio](https://github.com/gradio-app/gradio) 6.30.0, the Python package
+> **The complete book *Gradio.NET in Action* is free to read online**: [English](http://feiyun0112.github.io/gradio.net-in-action/en/) · [简体中文](http://feiyun0112.github.io/gradio.net-in-action/)
+>
+> A full-length guide for .NET developers: from your first app through components, layouts, events,
+> streaming output and ASP.NET Core integration, with a standalone, runnable C# sample project for
+> every chapter. No front-end experience or knowledge of Python needed.
+
+Gradio for .NET — a port of [Gradio](https://github.com/gradio-app/gradio), the Python package
 that turns a function into a web app. Same frontend, same protocol, same config: the page a browser
 gets is drawn by the Python version's own compiled frontend, unchanged.
 

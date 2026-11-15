@@ -2,7 +2,12 @@
 
 **[English](README.md)** | **简体中文**
 
-Gradio for .NET —— [Gradio](https://github.com/gradio-app/gradio) 6.30.0 的移植版。Gradio 是一个把函数
+> **《Gradio.NET 实战》完整书籍，可在线免费阅读**：[中文版](http://feiyun0112.github.io/gradio.net-in-action/) · [English](http://feiyun0112.github.io/gradio.net-in-action/en/)
+>
+> 一本写给 .NET 开发者的系统教程：从第一个应用开始，逐步讲清组件、布局、事件、流式输出与 ASP.NET Core 集成，
+> 每章都配有可独立运行的 C# 示例工程。不需要前端经验，也不需要懂 Python。
+
+Gradio for .NET —— [Gradio](https://github.com/gradio-app/gradio) 的移植版。Gradio 是一个把函数
 变成 Web 应用的 Python 包。同一个前端、同一套协议、同一份配置：浏览器拿到的页面由 Python 版自己编译的前端绘制，
 一个字节都不改。
 

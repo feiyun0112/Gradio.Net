@@ -1,5 +1,26 @@
 # Gradio.Net
 
+## 0.6.30.9
+
+### Bug Fixes
+
+* An uploaded file whose name contains Chinese characters keeps the name the browser sent, instead
+  of being stored as `file.csv` or a similar name with the stem replaced by `file`. The upload
+  reader decoded every part's `filename` by re-encoding it as Latin-1 and decoding the bytes as
+  UTF-8, falling back to the original text only when that produced a replacement character. That
+  recovers a name when the header parser left UTF-8 bytes spelled as Latin-1 characters, but it
+  also mangles a name the parser had already decoded: characters Latin-1 cannot hold become `?`,
+  and UTF-8 decoding accepts those bytes without a replacement character. Stripping the `?`
+  characters left only the extension, for which the sanitizer supplies a `file` stem — which is
+  why an upload of a Chinese-named CSV was handed to the handler as `file.csv`. The Python version
+  decodes the multipart filename with the part's charset (UTF-8 by default), falls back to Latin-1
+  only when that decoding fails, and keeps Unicode characters when it sanitizes the name, so its
+  cache file carries the name the client sent. The reader now checks that a name round-trips
+  through Latin-1 before treating it as misdecoded UTF-8 and uses a strict UTF-8 decoder, so an
+  already-decoded name or a genuine Latin-1 name is left as it arrived. An end-to-end test uploads
+  a Chinese name and an accented name as raw UTF-8 multipart headers and asserts both stored
+  paths, beside the existing test for the accented name sent by the HTTP client.
+
 ## 0.6.30.8
 
 ### Bug Fixes

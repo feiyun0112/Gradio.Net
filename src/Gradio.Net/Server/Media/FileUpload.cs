@@ -288,10 +288,13 @@ internal static class FileUpload
     /// <param name="raw">The name as the header parser read it.</param>
     /// <returns>The name, decoded from UTF-8 when the client sent UTF-8 bytes.</returns>
     /// <remarks>
-    /// A browser sends a non-ASCII name as UTF-8 bytes inside a quoted string, and the header parser
-    /// reads header bytes as Latin-1 — so a name with an accent arrives as its bytes spelled as
-    /// characters. Re-encoding those characters and decoding them as UTF-8 recovers the name; a name
-    /// that was ASCII, or that is not valid UTF-8, is left as it arrived.
+    /// A browser sends a non-ASCII name as UTF-8 bytes inside a quoted string, and a header parser
+    /// may read those bytes as Latin-1 — so the name arrives as its bytes spelled as characters.
+    /// Re-encoding those characters and decoding them as UTF-8 recovers it. The check before that
+    /// step matters: a parser that already decoded the name, or a name that really is Latin-1,
+    /// cannot make the round trip, because re-encoding replaces every character Latin-1 cannot
+    /// hold with '?'. A Chinese name in that situation would become "???", and sanitizing would
+    /// then turn it into "file".
     /// </remarks>
     private static string DecodeFileName(string? raw)
     {
@@ -305,15 +308,21 @@ internal static class FileUpload
             return Uri.UnescapeDataString(raw[7..]);
         }
 
+        var bytes = Encoding.Latin1.GetBytes(raw);
+        if (!string.Equals(Encoding.Latin1.GetString(bytes), raw, StringComparison.Ordinal))
+        {
+            // The parser has already turned the bytes into characters; the name is as it should be.
+            return raw;
+        }
+
         try
         {
-            var bytes = Encoding.Latin1.GetBytes(raw);
-            var decoded = Encoding.UTF8.GetString(bytes);
-
-            return decoded.Contains('\uFFFD', StringComparison.Ordinal) ? raw : decoded;
+            return new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true)
+                .GetString(bytes);
         }
-        catch (ArgumentException)
+        catch (DecoderFallbackException)
         {
+            // These are not UTF-8 bytes. The name is Latin-1 text, or ASCII, and needs no decoding.
             return raw;
         }
     }

@@ -447,6 +447,31 @@ public sealed class FileEndpointTests
     }
 
     [Fact]
+    public async Task A_file_with_a_Chinese_name_keeps_the_name_the_client_sent()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var folder = new TempFolder();
+        await using var host = await StartAsync(folder, cancellationToken);
+
+        var chinese = Encoding.UTF8.GetBytes("差旅标准");
+        var accented = Encoding.UTF8.GetBytes("naïve");
+        // The headers are written as UTF-8 bytes, as a browser writes them. The Python version
+        // reads them with the multipart charset, UTF-8 by default, and stores each file under the
+        // name it spells. A name already decoded as Unicode must survive too: re-encoding it as
+        // Latin-1 would turn its characters into '?' and then into "file".
+        using var body = new GatedUpload(accented.Length, ("差旅标准.csv", chinese), ("naïve.txt", accented));
+        var upload = host.Client.PostAsync("/gradio_api/upload", body, cancellationToken);
+        body.Release();
+
+        using var response = await upload;
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var paths = JsonNode.Parse(await response.Content.ReadAsStringAsync(cancellationToken))!.AsArray();
+
+        Assert.Equal("差旅标准.csv", Path.GetFileName(paths[0]!.GetValue<string>()));
+        Assert.Equal("naïve.txt", Path.GetFileName(paths[1]!.GetValue<string>()));
+    }
+
+    [Fact]
     public async Task A_file_whose_name_holds_a_percent_escape_is_served_by_its_own_address()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
